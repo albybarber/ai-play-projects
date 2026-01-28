@@ -210,14 +210,24 @@
             <p><strong>⚠️ Disclaimer:</strong> This calculator should be used as guidance only and not as an exact calculation of a bonus. Actual AIP payouts may vary based on additional factors, policy changes, or specific employment circumstances. Please consult official HR resources for authoritative information.</p>
         </div>
 
-        <div class="info-box">
-            <p><strong>Fiscal Year Period:</strong> November 30, 2024 - November 28, 2025 (364 days)</p>
+        <div class="info-box" id="periodInfo">
+            <p><strong>Fiscal Year Period:</strong> <span id="periodDisplay">November 30, 2024 - November 28, 2025 (364 days)</span></p>
         </div>
 
         <form id="aipForm">
             <div class="form-group">
-                <label for="startDate">Start Date</label>
-                <input type="date" id="startDate" required min="2024-11-30" max="2025-11-28">
+                <label for="fyStart">Fiscal Year Start</label>
+                <input type="date" id="fyStart" required value="2024-11-30">
+            </div>
+
+            <div class="form-group">
+                <label for="fyEnd">Fiscal Year End</label>
+                <input type="date" id="fyEnd" required value="2025-11-28">
+            </div>
+
+            <div class="form-group">
+                <label for="startDate">Your Start Date</label>
+                <input type="date" id="startDate" required>
             </div>
 
             <div class="form-group">
@@ -280,49 +290,69 @@
     </div>
 
     <script>
-        const FY_START = new Date('2024-11-30');
-        const FY_END = new Date('2025-11-28');
-        const TOTAL_DAYS = 364;
+        const fyStartInput = document.getElementById('fyStart');
+        const fyEndInput = document.getElementById('fyEnd');
+        const startDateInput = document.getElementById('startDate');
+        const periodDisplay = document.getElementById('periodDisplay');
+
+        function daysBetween(a, b) {
+            return Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function updatePeriodDisplay() {
+            const fyStart = new Date(fyStartInput.value);
+            const fyEnd = new Date(fyEndInput.value);
+            const totalDays = daysBetween(fyStart, fyEnd) + 1;
+            periodDisplay.textContent = `${formatDate(fyStart)} - ${formatDate(fyEnd)} (${totalDays} days)`;
+
+            startDateInput.min = fyStartInput.value;
+            startDateInput.max = fyEndInput.value;
+        }
+
+        fyStartInput.addEventListener('change', updatePeriodDisplay);
+        fyEndInput.addEventListener('change', updatePeriodDisplay);
+        updatePeriodDisplay();
+
+        // Set default start date to today if within the fiscal year
+        const today = new Date();
+        const fyStart = new Date(fyStartInput.value);
+        const fyEnd = new Date(fyEndInput.value);
+        if (today >= fyStart && today <= fyEnd) {
+            startDateInput.valueAsDate = today;
+        }
 
         document.getElementById('aipForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            const startDate = new Date(document.getElementById('startDate').value);
+
+            const fyEnd = new Date(fyEndInput.value);
+            const fyStart = new Date(fyStartInput.value);
+            const totalDays = daysBetween(fyStart, fyEnd) + 1;
+
+            const startDate = new Date(startDateInput.value);
             const salary = parseFloat(document.getElementById('salary').value);
             const aipTarget = parseFloat(document.getElementById('aipTarget').value) / 100;
             const corporateFactor = parseFloat(document.getElementById('corporateFactor').value) / 100;
             const individualFactor = parseFloat(document.getElementById('individualFactor').value) / 100;
 
-            // Calculate days worked
-            const startTime = startDate.getTime();
-            const endTime = FY_END.getTime();
-            const daysWorked = Math.round((endTime - startTime) / (1000 * 60 * 60 * 24)) + 1;
-
-            // Calculate proration
-            const proration = daysWorked / TOTAL_DAYS;
-
-            // Calculate targets
+            const daysWorked = daysBetween(startDate, fyEnd) + 1;
+            const proration = daysWorked / totalDays;
             const fullYearTarget = salary * aipTarget;
             const proratedTarget = fullYearTarget * proration;
-
-            // Calculate final payout
             const finalPayout = proratedTarget * corporateFactor * individualFactor;
 
-            // Display results
-            document.getElementById('daysWorked').textContent = `${daysWorked} days (of ${TOTAL_DAYS})`;
+            const fmt = (v) => `$${v.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('daysWorked').textContent = `${daysWorked} days (of ${totalDays})`;
             document.getElementById('proration').textContent = `${(proration * 100).toFixed(2)}%`;
-            document.getElementById('fullYearTarget').textContent = `$${fullYearTarget.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            document.getElementById('proratedTarget').textContent = `$${proratedTarget.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            document.getElementById('finalPayout').textContent = `$${finalPayout.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('fullYearTarget').textContent = fmt(fullYearTarget);
+            document.getElementById('proratedTarget').textContent = fmt(proratedTarget);
+            document.getElementById('finalPayout').textContent = fmt(finalPayout);
 
             document.getElementById('results').classList.add('show');
         });
-
-        // Set default date to today if within FY25
-        const today = new Date();
-        if (today >= FY_START && today <= FY_END) {
-            document.getElementById('startDate').valueAsDate = today;
-        }
     </script>
 </body>
 </html>
