@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prorated - AIP Bonus Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calculator {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="number"],
+        input[type="date"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus,
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-prefix {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 16px;
+        }
+
+        .input-suffix {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 16px;
+        }
+
+        input.with-prefix {
+            padding-left: 30px;
+        }
+
+        input.with-suffix {
+            padding-right: 35px;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+            margin-top: 10px;
+            padding-top: 20px;
+            border-top: 2px solid #667eea;
+        }
+
+        .result-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .result-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .final-payout {
+            font-size: 24px !important;
+            color: #667eea !important;
+        }
+
+        .final-label {
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            color: #333 !important;
+        }
+
+        .info-box {
+            background: #e8eaf6;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .info-box p {
+            color: #555;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .info-box strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>🎯 Prorated - AIP Bonus Calculator</h1>
+        <p class="subtitle">Annual Incentive Plan Calculator</p>
+
+        <div class="info-box" style="background: #fff3cd; border-left-color: #ffc107;">
+            <p><strong>⚠️ Disclaimer:</strong> This calculator should be used as guidance only and not as an exact calculation of a bonus. Actual AIP payouts may vary based on additional factors, policy changes, or specific employment circumstances. Please consult official HR resources for authoritative information.</p>
+        </div>
+
+        <div class="info-box">
+            <p><strong>Fiscal Year Period:</strong> November 30, 2024 - November 28, 2025 (364 days)</p>
+        </div>
+
+        <form id="aipForm">
+            <div class="form-group">
+                <label for="startDate">Start Date</label>
+                <input type="date" id="startDate" required min="2024-11-30" max="2025-11-28">
+            </div>
+
+            <div class="form-group">
+                <label for="salary">Annual Salary</label>
+                <div class="input-group">
+                    <span class="input-prefix">$</span>
+                    <input type="number" id="salary" class="with-prefix" required min="0" step="0.01" placeholder="100000">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="aipTarget">AIP Target %</label>
+                <div class="input-group">
+                    <input type="number" id="aipTarget" class="with-suffix" required min="0" max="100" step="0.01" placeholder="10">
+                    <span class="input-suffix">%</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="corporateFactor">Corporate Performance Factor %</label>
+                <div class="input-group">
+                    <input type="number" id="corporateFactor" class="with-suffix" required min="0" max="200" step="0.01" value="100">
+                    <span class="input-suffix">%</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="individualFactor">Individual Performance Factor %</label>
+                <div class="input-group">
+                    <input type="number" id="individualFactor" class="with-suffix" required min="0" max="200" step="0.01" placeholder="80">
+                    <span class="input-suffix">%</span>
+                </div>
+            </div>
+
+            <button type="submit" class="calculate-btn">Calculate AIP Bonus</button>
+        </form>
+
+        <div class="results" id="results">
+            <div class="result-row">
+                <span class="result-label">Days Worked</span>
+                <span class="result-value" id="daysWorked">-</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Period Proration</span>
+                <span class="result-value" id="proration">-</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Full Year Target</span>
+                <span class="result-value" id="fullYearTarget">-</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Prorated Target</span>
+                <span class="result-value" id="proratedTarget">-</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label final-label">Final AIP Payout</span>
+                <span class="result-value final-payout" id="finalPayout">-</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const FY_START = new Date('2024-11-30');
+        const FY_END = new Date('2025-11-28');
+        const TOTAL_DAYS = 364;
+
+        document.getElementById('aipForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const startDate = new Date(document.getElementById('startDate').value);
+            const salary = parseFloat(document.getElementById('salary').value);
+            const aipTarget = parseFloat(document.getElementById('aipTarget').value) / 100;
+            const corporateFactor = parseFloat(document.getElementById('corporateFactor').value) / 100;
+            const individualFactor = parseFloat(document.getElementById('individualFactor').value) / 100;
+
+            // Calculate days worked
+            const startTime = startDate.getTime();
+            const endTime = FY_END.getTime();
+            const daysWorked = Math.round((endTime - startTime) / (1000 * 60 * 60 * 24)) + 1;
+
+            // Calculate proration
+            const proration = daysWorked / TOTAL_DAYS;
+
+            // Calculate targets
+            const fullYearTarget = salary * aipTarget;
+            const proratedTarget = fullYearTarget * proration;
+
+            // Calculate final payout
+            const finalPayout = proratedTarget * corporateFactor * individualFactor;
+
+            // Display results
+            document.getElementById('daysWorked').textContent = `${daysWorked} days (of ${TOTAL_DAYS})`;
+            document.getElementById('proration').textContent = `${(proration * 100).toFixed(2)}%`;
+            document.getElementById('fullYearTarget').textContent = `$${fullYearTarget.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('proratedTarget').textContent = `$${proratedTarget.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('finalPayout').textContent = `$${finalPayout.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            document.getElementById('results').classList.add('show');
+        });
+
+        // Set default date to today if within FY25
+        const today = new Date();
+        if (today >= FY_START && today <= FY_END) {
+            document.getElementById('startDate').valueAsDate = today;
+        }
+    </script>
+</body>
+</html>
