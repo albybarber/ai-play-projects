@@ -4,7 +4,7 @@ A simple browser-based Annual Incentive Plan (AIP) bonus calculator with prorati
 
 ## Usage
 
-Open `aip-calculator.html` in a browser.
+[Open live demo](https://albybarber.github.io/ai-play-projects/aip-calculator/aip-calculator.html) or open `aip-calculator.html` locally in a browser.
 
 ## Inputs
 
