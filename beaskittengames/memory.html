@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bea's Kittens - Memory Game</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Georgia, serif;
+      background: #fef6f0;
+      color: #4a3728;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    #sparkles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    header {
+      text-align: center;
+      padding: 2rem 1rem 1rem;
+      background: linear-gradient(135deg, #f8a4c8, #fddde6, #f9b0d0);
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      color: #d4467a;
+      text-shadow: 0 0 20px rgba(255, 150, 200, 0.6);
+    }
+
+    header p {
+      font-size: 1rem;
+      color: #a0506a;
+      margin-top: 0.3rem;
+    }
+
+    .controls {
+      text-align: center;
+      padding: 1.2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .stats {
+      font-size: 1.1rem;
+      color: #b05a7a;
+    }
+
+    .stats span {
+      font-weight: bold;
+      color: #d4467a;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #e84393, #fd79a8);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.5rem;
+      font-size: 1rem;
+      font-family: Georgia, serif;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(232, 67, 147, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(232, 67, 147, 0.4);
+    }
+
+    select {
+      font-family: Georgia, serif;
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      border: 2px solid rgba(244, 170, 200, 0.5);
+      border-radius: 20px;
+      background: white;
+      color: #b05a7a;
+      cursor: pointer;
+    }
+
+    /* Player scoreboard for 2-player */
+    .scoreboard {
+      display: none;
+      justify-content: center;
+      gap: 2rem;
+      padding: 0.5rem 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .scoreboard.active { display: flex; }
+
+    .player-score {
+      padding: 0.6rem 1.5rem;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      color: #b05a7a;
+      border: 3px solid transparent;
+      transition: all 0.3s;
+      background: white;
+    }
+
+    .player-score span {
+      font-weight: bold;
+    }
+
+    .player-score.p1 { border-color: rgba(232, 67, 147, 0.2); }
+    .player-score.p2 { border-color: rgba(108, 92, 231, 0.2); }
+
+    .player-score.p1 span { color: #e84393; }
+    .player-score.p2 span { color: #6c5ce7; }
+
+    .player-score.current.p1 {
+      border-color: #e84393;
+      box-shadow: 0 0 15px rgba(232, 67, 147, 0.3);
+      background: #fff0f6;
+    }
+
+    .player-score.current.p2 {
+      border-color: #6c5ce7;
+      box-shadow: 0 0 15px rgba(108, 92, 231, 0.3);
+      background: #f0eeff;
+    }
+
+    .turn-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 0.2rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .player-score.current .turn-label { opacity: 1; }
+
+    .board {
+      display: grid;
+      gap: 0.8rem;
+      padding: 1.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+      perspective: 1000px;
+    }
+
+    .board.size-4 { grid-template-columns: repeat(4, 1fr); }
+    .board.size-6 { grid-template-columns: repeat(4, 1fr); max-width: 750px; }
+    .board.size-8 { grid-template-columns: repeat(4, 1fr); max-width: 900px; }
+
+    .card {
+      aspect-ratio: 1;
+      position: relative;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.5s;
+    }
+
+    .card.flipped { transform: rotateY(180deg); }
+    .card.matched { transform: rotateY(180deg); }
+
+    .card.matched-p1::after,
+    .card.matched-p2::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .card.matched::after {
+      border: 3px solid #e84393;
+      box-shadow: 0 0 20px rgba(232, 67, 147, 0.4);
+    }
+
+    .card.matched-p1::after {
+      border: 3px solid #e84393;
+      box-shadow: 0 0 20px rgba(232, 67, 147, 0.4);
+    }
+
+    .card.matched-p2::after {
+      border: 3px solid #6c5ce7;
+      box-shadow: 0 0 20px rgba(108, 92, 231, 0.4);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%; height: 100%;
+      backface-visibility: hidden;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .card-back {
+      background: linear-gradient(135deg, #f8a4c8, #fddde6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid rgba(244, 170, 200, 0.5);
+      box-shadow: 0 4px 12px rgba(212, 70, 122, 0.1);
+    }
+
+    .card-back .paw {
+      font-size: 2.5rem;
+      opacity: 0.4;
+    }
+
+    .card-front {
+      transform: rotateY(180deg);
+      border: 2px solid rgba(244, 170, 200, 0.3);
+      box-shadow: 0 4px 12px rgba(212, 70, 122, 0.1);
+    }
+
+    .card-front img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+
+    /* Win overlay */
+    .win-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(254, 246, 240, 0.95);
+      z-index: 1001;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .win-overlay.active { display: flex; }
+
+    .win-overlay h2 {
+      font-size: 2.5rem;
+      color: #d4467a;
+      text-shadow: 0 0 20px rgba(255, 150, 200, 0.6);
+    }
+
+    .win-overlay p {
+      font-size: 1.2rem;
+      color: #b05a7a;
+      text-align: center;
+      max-width: 500px;
+    }
+
+    .win-overlay .final-scores {
+      display: flex;
+      gap: 2rem;
+      font-size: 1.3rem;
+      margin: 0.5rem 0;
+    }
+
+    .win-overlay .final-scores .p1-final { color: #e84393; font-weight: bold; }
+    .win-overlay .final-scores .p2-final { color: #6c5ce7; font-weight: bold; }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      color: #c08a9a;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      .board { gap: 0.5rem; padding: 0.8rem; }
+      header h1 { font-size: 2rem; }
+      .card-back .paw { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="sparkles"></canvas>
+
+  <header>
+    <h1>Bea's Kittens</h1>
+    <p>Memory Match Game</p>
+  </header>
+
+  <div class="controls">
+    <div class="stats" id="solo-stats">
+      Moves: <span id="moves">0</span> &nbsp;
+      Matches: <span id="matches">0</span>/<span id="total-pairs">0</span> &nbsp;
+      Time: <span id="timer">0:00</span>
+    </div>
+    <select id="players" onchange="newGame()">
+      <option value="1" selected>1 Player</option>
+      <option value="2">2 Players</option>
+    </select>
+    <select id="difficulty" onchange="newGame()">
+      <option value="4">Easy (4 pairs)</option>
+      <option value="6">Medium (6 pairs)</option>
+      <option value="8" selected>Hard (8 pairs)</option>
+    </select>
+    <button class="btn" onclick="newGame()">New Game</button>
+  </div>
+
+  <div class="scoreboard" id="scoreboard">
+    <div class="player-score p1 current" id="p1-score">
+      <div>Player 1: <span id="p1-matches">0</span></div>
+      <div class="turn-label">Your turn</div>
+    </div>
+    <div class="player-score p2" id="p2-score">
+      <div>Player 2: <span id="p2-matches">0</span></div>
+      <div class="turn-label">Your turn</div>
+    </div>
+  </div>
+
+  <div id="board" class="board size-8"></div>
+
+  <div class="win-overlay" id="win-overlay">
+    <h2 id="win-title">You did it!</h2>
+    <div class="final-scores" id="final-scores" style="display:none;">
+      <div class="p1-final" id="p1-final"></div>
+      <div class="p2-final" id="p2-final"></div>
+    </div>
+    <p id="win-message"></p>
+    <button class="btn" onclick="newGame()">Play Again</button>
+  </div>
+
+  <footer>
+    <p><a href="index.html" style="color:#d4467a;text-decoration:none;">Back to Home</a></p>
+  </footer>
+
+  <script>
+    const allPhotos = [
+      "photos/00000PORTRAIT_00000_BURST20171130220206000.jpg",
+      "photos/00000PORTRAIT_00000_BURST20200419102538064.jpg",
+      "photos/00100dPORTRAIT_00100_BURST20171130220150604_COVER.jpg",
+      "photos/00100dPORTRAIT_00100_BURST20180504213815873_COVER.jpg",
+      "photos/00100dPORTRAIT_00100_BURST20180504213821239_COVER.jpg",
+      "photos/00100dPORTRAIT_00100_BURST20180504213844394_COVER.jpg",
+      "photos/00100lPORTRAIT_00100_BURST20190801224903354_COVER.jpg",
+      "photos/00100lrPORTRAIT_00100_BURST20200419102531720_COVER.jpg",
+      "photos/00100lrPORTRAIT_00100_BURST20200419102532920_COVER.jpg",
+      "photos/00100lrPORTRAIT_00100_BURST20200419102539247_COVER.jpg",
+      "photos/0EA6B872-A47C-4516-BFFB-E9C0772B07CB.jpg",
+      "photos/2012-04-21 14.18.47.jpg",
+      "photos/2012-05-05 16.00.28.jpg",
+      "photos/2012-05-06 10.32.29-1.jpg",
+      "photos/2012-05-14 21.44.42.jpg",
+      "photos/2012-05-14 21.44.51.jpg",
+      "photos/2012-06-11 22.41.22.jpg",
+      "photos/2012-06-17 13.19.05.jpg",
+      "photos/2012-06-25 23.01.09.jpg",
+      "photos/2012-07-08 12.30.59.jpg",
+      "photos/2012-08-27 21.04.52.jpg",
+      "photos/2012-09-08 13.01.00.jpg",
+      "photos/2012-12-29 23.33.00.jpg",
+      "photos/2013-05-26 10.50.39.jpg",
+      "photos/2013-09-07 11.45.34.jpg",
+      "photos/2013-12-20 22.03.10.jpg",
+      "photos/2014-02-23 15.12.21-1.jpg",
+      "photos/2014-03-16 10.28.06.jpg",
+      "photos/2014-03-31 11.48.40 HDR-1.jpg",
+      "photos/2014-06-17 22.46.11.jpg",
+      "photos/2014-07-03 23.39.57.jpg",
+      "photos/2014-07-07 09.03.08.jpg",
+      "photos/2014-07-13 12.44.34.jpg",
+      "photos/2014-07-13 12.45.53.jpg",
+      "photos/2014-07-31 19.22.05.jpg",
+      "photos/2014-08-01 07.30.19.jpg",
+      "photos/2014-09-06 13.16.31.jpg",
+      "photos/2014-11-05 21.59.00.jpg",
+      "photos/2014-11-16 20.23.54.jpg",
+      "photos/2014-11-30 21.31.02.jpg",
+      "photos/2015-06-02 21.52.59.jpg",
+      "photos/2015-06-23 15.58.21.jpg",
+      "photos/2015-07-17 08.37.33.jpg",
+      "photos/2015-08-19 19.55.04.jpg",
+      "photos/2015-08-19 19.55.06.jpg",
+      "photos/2015-09-07 12.55.59.jpg",
+      "photos/2015-10-27 20.22.18.jpg",
+      "photos/2015-10-27 20.22.41.jpg",
+      "photos/2015-10-27 20.24.42.jpg",
+      "photos/2015-10-27 20.24.46.jpg",
+      "photos/2015-12-03 08.18.34.jpg",
+      "photos/2015-12-03 08.19.04.jpg",
+      "photos/2016-01-31 18.03.25.jpg",
+      "photos/2016-02-21 13.42.54.jpg",
+      "photos/2016-02-21 13.43.02.jpg",
+      "photos/2016-02-21 13.43.15.jpg",
+      "photos/2016-03-31 21.43.47.jpg",
+      "photos/2016-12-04 14.19.14.jpg",
+      "photos/2017-02-06 08.38.30.jpg",
+      "photos/2018-05-04 21.38.28-2.jpg",
+      "photos/20201129_194232.jpg",
+      "photos/20210805_125636.jpg",
+      "photos/20211025_105554.jpg",
+      "photos/20220106_221224.jpg",
+      "photos/20230321_204834.jpg",
+      "photos/20230325_180819.jpg",
+      "photos/20230412_162747.jpg",
+      "photos/20230412_162801.jpg",
+      "photos/20230412_162803.jpg",
+      "photos/20230412_162812.jpg",
+      "photos/20230412_162822.jpg",
+      "photos/20230607_084935.jpg",
+      "photos/20230714_145050.jpg",
+      "photos/20230825_203300.jpg",
+      "photos/20231117_100548.jpg",
+      "photos/20240225_203358.jpg",
+      "photos/20240225_203405.jpg",
+      "photos/20240427_182459.jpg",
+      "photos/20240525_081432.jpg",
+      "photos/326.JPG",
+      "photos/35.JPG",
+      "photos/COLOR_POP.jpg",
+      "photos/DSC_0017.JPG",
+      "photos/IMG_20180216_195845.jpg",
+      "photos/IMG_20200901_205550.jpg",
+      "photos/MVIMG_20171025_195309.jpg",
+      "photos/P1000044.JPG",
+      "photos/P1000045.JPG",
+      "photos/P1000046.JPG",
+      "photos/P1000047.JPG",
+      "photos/P1000052.JPG",
+      "photos/P1000053.JPG",
+      "photos/P1000054.JPG",
+      "photos/P1020496.JPG",
+      "photos/P1020523.JPG",
+      "photos/PXL_20250121_132116244.jpg",
+      "photos/PXL_20250417_025348331.MP.jpg",
+      "photos/PXL_20250923_131415109.PORTRAIT.jpg",
+      "photos/julialorraine-79.jpg",
+      "photos/morocco 019.jpg",
+    ];
+
+    let moves = 0;
+    let matchCount = 0;
+    let totalPairs = 0;
+    let flippedCards = [];
+    let locked = false;
+    let timerInterval = null;
+    let seconds = 0;
+    let gameStarted = false;
+    let numPlayers = 1;
+    let currentPlayer = 1;
+    let playerScores = [0, 0];
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function updateTurnIndicator() {
+      const p1 = document.getElementById('p1-score');
+      const p2 = document.getElementById('p2-score');
+      p1.classList.toggle('current', currentPlayer === 1);
+      p2.classList.toggle('current', currentPlayer === 2);
+    }
+
+    function newGame() {
+      const numPairs = parseInt(document.getElementById('difficulty').value);
+      numPlayers = parseInt(document.getElementById('players').value);
+      totalPairs = numPairs;
+      moves = 0;
+      matchCount = 0;
+      flippedCards = [];
+      locked = false;
+      gameStarted = false;
+      seconds = 0;
+      currentPlayer = 1;
+      playerScores = [0, 0];
+      clearInterval(timerInterval);
+
+      // Toggle UI based on mode
+      const soloStats = document.getElementById('solo-stats');
+      const scoreboard = document.getElementById('scoreboard');
+
+      if (numPlayers === 1) {
+        soloStats.style.display = '';
+        scoreboard.classList.remove('active');
+        document.getElementById('moves').textContent = '0';
+        document.getElementById('matches').textContent = '0';
+        document.getElementById('total-pairs').textContent = numPairs;
+        document.getElementById('timer').textContent = '0:00';
+      } else {
+        soloStats.style.display = 'none';
+        scoreboard.classList.add('active');
+        document.getElementById('p1-matches').textContent = '0';
+        document.getElementById('p2-matches').textContent = '0';
+        updateTurnIndicator();
+      }
+
+      document.getElementById('win-overlay').classList.remove('active');
+
+      const board = document.getElementById('board');
+      board.className = 'board size-' + numPairs;
+      board.innerHTML = '';
+
+      const picked = shuffle([...allPhotos]).slice(0, numPairs);
+      const cards = shuffle([...picked, ...picked]);
+
+      cards.forEach((photo, i) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.photo = photo;
+        card.dataset.index = i;
+
+        card.innerHTML = `
+          <div class="card-face card-back">
+            <div class="paw">&#128062;</div>
+          </div>
+          <div class="card-face card-front">
+            <img src="${encodeURI(photo)}" alt="Kitten" loading="eager">
+          </div>
+        `;
+
+        card.addEventListener('click', () => flipCard(card));
+        board.appendChild(card);
+      });
+    }
+
+    function startTimer() {
+      if (gameStarted) return;
+      gameStarted = true;
+      if (numPlayers === 1) {
+        timerInterval = setInterval(() => {
+          seconds++;
+          const m = Math.floor(seconds / 60);
+          const s = seconds % 60;
+          document.getElementById('timer').textContent =
+            m + ':' + s.toString().padStart(2, '0');
+        }, 1000);
+      }
+    }
+
+    function flipCard(card) {
+      if (locked) return;
+      if (card.classList.contains('flipped')) return;
+      if (card.classList.contains('matched')) return;
+      if (flippedCards.length >= 2) return;
+
+      startTimer();
+
+      card.classList.add('flipped');
+      flippedCards.push(card);
+
+      if (flippedCards.length === 2) {
+        moves++;
+        if (numPlayers === 1) {
+          document.getElementById('moves').textContent = moves;
+        }
+        checkMatch();
+      }
+    }
+
+    function checkMatch() {
+      const [a, b] = flippedCards;
+      const match = a.dataset.photo === b.dataset.photo
+        && a.dataset.index !== b.dataset.index;
+
+      if (match) {
+        const playerClass = numPlayers === 2 ? 'matched-p' + currentPlayer : 'matched';
+        a.classList.add('matched', playerClass);
+        b.classList.add('matched', playerClass);
+        matchCount++;
+
+        if (numPlayers === 1) {
+          document.getElementById('matches').textContent = matchCount;
+        } else {
+          playerScores[currentPlayer - 1]++;
+          document.getElementById('p' + currentPlayer + '-matches').textContent =
+            playerScores[currentPlayer - 1];
+          // Current player gets another turn on match
+        }
+
+        flippedCards = [];
+
+        if (matchCount === totalPairs) {
+          clearInterval(timerInterval);
+          setTimeout(showWin, 600);
+        }
+      } else {
+        locked = true;
+        setTimeout(() => {
+          a.classList.remove('flipped');
+          b.classList.remove('flipped');
+          flippedCards = [];
+          locked = false;
+
+          // Switch turns in 2-player mode
+          if (numPlayers === 2) {
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateTurnIndicator();
+          }
+        }, 900);
+      }
+    }
+
+    function showWin() {
+      const winTitle = document.getElementById('win-title');
+      const winMsg = document.getElementById('win-message');
+      const finalScores = document.getElementById('final-scores');
+
+      if (numPlayers === 1) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        const time = m + ':' + s.toString().padStart(2, '0');
+        winTitle.textContent = 'You did it!';
+        winMsg.textContent =
+          `You matched all ${totalPairs} pairs in ${moves} moves and ${time}!`;
+        finalScores.style.display = 'none';
+      } else {
+        finalScores.style.display = 'flex';
+        document.getElementById('p1-final').textContent =
+          'Player 1: ' + playerScores[0];
+        document.getElementById('p2-final').textContent =
+          'Player 2: ' + playerScores[1];
+
+        if (playerScores[0] > playerScores[1]) {
+          winTitle.textContent = 'Player 1 wins!';
+          winMsg.textContent = 'Great memory!';
+        } else if (playerScores[1] > playerScores[0]) {
+          winTitle.textContent = 'Player 2 wins!';
+          winMsg.textContent = 'Great memory!';
+        } else {
+          winTitle.textContent = "It's a tie!";
+          winMsg.textContent = 'You both have amazing memory!';
+        }
+      }
+
+      document.getElementById('win-overlay').classList.add('active');
+    }
+
+    // Start first game
+    newGame();
+
+    // ---- Sparkles ----
+    const canvas = document.getElementById('sparkles');
+    const ctx = canvas.getContext('2d');
+    let sparkleList = [];
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    class Sparkle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 4 + 1;
+        this.speedY = Math.random() * 0.5 + 0.2;
+        this.speedX = (Math.random() - 0.5) * 0.3;
+        this.opacity = Math.random();
+        this.fadeSpeed = Math.random() * 0.02 + 0.005;
+        this.growing = Math.random() > 0.5;
+        const pinks = [
+          [255,105,180],[255,182,193],[255,150,200],
+          [255,200,220],[255,130,170],[248,180,210],
+        ];
+        this.color = pinks[Math.floor(Math.random() * pinks.length)];
+      }
+      update() {
+        this.y -= this.speedY;
+        this.x += this.speedX;
+        if (this.growing) {
+          this.opacity += this.fadeSpeed;
+          if (this.opacity >= 1) this.growing = false;
+        } else {
+          this.opacity -= this.fadeSpeed;
+          if (this.opacity <= 0) this.reset();
+        }
+      }
+      draw() {
+        const [r,g,b] = this.color;
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.globalAlpha = this.opacity;
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.beginPath();
+        const s = this.size;
+        for (let i = 0; i < 4; i++) {
+          const angle = (i * Math.PI) / 2;
+          ctx.lineTo(Math.cos(angle)*s*2.5, Math.sin(angle)*s*2.5);
+          const mid = angle + Math.PI/4;
+          ctx.lineTo(Math.cos(mid)*s*0.7, Math.sin(mid)*s*0.7);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = `rgba(${r},${g},${b},0.6)`;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    for (let i = 0; i < 60; i++) sparkleList.push(new Sparkle());
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const s of sparkleList) { s.update(); s.draw(); }
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

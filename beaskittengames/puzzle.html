@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bea's Kittens - Sliding Puzzle</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Georgia, serif;
+      background: #fef6f0;
+      color: #4a3728;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    #sparkles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    header {
+      text-align: center;
+      padding: 2rem 1rem 1rem;
+      background: linear-gradient(135deg, #f8a4c8, #fddde6, #f9b0d0);
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      color: #d4467a;
+      text-shadow: 0 0 20px rgba(255, 150, 200, 0.6);
+    }
+
+    header p { font-size: 1rem; color: #a0506a; margin-top: 0.3rem; }
+
+    .controls {
+      text-align: center;
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .stats { font-size: 1.1rem; color: #b05a7a; }
+    .stats span { font-weight: bold; color: #d4467a; }
+
+    .btn {
+      background: linear-gradient(135deg, #e84393, #fd79a8);
+      color: white; border: none;
+      padding: 0.6rem 1.5rem; font-size: 1rem;
+      font-family: Georgia, serif; border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(232, 67, 147, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(232, 67, 147, 0.4);
+    }
+
+    select {
+      font-family: Georgia, serif;
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      border: 2px solid rgba(244, 170, 200, 0.5);
+      border-radius: 20px;
+      background: white;
+      color: #b05a7a;
+      cursor: pointer;
+    }
+
+    .puzzle-area {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .puzzle-board {
+      display: grid;
+      gap: 3px;
+      background: #d4467a;
+      border-radius: 8px;
+      padding: 3px;
+      box-shadow: 0 4px 20px rgba(212, 70, 122, 0.2);
+    }
+
+    .tile {
+      background-size: cover;
+      background-position: center;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: transform 0.15s;
+      position: relative;
+    }
+
+    .tile:hover:not(.empty) {
+      transform: scale(0.96);
+    }
+
+    .tile.empty {
+      background: rgba(212, 70, 122, 0.15) !important;
+      cursor: default;
+    }
+
+    .preview-box {
+      text-align: center;
+    }
+
+    .preview-box p {
+      font-size: 0.9rem;
+      color: #b05a7a;
+      margin-bottom: 0.5rem;
+    }
+
+    .preview-box img {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 3px solid rgba(244, 170, 200, 0.5);
+      box-shadow: 0 4px 15px rgba(212, 70, 122, 0.15);
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(254, 246, 240, 0.95);
+      z-index: 1001;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .overlay.active { display: flex; }
+    .overlay h2 { font-size: 2.5rem; color: #d4467a; text-shadow: 0 0 20px rgba(255, 150, 200, 0.6); }
+    .overlay p { font-size: 1.2rem; color: #b05a7a; }
+
+    .overlay img {
+      width: 300px; height: 300px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 3px solid rgba(244, 170, 200, 0.5);
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      color: #c08a9a;
+      font-size: 0.9rem;
+    }
+
+    footer a { color: #d4467a; text-decoration: none; }
+
+    @media (max-width: 600px) {
+      .preview-box { display: none; }
+      header h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="sparkles"></canvas>
+
+  <header>
+    <h1>Sliding Puzzle</h1>
+    <p>Slide the tiles to complete the kitten picture!</p>
+  </header>
+
+  <div class="controls">
+    <div class="stats">Moves: <span id="moves">0</span></div>
+    <div class="stats">Time: <span id="timer">0:00</span></div>
+    <select id="size" onchange="newGame()">
+      <option value="3">3x3 (Easy)</option>
+      <option value="4" selected>4x4 (Medium)</option>
+      <option value="5">5x5 (Hard)</option>
+    </select>
+    <button class="btn" onclick="newGame()">New Puzzle</button>
+  </div>
+
+  <div class="puzzle-area">
+    <div id="board" class="puzzle-board"></div>
+    <div class="preview-box">
+      <p>Goal:</p>
+      <img id="preview" src="" alt="Target image">
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <h2>Puzzle Complete!</h2>
+    <img id="win-img" src="" alt="Completed puzzle">
+    <p id="win-message"></p>
+    <button class="btn" onclick="newGame()">New Puzzle</button>
+  </div>
+
+  <footer>
+    <p><a href="index.html">Back to Home</a></p>
+  </footer>
+
+  <script>
+    const photos = [
+      "photos/00000PORTRAIT_00000_BURST20171130220206000.jpg",
+      "photos/00000PORTRAIT_00000_BURST20200419102538064.jpg",
+      "photos/00100dPORTRAIT_00100_BURST20171130220150604_COVER.jpg",
+      "photos/00100dPORTRAIT_00100_BURST20180504213815873_COVER.jpg",
+      "photos/00100dPORTRAIT_00100_BURST20180504213821239_COVER.jpg",
+      "photos/00100dPORTRAIT_00100_BURST20180504213844394_COVER.jpg",
+      "photos/00100lPORTRAIT_00100_BURST20190801224903354_COVER.jpg",
+      "photos/00100lrPORTRAIT_00100_BURST20200419102531720_COVER.jpg",
+      "photos/00100lrPORTRAIT_00100_BURST20200419102532920_COVER.jpg",
+      "photos/00100lrPORTRAIT_00100_BURST20200419102539247_COVER.jpg",
+      "photos/0EA6B872-A47C-4516-BFFB-E9C0772B07CB.jpg",
+      "photos/2012-04-21 14.18.47.jpg",
+      "photos/2012-05-05 16.00.28.jpg",
+      "photos/2012-05-06 10.32.29-1.jpg",
+      "photos/2012-05-14 21.44.42.jpg",
+      "photos/2012-05-14 21.44.51.jpg",
+      "photos/2012-06-11 22.41.22.jpg",
+      "photos/2012-06-17 13.19.05.jpg",
+      "photos/2012-06-25 23.01.09.jpg",
+      "photos/2012-07-08 12.30.59.jpg",
+      "photos/2012-08-27 21.04.52.jpg",
+      "photos/2012-09-08 13.01.00.jpg",
+      "photos/2012-12-29 23.33.00.jpg",
+      "photos/2013-05-26 10.50.39.jpg",
+      "photos/2013-09-07 11.45.34.jpg",
+      "photos/2013-12-20 22.03.10.jpg",
+      "photos/2014-02-23 15.12.21-1.jpg",
+      "photos/2014-03-16 10.28.06.jpg",
+      "photos/2014-03-31 11.48.40 HDR-1.jpg",
+      "photos/2014-06-17 22.46.11.jpg",
+      "photos/2014-07-03 23.39.57.jpg",
+      "photos/2014-07-07 09.03.08.jpg",
+      "photos/2014-07-13 12.44.34.jpg",
+      "photos/2014-07-13 12.45.53.jpg",
+      "photos/2014-07-31 19.22.05.jpg",
+      "photos/2014-08-01 07.30.19.jpg",
+      "photos/2014-09-06 13.16.31.jpg",
+      "photos/2014-11-05 21.59.00.jpg",
+      "photos/2014-11-16 20.23.54.jpg",
+      "photos/2014-11-30 21.31.02.jpg",
+      "photos/2015-06-02 21.52.59.jpg",
+      "photos/2015-06-23 15.58.21.jpg",
+      "photos/2015-07-17 08.37.33.jpg",
+      "photos/2015-08-19 19.55.04.jpg",
+      "photos/2015-08-19 19.55.06.jpg",
+      "photos/2015-09-07 12.55.59.jpg",
+      "photos/2015-10-27 20.22.18.jpg",
+      "photos/2015-10-27 20.22.41.jpg",
+      "photos/2015-10-27 20.24.42.jpg",
+      "photos/2015-10-27 20.24.46.jpg",
+      "photos/2015-12-03 08.18.34.jpg",
+      "photos/2015-12-03 08.19.04.jpg",
+      "photos/2016-01-31 18.03.25.jpg",
+      "photos/2016-02-21 13.42.54.jpg",
+      "photos/2016-02-21 13.43.02.jpg",
+      "photos/2016-02-21 13.43.15.jpg",
+      "photos/2016-03-31 21.43.47.jpg",
+      "photos/2016-12-04 14.19.14.jpg",
+      "photos/2017-02-06 08.38.30.jpg",
+      "photos/2018-05-04 21.38.28-2.jpg",
+      "photos/20201129_194232.jpg",
+      "photos/20210805_125636.jpg",
+      "photos/20211025_105554.jpg",
+      "photos/20220106_221224.jpg",
+      "photos/20230321_204834.jpg",
+      "photos/20230325_180819.jpg",
+      "photos/20230412_162747.jpg",
+      "photos/20230412_162801.jpg",
+      "photos/20230412_162803.jpg",
+      "photos/20230412_162812.jpg",
+      "photos/20230412_162822.jpg",
+      "photos/20230607_084935.jpg",
+      "photos/20230714_145050.jpg",
+      "photos/20230825_203300.jpg",
+      "photos/20231117_100548.jpg",
+      "photos/20240225_203358.jpg",
+      "photos/20240225_203405.jpg",
+      "photos/20240427_182459.jpg",
+      "photos/20240525_081432.jpg",
+      "photos/326.JPG",
+      "photos/35.JPG",
+      "photos/COLOR_POP.jpg",
+      "photos/DSC_0017.JPG",
+      "photos/IMG_20180216_195845.jpg",
+      "photos/IMG_20200901_205550.jpg",
+      "photos/MVIMG_20171025_195309.jpg",
+      "photos/P1000044.JPG",
+      "photos/P1000045.JPG",
+      "photos/P1000046.JPG",
+      "photos/P1000047.JPG",
+      "photos/P1000052.JPG",
+      "photos/P1000053.JPG",
+      "photos/P1000054.JPG",
+      "photos/P1020496.JPG",
+      "photos/P1020523.JPG",
+      "photos/PXL_20250121_132116244.jpg",
+      "photos/PXL_20250417_025348331.MP.jpg",
+      "photos/PXL_20250923_131415109.PORTRAIT.jpg",
+      "photos/julialorraine-79.jpg",
+      "photos/morocco 019.jpg",
+    ];
+
+    let gridSize = 4;
+    let tiles = [];
+    let emptyIndex;
+    let moveCount = 0;
+    let seconds = 0;
+    let timerInterval = null;
+    let started = false;
+    let currentPhoto = '';
+    let solved = false;
+
+    function newGame() {
+      gridSize = parseInt(document.getElementById('size').value);
+      const total = gridSize * gridSize;
+      currentPhoto = encodeURI(photos[Math.floor(Math.random() * photos.length)]);
+      moveCount = 0;
+      seconds = 0;
+      started = false;
+      solved = false;
+      clearInterval(timerInterval);
+
+      document.getElementById('moves').textContent = '0';
+      document.getElementById('timer').textContent = '0:00';
+      document.getElementById('preview').src = currentPhoto;
+      document.getElementById('overlay').classList.remove('active');
+
+      // Create solved state: 0..n-2, then -1 for empty
+      tiles = [];
+      for (let i = 0; i < total - 1; i++) tiles.push(i);
+      tiles.push(-1);
+      emptyIndex = total - 1;
+
+      // Shuffle by making random valid moves
+      for (let i = 0; i < gridSize * 200; i++) {
+        const neighbors = getNeighbors(emptyIndex);
+        const pick = neighbors[Math.floor(Math.random() * neighbors.length)];
+        tiles[emptyIndex] = tiles[pick];
+        tiles[pick] = -1;
+        emptyIndex = pick;
+      }
+
+      render();
+    }
+
+    function getNeighbors(idx) {
+      const row = Math.floor(idx / gridSize);
+      const col = idx % gridSize;
+      const n = [];
+      if (row > 0) n.push(idx - gridSize);
+      if (row < gridSize - 1) n.push(idx + gridSize);
+      if (col > 0) n.push(idx - 1);
+      if (col < gridSize - 1) n.push(idx + 1);
+      return n;
+    }
+
+    function render() {
+      const board = document.getElementById('board');
+      const tileSize = Math.min(Math.floor((window.innerWidth - 300) / gridSize), Math.floor(500 / gridSize));
+      board.style.gridTemplateColumns = `repeat(${gridSize}, ${tileSize}px)`;
+      board.innerHTML = '';
+
+      const total = gridSize * gridSize;
+
+      tiles.forEach((tileNum, i) => {
+        const div = document.createElement('div');
+        div.className = 'tile' + (tileNum === -1 ? ' empty' : '');
+        div.style.width = tileSize + 'px';
+        div.style.height = tileSize + 'px';
+
+        if (tileNum !== -1) {
+          const srcRow = Math.floor(tileNum / gridSize);
+          const srcCol = tileNum % gridSize;
+          const bgSize = gridSize * 100;
+          div.style.backgroundImage = `url("${currentPhoto}")`;
+          div.style.backgroundSize = `${bgSize}% ${bgSize}%`;
+          div.style.backgroundPosition =
+            `${(srcCol / (gridSize - 1)) * 100}% ${(srcRow / (gridSize - 1)) * 100}%`;
+        }
+
+        div.addEventListener('click', () => clickTile(i));
+        board.appendChild(div);
+      });
+    }
+
+    function clickTile(idx) {
+      if (solved) return;
+      if (tiles[idx] === -1) return;
+
+      const neighbors = getNeighbors(idx);
+      if (!neighbors.includes(emptyIndex)) return;
+
+      if (!started) {
+        started = true;
+        timerInterval = setInterval(() => {
+          seconds++;
+          const m = Math.floor(seconds / 60);
+          const s = seconds % 60;
+          document.getElementById('timer').textContent =
+            m + ':' + s.toString().padStart(2, '0');
+        }, 1000);
+      }
+
+      tiles[emptyIndex] = tiles[idx];
+      tiles[idx] = -1;
+      emptyIndex = idx;
+      moveCount++;
+      document.getElementById('moves').textContent = moveCount;
+
+      render();
+      checkWin();
+    }
+
+    function checkWin() {
+      const total = gridSize * gridSize;
+      for (let i = 0; i < total - 1; i++) {
+        if (tiles[i] !== i) return;
+      }
+      // Solved!
+      solved = true;
+      clearInterval(timerInterval);
+
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      const time = m + ':' + s.toString().padStart(2, '0');
+
+      setTimeout(() => {
+        document.getElementById('win-img').src = currentPhoto;
+        document.getElementById('win-message').textContent =
+          `Completed in ${moveCount} moves and ${time}!`;
+        document.getElementById('overlay').classList.add('active');
+      }, 300);
+    }
+
+    // Handle keyboard
+    document.addEventListener('keydown', (e) => {
+      if (solved) return;
+      let target = -1;
+      const row = Math.floor(emptyIndex / gridSize);
+      const col = emptyIndex % gridSize;
+
+      if (e.key === 'ArrowUp' && row < gridSize - 1) target = emptyIndex + gridSize;
+      if (e.key === 'ArrowDown' && row > 0) target = emptyIndex - gridSize;
+      if (e.key === 'ArrowLeft' && col < gridSize - 1) target = emptyIndex + 1;
+      if (e.key === 'ArrowRight' && col > 0) target = emptyIndex - 1;
+
+      if (target >= 0) {
+        e.preventDefault();
+        clickTile(target);
+      }
+    });
+
+    newGame();
+
+    // ---- Sparkles ----
+    const canvas = document.getElementById('sparkles');
+    const ctx = canvas.getContext('2d');
+    let sparkleList = [];
+    function resize() { canvas.width = innerWidth; canvas.height = innerHeight; render(); }
+    resize(); addEventListener('resize', resize);
+    class Sparkle {
+      constructor(){this.reset();}
+      reset(){
+        this.x=Math.random()*canvas.width;this.y=Math.random()*canvas.height;
+        this.size=Math.random()*4+1;this.speedY=Math.random()*0.5+0.2;
+        this.speedX=(Math.random()-0.5)*0.3;this.opacity=Math.random();
+        this.fadeSpeed=Math.random()*0.02+0.005;this.growing=Math.random()>0.5;
+        const p=[[255,105,180],[255,182,193],[255,150,200],[255,200,220],[255,130,170],[248,180,210]];
+        this.color=p[Math.floor(Math.random()*p.length)];
+      }
+      update(){
+        this.y-=this.speedY;this.x+=this.speedX;
+        if(this.growing){this.opacity+=this.fadeSpeed;if(this.opacity>=1)this.growing=false;}
+        else{this.opacity-=this.fadeSpeed;if(this.opacity<=0)this.reset();}
+      }
+      draw(){
+        const[r,g,b]=this.color;ctx.save();ctx.translate(this.x,this.y);
+        ctx.globalAlpha=this.opacity;ctx.fillStyle=`rgb(${r},${g},${b})`;
+        ctx.beginPath();const s=this.size;
+        for(let i=0;i<4;i++){const a=(i*Math.PI)/2;ctx.lineTo(Math.cos(a)*s*2.5,Math.sin(a)*s*2.5);const m=a+Math.PI/4;ctx.lineTo(Math.cos(m)*s*0.7,Math.sin(m)*s*0.7);}
+        ctx.closePath();ctx.fill();ctx.shadowBlur=8;ctx.shadowColor=`rgba(${r},${g},${b},0.6)`;ctx.fill();ctx.restore();
+      }
+    }
+    for(let i=0;i<60;i++)sparkleList.push(new Sparkle());
+    function animateSparkles(){ctx.clearRect(0,0,canvas.width,canvas.height);for(const s of sparkleList){s.update();s.draw();}requestAnimationFrame(animateSparkles);}
+    animateSparkles();
+  </script>
+</body>
+</html>
