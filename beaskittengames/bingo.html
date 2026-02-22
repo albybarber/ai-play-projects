@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bea's Kittens - Bingo!</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Georgia, serif;
+      background: #fef6f0;
+      color: #4a3728;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    #sparkles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    header {
+      text-align: center;
+      padding: 1rem 1rem 0.75rem;
+      background: linear-gradient(135deg, #f8a4c8, #fddde6, #f9b0d0);
+      position: relative;
+    }
+
+    .home-btn {
+      position: absolute;
+      top: 0.8rem; left: 0.8rem;
+      text-decoration: none;
+      color: #d4467a;
+      font-size: 0.85rem;
+      border: 2px solid #d4467a;
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+      transition: all 0.2s;
+    }
+    .home-btn:hover { background: #d4467a; color: white; }
+
+    header h1 {
+      font-size: 2rem;
+      color: #d4467a;
+      text-shadow: 0 0 20px rgba(255, 150, 200, 0.6);
+    }
+
+    header p {
+      font-size: 0.9rem;
+      color: #a0506a;
+      margin-top: 0.2rem;
+    }
+
+    /* ── Caller section ── */
+    .caller-section {
+      text-align: center;
+      padding: 0.75rem 1rem;
+      background: white;
+      border-bottom: 2px solid #fddde6;
+    }
+
+    .caller-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .current-word-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 160px;
+      min-height: 56px;
+      background: linear-gradient(135deg, #f8a4c8, #fddde6);
+      border-radius: 14px;
+      padding: 0.4rem 1.2rem;
+      border: 3px solid #f48ab4;
+    }
+
+    .current-word-box .called-word {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #d4467a;
+      letter-spacing: 0.05em;
+    }
+
+    .current-word-box .waiting {
+      font-size: 1rem;
+      color: #c08a9a;
+      font-style: italic;
+    }
+
+    .call-btn {
+      padding: 0.65rem 1.8rem;
+      font-size: 1rem;
+      font-family: Georgia, serif;
+      background: #d4467a;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(212, 70, 122, 0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .call-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(212, 70, 122, 0.45); }
+    .call-btn:active:not(:disabled) { transform: translateY(0); }
+    .call-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .called-chips-row {
+      margin-top: 0.5rem;
+    }
+
+    .called-list-label {
+      font-size: 0.75rem;
+      color: #a0506a;
+      margin-bottom: 0.3rem;
+    }
+
+    .called-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      justify-content: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .chip {
+      background: #fce4ec;
+      color: #d4467a;
+      border-radius: 12px;
+      padding: 0.15rem 0.55rem;
+      font-size: 0.75rem;
+      border: 1px solid #f48ab4;
+    }
+
+    /* ── Boards layout ── */
+    .boards {
+      display: flex;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      width: 100%;
+      align-items: flex-start;
+    }
+
+    .player-section {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* ── Player header with editable name ── */
+    .player-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .player-photo {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #f48ab4;
+      box-shadow: 0 2px 8px rgba(212,70,122,0.2);
+      flex-shrink: 0;
+    }
+
+    .player-name-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      min-width: 0;
+    }
+
+    .player-name {
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      color: #d4467a;
+      font-weight: bold;
+      outline: none;
+      border-bottom: 2px solid transparent;
+      transition: border-color 0.2s;
+      cursor: text;
+      min-width: 20px;
+      max-width: 180px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .player-name:focus {
+      border-bottom-color: #d4467a;
+    }
+
+    .edit-icon {
+      font-size: 0.8rem;
+      color: #f48ab4;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .edit-icon:hover { opacity: 1; }
+
+    /* ── Bingo grid ── */
+    .bingo-letters {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 3px;
+      margin-bottom: 3px;
+    }
+
+    .bingo-letter {
+      background: #d4467a;
+      color: white;
+      text-align: center;
+      font-size: clamp(0.8rem, 2vw, 1.1rem);
+      font-weight: bold;
+      padding: 0.3rem 0;
+      border-radius: 6px 6px 0 0;
+      letter-spacing: 0.05em;
+    }
+
+    .bingo-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 3px;
+      width: 100%;
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border: 2px solid #fddde6;
+      border-radius: 6px;
+      font-size: clamp(0.55rem, 1.6vw, 1rem);
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s, border-color 0.2s;
+      padding: 3px;
+      line-height: 1.2;
+      word-break: break-word;
+      user-select: none;
+      color: #4a3728;
+      font-family: Georgia, serif;
+    }
+
+    .cell:hover:not(.marked):not(.free) {
+      border-color: #f48ab4;
+      background: #fff5f8;
+    }
+
+    .cell.marked {
+      background: linear-gradient(135deg, #f8a4c8, #fddde6);
+      border-color: #d4467a;
+      color: #d4467a;
+      font-weight: bold;
+      transform: scale(0.96);
+    }
+
+    .cell.free {
+      background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+      border-color: #f48ab4;
+      cursor: default;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .cell.free img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .cell.winning {
+      background: linear-gradient(135deg, #d4467a, #f48ab4) !important;
+      border-color: #a83060 !important;
+      color: white !important;
+      animation: pulse 0.6s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(0.95); }
+      to { transform: scale(1.02); }
+    }
+
+    .cell.not-called-flash {
+      animation: redflash 0.3s ease;
+    }
+    @keyframes redflash {
+      0% { border-color: #fddde6; }
+      50% { border-color: #e05080; background: #ffe0e8; }
+      100% { border-color: #fddde6; }
+    }
+
+    /* ── Win overlay ── */
+    .win-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(212, 70, 122, 0.85);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .win-overlay.show { display: flex; }
+
+    .win-box {
+      background: white;
+      border-radius: 24px;
+      padding: 2rem 2.5rem;
+      max-width: 380px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    .win-box img {
+      width: 160px;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 5px solid #f48ab4;
+      margin-bottom: 1rem;
+    }
+
+    .win-title {
+      font-size: 3rem;
+      color: #d4467a;
+      margin-bottom: 0.4rem;
+      text-shadow: 0 2px 8px rgba(212,70,122,0.3);
+    }
+
+    .win-subtitle {
+      font-size: 1.2rem;
+      color: #a0506a;
+      margin-bottom: 1.5rem;
+    }
+
+    .new-game-btn {
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      font-family: Georgia, serif;
+      background: #d4467a;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(212,70,122,0.35);
+      transition: transform 0.15s;
+    }
+    .new-game-btn:hover { transform: translateY(-2px); }
+
+    /* ── Bottom controls ── */
+    .game-controls {
+      text-align: center;
+      padding: 0.5rem 1rem 1rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      color: #c08a9a;
+      font-size: 0.8rem;
+    }
+
+    /* ── Setup overlay ── */
+    .setup-overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #f8a4c8 0%, #fddde6 40%, #f9b0d0 70%, #fce4ec 100%);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .setup-overlay.hidden {
+      display: none;
+    }
+
+    .setup-box {
+      background: white;
+      border-radius: 28px;
+      padding: 2.5rem 2.5rem 2rem;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 24px 80px rgba(212, 70, 122, 0.25);
+      text-align: center;
+    }
+
+    .setup-box h2 {
+      font-size: 2.6rem;
+      color: #d4467a;
+      text-shadow: 0 0 24px rgba(255, 150, 200, 0.7);
+      margin-bottom: 0.2rem;
+    }
+
+    .setup-box .tagline {
+      font-size: 0.95rem;
+      color: #a0506a;
+      margin-bottom: 2rem;
+      font-style: italic;
+    }
+
+    .name-field {
+      margin-bottom: 1.1rem;
+      text-align: left;
+    }
+
+    .name-field label {
+      display: block;
+      font-size: 0.85rem;
+      color: #a0506a;
+      margin-bottom: 0.35rem;
+      font-weight: bold;
+      letter-spacing: 0.03em;
+    }
+
+    .name-input {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      font-size: 1.1rem;
+      font-family: Georgia, serif;
+      color: #4a3728;
+      border: 2px solid #fddde6;
+      border-radius: 14px;
+      outline: none;
+      background: #fef6f0;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .name-input:focus {
+      border-color: #f48ab4;
+      box-shadow: 0 0 0 3px rgba(244, 138, 180, 0.2);
+    }
+
+    .name-input::placeholder {
+      color: #d4a0b4;
+    }
+
+    /* Glitter button */
+    .glitter-btn {
+      position: relative;
+      overflow: hidden;
+      margin-top: 1.4rem;
+      width: 100%;
+      padding: 1.1rem 2rem;
+      font-size: 1.4rem;
+      font-family: Georgia, serif;
+      font-weight: bold;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      background: linear-gradient(90deg, #d4467a, #e8709a, #f48ab4, #e8709a, #d4467a);
+      background-size: 300% 100%;
+      animation: glitter-shift 3s ease infinite;
+      box-shadow:
+        0 6px 24px rgba(212, 70, 122, 0.5),
+        0 2px 8px rgba(212, 70, 122, 0.3),
+        inset 0 1px 0 rgba(255,255,255,0.25);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .glitter-btn:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow:
+        0 10px 35px rgba(212, 70, 122, 0.6),
+        0 4px 12px rgba(212, 70, 122, 0.4),
+        inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+
+    .glitter-btn:active {
+      transform: translateY(0) scale(0.99);
+    }
+
+    /* Sweeping shimmer */
+    .glitter-btn::before {
+      content: '';
+      position: absolute;
+      top: -20%;
+      left: -80%;
+      width: 50%;
+      height: 140%;
+      background: linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.45) 50%, transparent 80%);
+      transform: skewX(-15deg);
+      animation: shimmer 2.4s ease-in-out infinite;
+    }
+
+    @keyframes glitter-shift {
+      0%   { background-position: 0% 0%; }
+      50%  { background-position: 100% 0%; }
+      100% { background-position: 0% 0%; }
+    }
+
+    @keyframes shimmer {
+      0%   { left: -80%; }
+      100% { left: 160%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Setup screen -->
+  <div class="setup-overlay" id="setupOverlay">
+    <div class="setup-box">
+      <h2>&#127183; Kitten Bingo!</h2>
+      <p class="tagline">Enter your names to get started</p>
+
+      <div class="name-field">
+        <label for="input1">&#127775; Player 1</label>
+        <input class="name-input" id="input1" type="text" maxlength="20" placeholder="Enter name..." autocomplete="off">
+      </div>
+
+      <div class="name-field">
+        <label for="input2">&#127775; Player 2</label>
+        <input class="name-input" id="input2" type="text" maxlength="20" placeholder="Enter name..." autocomplete="off">
+      </div>
+
+      <button class="glitter-btn" onclick="startGame()">&#10024; Let's Play! &#10024;</button>
+    </div>
+  </div>
+
+  <canvas id="sparkles"></canvas>
+
+  <header>
+    <a class="home-btn" href="index.html">&#8592; Home</a>
+    <h1>Kitten Bingo!</h1>
+    <p>2 Players &mdash; Take turns calling words &amp; daub your card!</p>
+  </header>
+
+  <!-- Caller -->
+  <div class="caller-section">
+    <div class="caller-row">
+      <div class="current-word-box" id="currentWordBox">
+        <span class="waiting" id="waitingText">Press Call to start!</span>
+        <span class="called-word" id="currentWord" style="display:none"></span>
+      </div>
+      <button class="call-btn" id="callBtn" onclick="callWord()">Call a Word!</button>
+    </div>
+    <div class="called-chips-row">
+      <div class="called-list-label" id="calledLabel" style="display:none">Words called so far:</div>
+      <div class="called-chips" id="calledChips"></div>
+    </div>
+  </div>
+
+  <!-- Boards -->
+  <div class="boards">
+    <div class="player-section">
+      <div class="player-header">
+        <img class="player-photo" id="p1photo" src="" alt="Kitten">
+        <div class="player-name-wrap">
+          <div class="player-name" id="p1name" contenteditable="true" spellcheck="false">Player 1</div>
+          <span class="edit-icon" title="Edit name" onclick="document.getElementById('p1name').focus()">&#9998;</span>
+        </div>
+      </div>
+      <div class="bingo-letters">
+        <div class="bingo-letter">B</div>
+        <div class="bingo-letter">I</div>
+        <div class="bingo-letter">N</div>
+        <div class="bingo-letter">G</div>
+        <div class="bingo-letter">O</div>
+      </div>
+      <div class="bingo-grid" id="board1"></div>
+    </div>
+
+    <div class="player-section">
+      <div class="player-header">
+        <img class="player-photo" id="p2photo" src="" alt="Kitten">
+        <div class="player-name-wrap">
+          <div class="player-name" id="p2name" contenteditable="true" spellcheck="false">Player 2</div>
+          <span class="edit-icon" title="Edit name" onclick="document.getElementById('p2name').focus()">&#9998;</span>
+        </div>
+      </div>
+      <div class="bingo-letters">
+        <div class="bingo-letter">B</div>
+        <div class="bingo-letter">I</div>
+        <div class="bingo-letter">N</div>
+        <div class="bingo-letter">G</div>
+        <div class="bingo-letter">O</div>
+      </div>
+      <div class="bingo-grid" id="board2"></div>
+    </div>
+  </div>
+
+  <div class="game-controls">
+    <button class="new-game-btn" onclick="showSetup()">New Game</button>
+  </div>
+
+  <!-- Win overlay -->
+  <div class="win-overlay" id="winOverlay">
+    <div class="win-box">
+      <img id="winPhoto" src="" alt="Kitten">
+      <div class="win-title">BINGO!</div>
+      <div class="win-subtitle" id="winSubtitle"></div>
+      <button class="new-game-btn" onclick="showSetup()">Play Again!</button>
+    </div>
+  </div>
+
+  <footer><p>Bea's Kittens &mdash; Bingo</p></footer>
+
+  <script>
+    const WORDS = [
+      'Bea', 'Minton', 'Barbie', 'Ken',
+      'Cat', 'Kitten', 'Dog',
+      'Taco', 'Banana',
+      'Baseball', 'Go', 'Hide', 'Bingo',
+      'Rainbow', 'Cool', 'Cute', 'Kind', 'Love',
+      'To', 'Have', 'And', 'I', 'Dot',
+      'Meow'
+    ]; // 24 words + 1 FREE center = 25 cells
+
+    const PHOTOS = [
+      'photos/PXL_20250923_131415109.PORTRAIT.jpg',
+      'photos/20240427_182459.jpg',
+      'photos/20230825_203300.jpg',
+      'photos/20230607_084935.jpg',
+      'photos/20231117_100548.jpg',
+      'photos/20230412_162812.jpg',
+      'photos/20230412_162747.jpg',
+      'photos/20240225_203358.jpg',
+      'photos/20210805_125636.jpg',
+      'photos/20201129_194232.jpg',
+      'photos/COLOR_POP.jpg',
+      'photos/julialorraine-79.jpg',
+      'photos/PXL_20250417_025348331.MP.jpg',
+      'photos/PXL_20250121_132116244.jpg',
+      'photos/20230321_204834.jpg',
+    ];
+
+    const WIN_LINES = [
+      [0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],
+      [0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],
+      [0,6,12,18,24],[4,8,12,16,20]
+    ];
+
+    const FREE_INDEX = 12;
+
+    let calledWords = [];
+    let pool = [];
+    let board1 = [], board2 = [];
+    let marked1 = [], marked2 = [];
+    let gameOver = false;
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function pickPhoto(exclude = []) {
+      const available = PHOTOS.filter(p => !exclude.includes(p));
+      return available[Math.floor(Math.random() * available.length)];
+    }
+
+    function getPlayerName(num) {
+      const el = document.getElementById(`p${num}name`);
+      return el.textContent.trim() || `Player ${num}`;
+    }
+
+    // Prevent Enter key from adding newlines in contenteditable names
+    document.getElementById('p1name').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+    document.getElementById('p2name').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+
+    // Allow Enter in setup inputs to move focus or start game
+    document.getElementById('input1').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('input2').focus(); });
+    document.getElementById('input2').addEventListener('keydown', e => { if (e.key === 'Enter') startGame(); });
+
+    function showSetup() {
+      document.getElementById('winOverlay').classList.remove('show');
+      document.getElementById('setupOverlay').classList.remove('hidden');
+      // Pre-fill inputs with current names so they can tweak rather than retype
+      const n1 = document.getElementById('p1name').textContent.trim();
+      const n2 = document.getElementById('p2name').textContent.trim();
+      if (n1 && n1 !== 'Player 1') document.getElementById('input1').value = n1;
+      if (n2 && n2 !== 'Player 2') document.getElementById('input2').value = n2;
+      document.getElementById('input1').focus();
+    }
+
+    function startGame() {
+      const raw1 = document.getElementById('input1').value.trim();
+      const raw2 = document.getElementById('input2').value.trim();
+      document.getElementById('p1name').textContent = raw1 || 'Player 1';
+      document.getElementById('p2name').textContent = raw2 || 'Player 2';
+      document.getElementById('setupOverlay').classList.add('hidden');
+      newGame();
+    }
+
+    function makeBoard() {
+      const words = shuffle(WORDS);
+      const cells = [];
+      for (let i = 0; i < 25; i++) {
+        if (i === FREE_INDEX) {
+          cells.push({ word: 'FREE', free: true });
+        } else {
+          const wi = i < FREE_INDEX ? i : i - 1;
+          cells.push({ word: words[wi], free: false });
+        }
+      }
+      return cells;
+    }
+
+    function renderBoard(cells, containerId, playerNum, freePhoto) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      cells.forEach((cell, idx) => {
+        const div = document.createElement('div');
+        div.className = 'cell' + (cell.free ? ' free marked' : '');
+        div.dataset.idx = idx;
+        if (cell.free) {
+          const img = document.createElement('img');
+          img.src = freePhoto;
+          img.alt = 'FREE';
+          div.appendChild(img);
+        } else {
+          div.textContent = cell.word;
+          div.addEventListener('click', () => handleClick(playerNum, idx));
+        }
+        container.appendChild(div);
+      });
+    }
+
+    function handleClick(playerNum, idx) {
+      if (gameOver) return;
+      const board = playerNum === 1 ? board1 : board2;
+      const marked = playerNum === 1 ? marked1 : marked2;
+      const cell = board[idx];
+
+      if (cell.free || marked[idx]) return;
+
+      const wordLower = cell.word.toLowerCase();
+      const isCalled = calledWords.some(w => w.toLowerCase() === wordLower);
+
+      if (!isCalled) {
+        const el = document.querySelector(`#board${playerNum} .cell[data-idx="${idx}"]`);
+        el.classList.add('not-called-flash');
+        setTimeout(() => el.classList.remove('not-called-flash'), 300);
+        return;
+      }
+
+      marked[idx] = true;
+      const el = document.querySelector(`#board${playerNum} .cell[data-idx="${idx}"]`);
+      el.classList.add('marked');
+
+      checkBingo(playerNum);
+    }
+
+    function checkBingo(playerNum) {
+      const marked = playerNum === 1 ? marked1 : marked2;
+      for (const line of WIN_LINES) {
+        if (line.every(i => marked[i])) {
+          triggerWin(playerNum, line);
+          return;
+        }
+      }
+    }
+
+    function triggerWin(playerNum, winLine) {
+      gameOver = true;
+      document.getElementById('callBtn').disabled = true;
+
+      const boardId = `board${playerNum}`;
+      winLine.forEach(idx => {
+        const el = document.querySelector(`#${boardId} .cell[data-idx="${idx}"]`);
+        if (el) el.classList.add('winning');
+      });
+
+      const winPhoto = pickPhoto();
+      document.getElementById('winPhoto').src = winPhoto;
+      document.getElementById('winSubtitle').textContent = `${getPlayerName(playerNum)} wins!`;
+      document.getElementById('winOverlay').classList.add('show');
+    }
+
+    function callWord() {
+      if (gameOver || pool.length === 0) return;
+
+      const word = pool.pop();
+      calledWords.push(word);
+
+      document.getElementById('waitingText').style.display = 'none';
+      const cwEl = document.getElementById('currentWord');
+      cwEl.style.display = 'block';
+      cwEl.textContent = word;
+
+      const box = document.getElementById('currentWordBox');
+      box.style.transition = 'none';
+      box.style.transform = 'scale(1.1)';
+      requestAnimationFrame(() => {
+        box.style.transition = 'transform 0.2s';
+        box.style.transform = 'scale(1)';
+      });
+
+      document.getElementById('calledLabel').style.display = 'block';
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = word;
+      document.getElementById('calledChips').prepend(chip);
+
+      if (pool.length === 0) {
+        document.getElementById('callBtn').disabled = true;
+        document.getElementById('callBtn').textContent = 'All words called!';
+      }
+    }
+
+    function newGame() {
+      gameOver = false;
+      calledWords = [];
+      pool = shuffle([...WORDS]);
+
+      board1 = makeBoard();
+      board2 = makeBoard();
+      marked1 = board1.map(c => c.free);
+      marked2 = board2.map(c => c.free);
+
+      const p1photo = pickPhoto();
+      const p2photo = pickPhoto([p1photo]);
+      const free1photo = pickPhoto([p1photo, p2photo]);
+      const free2photo = pickPhoto([p1photo, p2photo, free1photo]);
+
+      document.getElementById('p1photo').src = p1photo;
+      document.getElementById('p2photo').src = p2photo;
+
+      renderBoard(board1, 'board1', 1, free1photo);
+      renderBoard(board2, 'board2', 2, free2photo);
+
+      document.getElementById('waitingText').style.display = 'inline';
+      document.getElementById('currentWord').style.display = 'none';
+      document.getElementById('calledLabel').style.display = 'none';
+      document.getElementById('calledChips').innerHTML = '';
+      document.getElementById('callBtn').disabled = false;
+      document.getElementById('callBtn').textContent = 'Call a Word!';
+
+      document.getElementById('winOverlay').classList.remove('show');
+    }
+
+    showSetup();
+
+    // ── Sparkles ──
+    const canvas = document.getElementById('sparkles');
+    const ctx = canvas.getContext('2d');
+    let sparkleList = [];
+    function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+    resize();
+    addEventListener('resize', resize);
+    class Sparkle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 3 + 1;
+        this.speedY = Math.random() * 0.4 + 0.15;
+        this.speedX = (Math.random() - 0.5) * 0.25;
+        this.opacity = Math.random();
+        this.fadeSpeed = Math.random() * 0.015 + 0.004;
+        this.growing = Math.random() > 0.5;
+        const pinks = [[255,105,180],[255,182,193],[255,150,200],[255,200,220],[255,130,170],[248,180,210]];
+        this.color = pinks[Math.floor(Math.random() * pinks.length)];
+      }
+      update() {
+        this.y -= this.speedY; this.x += this.speedX;
+        if (this.growing) { this.opacity += this.fadeSpeed; if (this.opacity >= 1) this.growing = false; }
+        else { this.opacity -= this.fadeSpeed; if (this.opacity <= 0) this.reset(); }
+        if (this.y < -10) this.reset();
+      }
+      draw() {
+        const [r,g,b] = this.color;
+        ctx.save(); ctx.translate(this.x, this.y); ctx.globalAlpha = this.opacity;
+        ctx.fillStyle = `rgb(${r},${g},${b})`; ctx.beginPath();
+        const s = this.size;
+        for (let i = 0; i < 4; i++) {
+          const a = (i*Math.PI)/2; ctx.lineTo(Math.cos(a)*s*2.5, Math.sin(a)*s*2.5);
+          const m = a+Math.PI/4; ctx.lineTo(Math.cos(m)*s*0.7, Math.sin(m)*s*0.7);
+        }
+        ctx.closePath(); ctx.fill();
+        ctx.restore();
+      }
+    }
+    for (let i = 0; i < 50; i++) sparkleList.push(new Sparkle());
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const s of sparkleList) { s.update(); s.draw(); }
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>
