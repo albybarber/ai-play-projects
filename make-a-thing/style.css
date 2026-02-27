@@ -1004,6 +1004,359 @@ body {
   margin-top: 0.1rem;
 }
 
+/* ========== Theme Picker ========== */
+.theme-picker {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.theme-btn {
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  border: 2px solid #ccc;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.theme-btn.active {
+  border-color: var(--lego-blue);
+  background: var(--lego-blue);
+  color: white;
+}
+
+/* ========================================== */
+/* ========== ALBY'S PARTY THEME ========== */
+/* ========================================== */
+[data-theme="albys-party"] {
+  --lego-red: #ff3c7d;
+  --lego-blue: #00e5ff;
+  --lego-yellow: #ffd700;
+  --lego-green: #39ff14;
+  --lego-orange: #f5a623;
+  --lego-dark: #0a0a20;
+  --lego-gray: #2a2a5a;
+  --lego-light-gray: #4a4a7a;
+
+  --nature: #39ff14;
+  --vehicles: #00e5ff;
+  --buildings: #ff3c7d;
+  --things: #f5a623;
+
+  --bg: #12122e;
+  --text: #f0f0f0;
+  --text-muted: #8a8ab0;
+  --card-bg: #1e1e50;
+  --card-shadow: 0 4px 0 #0d0d25, 0 0 16px rgba(179, 71, 217, 0.2);
+  --brick-radius: 10px;
+}
+
+/* Background pattern — star dots */
+[data-theme="albys-party"] body,
+body[data-theme="albys-party"] {
+  background: #12122e;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Title — pixel font + neon green */
+[data-theme="albys-party"] .title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.8rem;
+  color: #39ff14;
+  text-shadow: 0 0 10px rgba(57, 255, 20, 0.5), 0 0 30px rgba(57, 255, 20, 0.2);
+  line-height: 1.4;
+}
+
+/* Logo block — dark purple with neon border */
+[data-theme="albys-party"] .lego-logo {
+  background: #2a1a4e;
+  box-shadow: 0 0 20px rgba(179, 71, 217, 0.4), inset 0 0 20px rgba(179, 71, 217, 0.1);
+  border: 2px solid rgba(179, 71, 217, 0.5);
+}
+
+[data-theme="albys-party"] .lego-logo .stud {
+  background: #b347d9;
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.3), 0 0 6px rgba(179, 71, 217, 0.5);
+  border: 2px solid rgba(255,255,255,0.1);
+}
+
+/* Subtitle */
+[data-theme="albys-party"] .subtitle {
+  color: #b347d9;
+}
+
+/* Primary button — neon green */
+[data-theme="albys-party"] .btn-primary {
+  background: #39ff14;
+  color: #0a0a20;
+  box-shadow: 0 4px 0 #1a8a0a, 0 0 12px rgba(57, 255, 20, 0.3);
+}
+
+[data-theme="albys-party"] .btn-primary:active {
+  box-shadow: 0 2px 0 #1a8a0a, 0 0 8px rgba(57, 255, 20, 0.3);
+}
+
+/* Secondary button — neon cyan border */
+[data-theme="albys-party"] .btn-secondary {
+  background: transparent;
+  color: #00e5ff;
+  border: 3px solid #00e5ff;
+  box-shadow: 0 4px 0 #004a55, 0 0 8px rgba(0, 229, 255, 0.15);
+}
+
+[data-theme="albys-party"] .btn-secondary:active {
+  box-shadow: 0 2px 0 #004a55;
+}
+
+/* Ghost button — neon cyan */
+[data-theme="albys-party"] .btn-ghost {
+  color: #00e5ff;
+}
+
+/* Theme picker in party mode */
+[data-theme="albys-party"] .theme-btn {
+  border-color: #4a4a7a;
+  color: #8a8ab0;
+}
+
+[data-theme="albys-party"] .theme-btn.active {
+  border-color: #b347d9;
+  background: #b347d9;
+  color: white;
+}
+
+/* Inputs — dark bg */
+[data-theme="albys-party"] .player-name-input {
+  background: #1a1a40;
+  border-color: #3a3a6a;
+  color: #f0f0f0;
+}
+
+[data-theme="albys-party"] .player-name-input:focus {
+  border-color: #00e5ff;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
+}
+
+[data-theme="albys-party"] .player-name-input::placeholder {
+  color: #5a5a8a;
+}
+
+/* Selects */
+[data-theme="albys-party"] .setup-options select {
+  background: #1a1a40;
+  border-color: #3a3a6a;
+  color: #f0f0f0;
+}
+
+/* Player number badge */
+[data-theme="albys-party"] .player-number {
+  background: #b347d9;
+}
+
+/* Remove player button */
+[data-theme="albys-party"] .btn-remove-player {
+  color: #5a5a8a;
+}
+
+/* Dice — dark with neon glow on category */
+[data-theme="albys-party"] .dice {
+  background: #2a2a5a;
+  box-shadow: 0 6px 0 #15153a, 0 0 16px rgba(179, 71, 217, 0.2);
+}
+
+[data-theme="albys-party"] .dice:active {
+  box-shadow: 0 3px 0 #15153a, 0 0 8px rgba(179, 71, 217, 0.2);
+}
+
+[data-theme="albys-party"] .dice.nature {
+  background: #1a3a1a;
+  box-shadow: 0 6px 0 #0a200a, 0 0 16px rgba(57, 255, 20, 0.3);
+}
+
+[data-theme="albys-party"] .dice.vehicles {
+  background: #0a2a3a;
+  box-shadow: 0 6px 0 #051520, 0 0 16px rgba(0, 229, 255, 0.3);
+}
+
+[data-theme="albys-party"] .dice.buildings {
+  background: #3a1a2a;
+  box-shadow: 0 6px 0 #200a15, 0 0 16px rgba(255, 60, 125, 0.3);
+}
+
+[data-theme="albys-party"] .dice.things {
+  background: #3a2a1a;
+  box-shadow: 0 6px 0 #201a0a, 0 0 16px rgba(245, 166, 35, 0.3);
+}
+
+/* Difficulty buttons — neon tinted */
+[data-theme="albys-party"] .btn-difficulty.easy {
+  background: #1a5a1a;
+  box-shadow: 0 4px 0 #0a300a, 0 0 10px rgba(57, 255, 20, 0.2);
+  text-shadow: 0 0 6px rgba(57, 255, 20, 0.4);
+}
+
+[data-theme="albys-party"] .btn-difficulty.medium {
+  background: #5a3a0a;
+  box-shadow: 0 4px 0 #3a2505, 0 0 10px rgba(245, 166, 35, 0.2);
+  text-shadow: 0 0 6px rgba(245, 166, 35, 0.4);
+}
+
+[data-theme="albys-party"] .btn-difficulty.hard {
+  background: #5a1a2a;
+  box-shadow: 0 4px 0 #3a0a15, 0 0 10px rgba(255, 60, 125, 0.2);
+  text-shadow: 0 0 6px rgba(255, 60, 125, 0.4);
+}
+
+/* Word card front */
+[data-theme="albys-party"] .word-card-front {
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+}
+
+/* Word card back — neon green */
+[data-theme="albys-party"] .word-card-back {
+  background: #1a4a1a;
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.3), 0 4px 0 #0a250a;
+  color: #39ff14;
+  text-shadow: 0 0 8px rgba(57, 255, 20, 0.5);
+}
+
+/* Guess card — neon cyan tint */
+[data-theme="albys-party"] .guess-card {
+  background: #0a2a3a;
+  box-shadow: 0 4px 0 #051520, 0 0 12px rgba(0, 229, 255, 0.2);
+}
+
+/* Guesser buttons */
+[data-theme="albys-party"] .btn-guesser {
+  background: #1e1e50;
+  color: #f0f0f0;
+  border-color: #b347d9;
+  box-shadow: 0 3px 0 #0d0d25, 0 0 8px rgba(179, 71, 217, 0.15);
+}
+
+/* Score rows */
+[data-theme="albys-party"] .score-row {
+  background: #1e1e50;
+  box-shadow: 0 3px 0 #0d0d25;
+}
+
+[data-theme="albys-party"] .score-row .score {
+  color: #39ff14;
+}
+
+[data-theme="albys-party"] .score-row.first-place {
+  border-color: #ffd700;
+  background: #2a2a1a;
+  box-shadow: 0 3px 0 #0d0d25, 0 0 10px rgba(255, 215, 0, 0.15);
+}
+
+/* Points gained */
+[data-theme="albys-party"] .score-result .points-gained {
+  color: #39ff14;
+  text-shadow: 0 0 6px rgba(57, 255, 20, 0.3);
+}
+
+/* Winner display — dark purple with neon */
+[data-theme="albys-party"] .winner-display {
+  background: #2a1a4e;
+  box-shadow: 0 0 20px rgba(179, 71, 217, 0.3), 0 4px 0 #15082a;
+  color: #ffd700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+/* Stat cards */
+[data-theme="albys-party"] .stat-card {
+  background: #1e1e50;
+  box-shadow: 0 3px 0 #0d0d25;
+}
+
+[data-theme="albys-party"] .stat-card .stat-value {
+  color: #00e5ff;
+}
+
+/* History rows */
+[data-theme="albys-party"] .history-row {
+  background: #1e1e50;
+  box-shadow: 0 2px 0 #0d0d25;
+}
+
+[data-theme="albys-party"] .history-row .history-result.correct {
+  color: #39ff14;
+}
+
+/* Scoreboard bar */
+[data-theme="albys-party"] .scoreboard-bar {
+  background: #0a0a20;
+  box-shadow: 0 -4px 12px rgba(179, 71, 217, 0.15);
+}
+
+[data-theme="albys-party"] .sb-player {
+  background: #1e1e50;
+}
+
+[data-theme="albys-party"] .sb-player.active {
+  background: #3a1a5a;
+  box-shadow: 0 0 0 2px #b347d9;
+}
+
+[data-theme="albys-party"] .sb-player.leading .sb-score {
+  background: #ffd700;
+  color: #0a0a20;
+}
+
+/* Timer */
+[data-theme="albys-party"] .timer-ring-bg {
+  stroke: #2a2a5a;
+}
+
+[data-theme="albys-party"] .timer-ring-progress {
+  stroke: #39ff14;
+}
+
+[data-theme="albys-party"] .timer-ring-progress.warning {
+  stroke: #ff3c7d;
+}
+
+[data-theme="albys-party"] .timer-container.warning .timer-text {
+  color: #ff3c7d;
+}
+
+/* Modals */
+[data-theme="albys-party"] .modal-overlay {
+  background: rgba(10, 10, 32, 0.8);
+}
+
+/* Checkbox accent */
+[data-theme="albys-party"] .timer-toggle input[type="checkbox"] {
+  accent-color: #b347d9;
+}
+
+/* h3 headings */
+[data-theme="albys-party"] h3 {
+  color: #8a8ab0;
+}
+
+/* Turn subtitle */
+[data-theme="albys-party"] .turn-subtitle {
+  color: #8a8ab0;
+  opacity: 1;
+}
+
+/* Builder card in party — remove yellow */
+[data-theme="albys-party"] .builder-card {
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+}
+
 /* ========== Utility ========== */
 .hidden {
   display: none !important;
@@ -1065,6 +1418,10 @@ input, select, textarea {
 @media (max-width: 400px) {
   .title {
     font-size: 2.2rem;
+  }
+
+  [data-theme="albys-party"] .title {
+    font-size: 1.4rem;
   }
 
   .btn-large {

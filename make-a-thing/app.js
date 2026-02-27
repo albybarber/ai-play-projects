@@ -1,4 +1,28 @@
 // ============================================
+// Theme System
+// ============================================
+function setTheme(name) {
+  if (name === 'standard') {
+    document.body.removeAttribute('data-theme');
+  } else {
+    document.body.setAttribute('data-theme', name);
+  }
+  localStorage.setItem('mat-theme', name);
+  // Update picker UI
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.theme === name);
+  });
+}
+
+function loadTheme() {
+  const saved = localStorage.getItem('mat-theme') || 'standard';
+  setTheme(saved);
+}
+
+// Apply theme immediately
+loadTheme();
+
+// ============================================
 // Word Database (~25 words per category/difficulty)
 // ============================================
 const words = {
@@ -503,7 +527,10 @@ function launchConfetti() {
   container.className = 'confetti-container';
   document.body.appendChild(container);
 
-  const colors = ['#d01012', '#0057a8', '#ffd700', '#00852b', '#f57c20'];
+  const isParty = document.body.getAttribute('data-theme') === 'albys-party';
+  const colors = isParty
+    ? ['#39ff14', '#00e5ff', '#b347d9', '#ff3c7d', '#ffd700']
+    : ['#d01012', '#0057a8', '#ffd700', '#00852b', '#f57c20'];
   const shapes = ['square', 'circle'];
 
   for (let i = 0; i < 40; i++) {
