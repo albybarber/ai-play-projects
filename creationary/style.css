@@ -1,0 +1,738 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --lego-red: #d01012;
+  --lego-blue: #0057a8;
+  --lego-yellow: #ffd700;
+  --lego-green: #00852b;
+  --lego-orange: #f57c20;
+  --lego-dark: #1e1e1e;
+  --lego-gray: #3a3a3a;
+  --lego-light-gray: #5a5a5a;
+
+  --nature: #00852b;
+  --vehicles: #0057a8;
+  --buildings: #d01012;
+  --things: #f57c20;
+
+  --bg: #fef9e7;
+  --text: #1e1e1e;
+  --text-muted: #7a7a7a;
+  --card-bg: #ffffff;
+  --card-shadow: 0 4px 0 #d4c96b, 0 6px 12px rgba(0,0,0,0.15);
+  --brick-radius: 10px;
+}
+
+body {
+  font-family: 'Fredoka', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  background-image:
+    radial-gradient(circle, rgba(0,0,0,0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ========== Screens ========== */
+.screen {
+  display: none;
+  min-height: 100dvh;
+}
+
+.screen.active {
+  display: flex;
+  justify-content: center;
+}
+
+.screen-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  padding-bottom: 5rem;
+  gap: 1rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.screen-inner.centered {
+  justify-content: center;
+  min-height: 100dvh;
+}
+
+/* ========== LEGO Studs ========== */
+.stud-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: -6px;
+  position: relative;
+  z-index: 1;
+}
+
+.stud-row.small {
+  gap: 8px;
+  margin-bottom: -4px;
+}
+
+.stud {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--lego-red);
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.3), 0 2px 2px rgba(0,0,0,0.15);
+}
+
+.stud-row.small .stud {
+  width: 16px;
+  height: 16px;
+}
+
+/* ========== Brick Card ========== */
+.brick-card {
+  background: var(--card-bg);
+  border-radius: var(--brick-radius);
+  box-shadow: var(--card-shadow);
+  padding: 1.25rem 1.5rem;
+  width: 100%;
+  text-align: center;
+}
+
+/* ========== Buttons ========== */
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.btn:active {
+  transform: scale(0.96) translateY(2px);
+}
+
+.btn-primary {
+  background: var(--lego-red);
+  color: white;
+  box-shadow: 0 4px 0 #a00e0e;
+}
+
+.btn-primary:active {
+  box-shadow: 0 2px 0 #a00e0e;
+}
+
+.btn-secondary {
+  background: var(--card-bg);
+  color: var(--text);
+  border: 3px solid var(--lego-dark);
+  box-shadow: 0 4px 0 #bbb;
+}
+
+.btn-secondary:active {
+  box-shadow: 0 2px 0 #bbb;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+.btn-large {
+  padding: 1rem 2.5rem;
+  font-size: 1.15rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+/* ========== Home ========== */
+.home-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.lego-logo {
+  background: var(--lego-yellow);
+  border-radius: 16px;
+  padding: 1.5rem 2rem 1.25rem;
+  box-shadow: 0 6px 0 #c9a600, 0 8px 16px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+.lego-logo .stud {
+  background: var(--lego-yellow);
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.2), 0 2px 2px rgba(0,0,0,0.1);
+  border: 2px solid rgba(0,0,0,0.1);
+}
+
+.title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--lego-dark);
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* ========== Player Setup ========== */
+#screen-setup .screen-inner {
+  padding-top: 2rem;
+}
+
+#player-inputs {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.player-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.player-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--lego-blue);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.player-name-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 3px solid #ddd;
+  background: white;
+  color: var(--text);
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.player-name-input:focus {
+  border-color: var(--lego-blue);
+}
+
+.btn-remove-player {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.setup-options {
+  margin: 0.25rem 0;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.setup-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.setup-options select {
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  border: 3px solid #ddd;
+  background: white;
+  color: var(--text);
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: 700;
+}
+
+/* ========== Turn Screen ========== */
+.round-info {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.builder-card {
+  background: var(--lego-yellow);
+  box-shadow: 0 4px 0 #c9a600, 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.builder-card .stud {
+  background: var(--lego-yellow);
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.2), 0 2px 2px rgba(0,0,0,0.1);
+  border: 2px solid rgba(0,0,0,0.1);
+}
+
+.builder-card h2 {
+  font-size: 1.8rem;
+}
+
+.turn-subtitle {
+  color: var(--lego-dark);
+  font-size: 1rem;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+/* ========== Dice ========== */
+#dice-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+}
+
+.dice {
+  width: 120px;
+  height: 120px;
+  border-radius: 16px;
+  background: var(--lego-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: white;
+  transition: transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  box-shadow: 0 6px 0 #222, 0 8px 12px rgba(0,0,0,0.3);
+}
+
+.dice:active {
+  transform: scale(0.95) translateY(3px);
+  box-shadow: 0 3px 0 #222, 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.dice.rolling {
+  animation: dice-roll 0.6s ease-out;
+}
+
+@keyframes dice-roll {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(90deg) scale(0.8); }
+  50% { transform: rotate(180deg) scale(1.1); }
+  75% { transform: rotate(270deg) scale(0.9); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.dice.nature { background: var(--nature); box-shadow: 0 6px 0 #005a1c, 0 8px 12px rgba(0,0,0,0.3); }
+.dice.vehicles { background: var(--vehicles); box-shadow: 0 6px 0 #003d75, 0 8px 12px rgba(0,0,0,0.3); }
+.dice.buildings { background: var(--buildings); box-shadow: 0 6px 0 #900c0c, 0 8px 12px rgba(0,0,0,0.3); }
+.dice.things { background: var(--things); box-shadow: 0 6px 0 #b85a10, 0 8px 12px rgba(0,0,0,0.3); }
+
+.dice-hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* ========== Difficulty Selection ========== */
+#difficulty-selection {
+  text-align: center;
+}
+
+#difficulty-selection > p {
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.difficulty-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-difficulty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  color: white;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-difficulty .pts {
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.btn-difficulty.easy {
+  background: var(--lego-green);
+  box-shadow: 0 4px 0 #005a1c;
+}
+
+.btn-difficulty.medium {
+  background: var(--lego-orange);
+  box-shadow: 0 4px 0 #b85a10;
+}
+
+.btn-difficulty.hard {
+  background: var(--lego-red);
+  box-shadow: 0 4px 0 #900c0c;
+}
+
+.btn-difficulty:active {
+  transform: scale(0.95) translateY(2px);
+}
+
+/* ========== Word Reveal ========== */
+.badge-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.category-badge, .difficulty-badge {
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: white;
+}
+
+.category-badge.nature { background: var(--nature); }
+.category-badge.vehicles { background: var(--vehicles); }
+.category-badge.buildings { background: var(--buildings); }
+.category-badge.things { background: var(--things); }
+
+.difficulty-badge.easy { background: var(--lego-green); }
+.difficulty-badge.medium { background: var(--lego-orange); }
+.difficulty-badge.hard { background: var(--lego-red); }
+
+.word-card {
+  width: 100%;
+  max-width: 340px;
+  min-height: 180px;
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  padding: 1.5rem;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.word-card-hidden, .word-card-revealed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.word-card.word-hidden .word-card-revealed {
+  display: none;
+}
+
+.word-card:not(.word-hidden) .word-card-hidden {
+  display: none;
+}
+
+.word-card:not(.word-hidden) {
+  background: var(--lego-green);
+  box-shadow: 0 4px 0 #005a1c, 0 6px 12px rgba(0,0,0,0.15);
+  color: white;
+}
+
+.tap-icon {
+  font-size: 2.5rem;
+}
+
+.word-card-hidden p {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.secret-word {
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.word-hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* ========== Guessing Phase ========== */
+.guess-card {
+  background: var(--lego-blue);
+  color: white;
+  box-shadow: 0 4px 0 #003d75, 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.guess-card h2 {
+  font-size: 1.8rem;
+}
+
+.guess-subtitle {
+  opacity: 0.8;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.guess-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* ========== Select Guesser ========== */
+#guesser-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.btn-guesser {
+  background: var(--card-bg);
+  color: var(--text);
+  border: 3px solid var(--lego-blue);
+  border-radius: 10px;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 3px 0 #ccc;
+}
+
+.btn-guesser:active {
+  transform: scale(0.97) translateY(2px);
+  box-shadow: 0 1px 0 #ccc;
+}
+
+/* ========== Score Result ========== */
+.score-result {
+  text-align: center;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  font-weight: 600;
+}
+
+.score-result .points-gained {
+  color: var(--lego-green);
+  font-weight: 700;
+}
+
+/* ========== Full Scoreboard ========== */
+.scoreboard-full {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card-bg);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  box-shadow: 0 3px 0 #ddd;
+}
+
+.score-row .rank {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  min-width: 2rem;
+  font-weight: 700;
+}
+
+.score-row .name {
+  flex: 1;
+  font-weight: 700;
+}
+
+.score-row .score {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--lego-red);
+}
+
+.score-row.first-place {
+  border: 3px solid var(--lego-yellow);
+  background: #fffdf0;
+}
+
+/* ========== Game Over ========== */
+.winner-display {
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  background: var(--lego-yellow);
+  box-shadow: 0 4px 0 #c9a600, 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.winner-display .trophy {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* ========== Running Scoreboard Bar ========== */
+.scoreboard-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--lego-dark);
+  padding: 0.5rem 0.75rem;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+}
+
+.scoreboard-bar-inner {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.sb-player {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--lego-gray);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+}
+
+.sb-player.active {
+  background: var(--lego-blue);
+  box-shadow: 0 0 0 2px var(--lego-yellow);
+}
+
+.sb-player .sb-score {
+  background: rgba(255,255,255,0.2);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.sb-player.leading .sb-score {
+  background: var(--lego-yellow);
+  color: var(--lego-dark);
+}
+
+/* ========== Utility ========== */
+.hidden {
+  display: none !important;
+}
+
+h2 {
+  text-align: center;
+}
+
+h3 {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 400px) {
+  .title {
+    font-size: 2.2rem;
+  }
+
+  .btn-large {
+    padding: 0.9rem 2rem;
+    font-size: 1.05rem;
+  }
+
+  .dice {
+    width: 100px;
+    height: 100px;
+  }
+
+  .secret-word {
+    font-size: 1.8rem;
+  }
+
+  .difficulty-buttons {
+    gap: 0.5rem;
+  }
+
+  .btn-difficulty {
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+  }
+
+  .sb-player {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+}

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creationary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Persistent Running Scoreboard (hidden until game starts) -->
+  <div id="scoreboard-bar" class="scoreboard-bar hidden">
+    <div id="scoreboard-bar-inner" class="scoreboard-bar-inner"></div>
+  </div>
+
+  <!-- Home Screen -->
+  <div id="screen-home" class="screen active">
+    <div class="home-content">
+      <div class="lego-logo">
+        <div class="stud-row">
+          <div class="stud"></div>
+          <div class="stud"></div>
+          <div class="stud"></div>
+          <div class="stud"></div>
+        </div>
+        <h1 class="title">Creationary</h1>
+      </div>
+      <p class="subtitle">The LEGO Building & Guessing Game</p>
+      <button class="btn btn-primary btn-large" onclick="showScreen('setup')">New Game</button>
+    </div>
+  </div>
+
+  <!-- Player Setup Screen -->
+  <div id="screen-setup" class="screen">
+    <div class="screen-inner">
+      <h2>Player Setup</h2>
+      <div id="player-inputs">
+        <div class="player-input-row">
+          <span class="player-number">1</span>
+          <input type="text" class="player-name-input" placeholder="Player 1" maxlength="20">
+          <button class="btn-remove-player" onclick="removePlayer(this)" title="Remove">&times;</button>
+        </div>
+        <div class="player-input-row">
+          <span class="player-number">2</span>
+          <input type="text" class="player-name-input" placeholder="Player 2" maxlength="20">
+          <button class="btn-remove-player" onclick="removePlayer(this)" title="Remove">&times;</button>
+        </div>
+      </div>
+      <button id="btn-add-player" class="btn btn-secondary" onclick="addPlayer()">+ Add Player</button>
+
+      <div class="setup-options">
+        <label>
+          Rounds per player:
+          <select id="rounds-select">
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </label>
+      </div>
+
+      <button class="btn btn-primary btn-large" onclick="startGame()">Start Game</button>
+      <button class="btn btn-ghost" onclick="showScreen('home')">Back</button>
+    </div>
+  </div>
+
+  <!-- Turn Screen -->
+  <div id="screen-turn" class="screen">
+    <div class="screen-inner">
+      <div class="round-info" id="round-info"></div>
+      <div class="brick-card builder-card">
+        <div class="stud-row small">
+          <div class="stud"></div>
+          <div class="stud"></div>
+        </div>
+        <h2 id="builder-name"></h2>
+        <p class="turn-subtitle">You are the builder!</p>
+      </div>
+      <div id="dice-container">
+        <div id="dice" class="dice" onclick="rollDice()">
+          <span id="dice-text">?</span>
+        </div>
+        <p class="dice-hint">Tap to roll category</p>
+      </div>
+      <div id="difficulty-selection" class="hidden">
+        <p>Choose difficulty:</p>
+        <div class="difficulty-buttons">
+          <button class="btn btn-difficulty easy" onclick="selectDifficulty('easy')">Easy<span class="pts">1 pt</span></button>
+          <button class="btn btn-difficulty medium" onclick="selectDifficulty('medium')">Medium<span class="pts">2 pts</span></button>
+          <button class="btn btn-difficulty hard" onclick="selectDifficulty('hard')">Hard<span class="pts">3 pts</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Word Reveal Screen -->
+  <div id="screen-word" class="screen">
+    <div class="screen-inner centered">
+      <div class="badge-row">
+        <div class="category-badge" id="category-badge"></div>
+        <div class="difficulty-badge" id="difficulty-badge"></div>
+      </div>
+      <div id="word-card" class="word-card word-hidden" onclick="toggleWord()">
+        <div class="word-card-hidden">
+          <span class="tap-icon">👆</span>
+          <p>Tap to reveal your word</p>
+        </div>
+        <div class="word-card-revealed">
+          <p class="secret-word" id="secret-word"></p>
+        </div>
+      </div>
+      <p class="word-hint" id="word-hint">Only the builder should look!</p>
+      <button class="btn btn-primary btn-large" onclick="startGuessing()">Ready to Build!</button>
+    </div>
+  </div>
+
+  <!-- Guessing Phase Screen -->
+  <div id="screen-guess" class="screen">
+    <div class="screen-inner centered">
+      <div class="badge-row">
+        <div class="category-badge" id="guess-category-badge"></div>
+        <div class="difficulty-badge" id="guess-difficulty-badge"></div>
+      </div>
+      <div class="brick-card guess-card">
+        <h2 id="guess-builder-name"></h2>
+        <p class="guess-subtitle">is building...</p>
+      </div>
+      <div class="guess-actions">
+        <button class="btn btn-primary btn-large" onclick="somebodyGuessed()">Someone Guessed It!</button>
+        <button class="btn btn-secondary btn-large" onclick="nobodyGuessed()">Nobody Guessed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Select Guesser Screen -->
+  <div id="screen-select-guesser" class="screen">
+    <div class="screen-inner centered">
+      <h2>Who guessed correctly?</h2>
+      <div id="guesser-buttons"></div>
+      <button class="btn btn-ghost" onclick="showScreen('guess')">Back</button>
+    </div>
+  </div>
+
+  <!-- Score Update Screen -->
+  <div id="screen-score" class="screen">
+    <div class="screen-inner centered">
+      <h2>Round Result</h2>
+      <div id="score-result" class="score-result brick-card"></div>
+      <h3>Standings</h3>
+      <div id="scoreboard-full" class="scoreboard-full"></div>
+      <button class="btn btn-primary btn-large" onclick="nextTurn()">Next Turn</button>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="screen-gameover" class="screen">
+    <div class="screen-inner centered">
+      <h2>Game Over!</h2>
+      <div id="winner-display" class="winner-display brick-card"></div>
+      <div id="final-scores" class="scoreboard-full"></div>
+      <button class="btn btn-primary btn-large" onclick="playAgain()">Play Again</button>
+      <button class="btn btn-ghost" onclick="showScreen('home')">Home</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
