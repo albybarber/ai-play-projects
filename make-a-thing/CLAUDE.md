@@ -1,7 +1,7 @@
-# Creationary — Claude Notes
+# Make-a-Thing — Claude Notes
 
 ## Project overview
-Companion web app for the physical LEGO Creationary board game. Handles game flow, scoring, category/word selection, and difficulty while players build with real LEGO bricks. Pure HTML/CSS/JS, no dependencies. Deployed via GitHub Pages at `https://albybarber.github.io/ai-play-projects/creationary/`.
+Companion web app for the physical LEGO Creationary board game. Handles game flow, scoring, category/word selection, and difficulty while players build with real LEGO bricks. Pure HTML/CSS/JS, no dependencies. Deployed via GitHub Pages at `https://albybarber.github.io/ai-play-projects/make-a-thing/`.
 
 ## File structure
 ```
