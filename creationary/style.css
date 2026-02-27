@@ -42,11 +42,21 @@ body {
 .screen {
   display: none;
   min-height: 100dvh;
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
 
 .screen.active {
   display: flex;
   justify-content: center;
+}
+
+.screen.visible {
+  opacity: 1;
+}
+
+.screen.fading-out {
+  opacity: 0;
 }
 
 .screen-inner {
@@ -197,7 +207,7 @@ body {
 
 /* ========== Player Setup ========== */
 #screen-setup .screen-inner {
-  padding-top: 2rem;
+  padding-top: 1.5rem;
 }
 
 #player-inputs {
@@ -342,8 +352,20 @@ body {
   box-shadow: 0 3px 0 #222, 0 4px 8px rgba(0,0,0,0.3);
 }
 
+.dice.shaking {
+  animation: dice-shake 0.3s ease-in-out;
+}
+
+@keyframes dice-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  20% { transform: translateX(-6px) rotate(-5deg); }
+  40% { transform: translateX(6px) rotate(5deg); }
+  60% { transform: translateX(-4px) rotate(-3deg); }
+  80% { transform: translateX(4px) rotate(3deg); }
+}
+
 .dice.rolling {
-  animation: dice-roll 0.6s ease-out;
+  animation: dice-roll 0.5s ease-out;
 }
 
 @keyframes dice-roll {
@@ -352,6 +374,17 @@ body {
   50% { transform: rotate(180deg) scale(1.1); }
   75% { transform: rotate(270deg) scale(0.9); }
   100% { transform: rotate(360deg) scale(1); }
+}
+
+.dice.landed {
+  animation: dice-land 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes dice-land {
+  0% { transform: scale(0.9); }
+  50% { transform: scale(1.15); }
+  75% { transform: scale(0.95); }
+  100% { transform: scale(1); }
 }
 
 .dice.nature { background: var(--nature); box-shadow: 0 6px 0 #005a1c, 0 8px 12px rgba(0,0,0,0.3); }
@@ -451,49 +484,62 @@ body {
 .difficulty-badge.medium { background: var(--lego-orange); }
 .difficulty-badge.hard { background: var(--lego-red); }
 
-.word-card {
+.word-card-perspective {
+  perspective: 800px;
   width: 100%;
   max-width: 340px;
+}
+
+.word-card {
+  width: 100%;
   min-height: 180px;
-  background: var(--card-bg);
-  border-radius: 16px;
-  box-shadow: var(--card-shadow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  padding: 1.5rem;
-  transition: background 0.3s, box-shadow 0.3s;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
 }
 
-.word-card-hidden, .word-card-revealed {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.word-card.word-hidden .word-card-revealed {
-  display: none;
-}
-
-.word-card:not(.word-hidden) .word-card-hidden {
-  display: none;
+.word-card.word-hidden {
+  transform: rotateY(0deg);
 }
 
 .word-card:not(.word-hidden) {
+  transform: rotateY(180deg);
+}
+
+.word-card-front, .word-card-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+}
+
+.word-card-front {
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+}
+
+.word-card-back {
   background: var(--lego-green);
   box-shadow: 0 4px 0 #005a1c, 0 6px 12px rgba(0,0,0,0.15);
   color: white;
+  transform: rotateY(180deg);
 }
 
 .tap-icon {
   font-size: 2.5rem;
 }
 
-.word-card-hidden p {
+.word-card-front p {
   color: var(--text-muted);
   font-weight: 600;
 }
@@ -509,6 +555,75 @@ body {
   color: var(--text-muted);
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+/* ========== Timer ========== */
+.timer-container {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.timer-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.timer-ring-bg {
+  fill: none;
+  stroke: #e0e0e0;
+  stroke-width: 6;
+}
+
+.timer-ring-progress {
+  fill: none;
+  stroke: var(--lego-green);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 282.74;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s linear, stroke 0.3s;
+}
+
+.timer-ring-progress.warning {
+  stroke: var(--lego-red);
+}
+
+.timer-container.warning {
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+
+@keyframes timer-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.timer-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.timer-container.warning .timer-text {
+  color: var(--lego-red);
+}
+
+.timer-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timer-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--lego-blue);
 }
 
 /* ========== Guessing Phase ========== */
@@ -577,6 +692,55 @@ body {
   font-weight: 700;
 }
 
+/* ========== Score Animations ========== */
+.points-animate {
+  display: inline-block;
+  animation: points-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes points-bounce {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Confetti */
+.confetti-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 200;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  top: -10px;
+  animation: confetti-fall 1.5s ease-out forwards;
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* Scoreboard bar score transition */
+.sb-score {
+  transition: transform 0.3s ease;
+}
+
+.sb-score.bump {
+  animation: score-bump 0.4s ease;
+}
+
+@keyframes score-bump {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
 /* ========== Full Scoreboard ========== */
 .scoreboard-full {
   width: 100%;
@@ -634,6 +798,73 @@ body {
   margin-bottom: 0.5rem;
 }
 
+/* ========== Game Summary ========== */
+.game-stats {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.stat-card {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 3px 0 #ddd;
+  text-align: center;
+  flex: 1;
+  min-width: 140px;
+}
+
+.stat-card .stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--lego-red);
+}
+
+.stat-card .stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.game-history {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.history-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card-bg);
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 0 #eee;
+  gap: 0.5rem;
+}
+
+.history-row .history-word {
+  font-weight: 700;
+  flex: 1;
+}
+
+.history-row .history-result {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.history-row .history-result.correct {
+  color: var(--lego-green);
+}
+
 /* ========== Running Scoreboard Bar ========== */
 .scoreboard-bar {
   position: fixed;
@@ -643,6 +874,7 @@ body {
   z-index: 100;
   background: var(--lego-dark);
   padding: 0.5rem 0.75rem;
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
   box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
 }
 
@@ -685,6 +917,93 @@ body {
   color: var(--lego-dark);
 }
 
+/* ========== Modal ========== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 1.5rem;
+  animation: modal-fade-in 0.2s ease;
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-card {
+  max-width: 340px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: modal-slide-up 0.25s ease;
+}
+
+@keyframes modal-slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-message {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.modal-actions .btn {
+  flex: 1;
+}
+
+/* ========== How to Play ========== */
+.how-to-play-card {
+  max-width: 380px;
+}
+
+.how-to-play-card h2 {
+  margin-bottom: 0.25rem;
+}
+
+.how-to-play-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.htp-step {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.htp-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  width: 2rem;
+  text-align: center;
+}
+
+.htp-step strong {
+  font-size: 0.95rem;
+}
+
+.htp-step p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 0.1rem;
+}
+
 /* ========== Utility ========== */
 .hidden {
   display: none !important;
@@ -700,6 +1019,46 @@ h3 {
   font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+/* ========== Mobile Polish ========== */
+
+/* Prevent zoom on inputs */
+input, select, textarea {
+  font-size: 16px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .screen {
+    transition: none;
+  }
+
+  .word-card {
+    transition: none;
+  }
+
+  .dice.rolling {
+    animation: none;
+  }
+
+  .dice.shaking {
+    animation: none;
+  }
+
+  .dice.landed {
+    animation: none;
+  }
+
+  .confetti-container {
+    display: none;
+  }
 }
 
 /* ========== Responsive ========== */

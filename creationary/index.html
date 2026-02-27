@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Creationary</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +17,7 @@
   </div>
 
   <!-- Home Screen -->
-  <div id="screen-home" class="screen active">
+  <div id="screen-home" class="screen active visible">
     <div class="home-content">
       <div class="lego-logo">
         <div class="stud-row">
@@ -30,12 +30,13 @@
       </div>
       <p class="subtitle">The LEGO Building & Guessing Game</p>
       <button class="btn btn-primary btn-large" onclick="showScreen('setup')">New Game</button>
+      <button class="btn btn-ghost" onclick="showHowToPlay()">How to Play</button>
     </div>
   </div>
 
   <!-- Player Setup Screen -->
   <div id="screen-setup" class="screen">
-    <div class="screen-inner">
+    <div class="screen-inner centered">
       <h2>Player Setup</h2>
       <div id="player-inputs">
         <div class="player-input-row">
@@ -61,6 +62,16 @@
             <option value="5">5</option>
           </select>
         </label>
+        <label class="timer-toggle">
+          <input type="checkbox" id="timer-enabled" checked>
+          Timer:
+          <select id="timer-duration">
+            <option value="30">30s</option>
+            <option value="60" selected>60s</option>
+            <option value="90">90s</option>
+            <option value="120">120s</option>
+          </select>
+        </label>
       </div>
 
       <button class="btn btn-primary btn-large" onclick="startGame()">Start Game</button>
@@ -70,13 +81,9 @@
 
   <!-- Turn Screen -->
   <div id="screen-turn" class="screen">
-    <div class="screen-inner">
+    <div class="screen-inner centered">
       <div class="round-info" id="round-info"></div>
-      <div class="brick-card builder-card">
-        <div class="stud-row small">
-          <div class="stud"></div>
-          <div class="stud"></div>
-        </div>
+      <div class="brick-card">
         <h2 id="builder-name"></h2>
         <p class="turn-subtitle">You are the builder!</p>
       </div>
@@ -94,6 +101,8 @@
           <button class="btn btn-difficulty hard" onclick="selectDifficulty('hard')">Hard<span class="pts">3 pts</span></button>
         </div>
       </div>
+      <button class="btn btn-ghost" onclick="skipTurn()">Skip Turn</button>
+      <button class="btn btn-ghost" onclick="confirmEndGame()">End Game</button>
     </div>
   </div>
 
@@ -104,17 +113,20 @@
         <div class="category-badge" id="category-badge"></div>
         <div class="difficulty-badge" id="difficulty-badge"></div>
       </div>
-      <div id="word-card" class="word-card word-hidden" onclick="toggleWord()">
-        <div class="word-card-hidden">
-          <span class="tap-icon">👆</span>
-          <p>Tap to reveal your word</p>
-        </div>
-        <div class="word-card-revealed">
-          <p class="secret-word" id="secret-word"></p>
+      <div class="word-card-perspective">
+        <div id="word-card" class="word-card word-hidden" onclick="toggleWord()">
+          <div class="word-card-front">
+            <span class="tap-icon">👆</span>
+            <p>Tap to reveal your word</p>
+          </div>
+          <div class="word-card-back">
+            <p class="secret-word" id="secret-word"></p>
+          </div>
         </div>
       </div>
       <p class="word-hint" id="word-hint">Only the builder should look!</p>
       <button class="btn btn-primary btn-large" onclick="startGuessing()">Ready to Build!</button>
+      <button class="btn btn-ghost" onclick="backToDifficulty()">Back to Difficulty</button>
     </div>
   </div>
 
@@ -125,6 +137,13 @@
         <div class="category-badge" id="guess-category-badge"></div>
         <div class="difficulty-badge" id="guess-difficulty-badge"></div>
       </div>
+      <div id="timer-container" class="timer-container hidden">
+        <svg class="timer-ring" viewBox="0 0 100 100">
+          <circle class="timer-ring-bg" cx="50" cy="50" r="45"/>
+          <circle id="timer-ring-progress" class="timer-ring-progress" cx="50" cy="50" r="45"/>
+        </svg>
+        <span id="timer-text" class="timer-text">60</span>
+      </div>
       <div class="brick-card guess-card">
         <h2 id="guess-builder-name"></h2>
         <p class="guess-subtitle">is building...</p>
@@ -132,6 +151,7 @@
       <div class="guess-actions">
         <button class="btn btn-primary btn-large" onclick="somebodyGuessed()">Someone Guessed It!</button>
         <button class="btn btn-secondary btn-large" onclick="nobodyGuessed()">Nobody Guessed</button>
+        <button class="btn btn-ghost" onclick="confirmEndGame()">End Game</button>
       </div>
     </div>
   </div>
@@ -162,8 +182,67 @@
       <h2>Game Over!</h2>
       <div id="winner-display" class="winner-display brick-card"></div>
       <div id="final-scores" class="scoreboard-full"></div>
+      <div id="game-stats" class="game-stats"></div>
+      <h3>Round History</h3>
+      <div id="game-history" class="game-history"></div>
       <button class="btn btn-primary btn-large" onclick="playAgain()">Play Again</button>
-      <button class="btn btn-ghost" onclick="showScreen('home')">Home</button>
+      <button class="btn btn-ghost" onclick="confirmGoHome()">Home</button>
+    </div>
+  </div>
+
+  <!-- How to Play Overlay -->
+  <div id="how-to-play" class="modal-overlay hidden" onclick="closeHowToPlay(event)">
+    <div class="modal-card brick-card how-to-play-card" onclick="event.stopPropagation()">
+      <h2>How to Play</h2>
+      <div class="how-to-play-content">
+        <div class="htp-step">
+          <span class="htp-icon">🎲</span>
+          <div>
+            <strong>Roll the dice</strong>
+            <p>Get a random category: Nature, Vehicles, Buildings, or Things</p>
+          </div>
+        </div>
+        <div class="htp-step">
+          <span class="htp-icon">📊</span>
+          <div>
+            <strong>Pick difficulty</strong>
+            <p>Easy (1pt), Medium (2pts), or Hard (3pts)</p>
+          </div>
+        </div>
+        <div class="htp-step">
+          <span class="htp-icon">👆</span>
+          <div>
+            <strong>Peek at your word</strong>
+            <p>Tap the card to see it — only the builder looks!</p>
+          </div>
+        </div>
+        <div class="htp-step">
+          <span class="htp-icon">🧱</span>
+          <div>
+            <strong>Build with LEGO</strong>
+            <p>Build the word using real LEGO bricks while others guess</p>
+          </div>
+        </div>
+        <div class="htp-step">
+          <span class="htp-icon">🏆</span>
+          <div>
+            <strong>Score points</strong>
+            <p>Correct guess: both guesser and builder earn points!</p>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="hideHowToPlay()">Got It!</button>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirm-modal" class="modal-overlay hidden" onclick="closeModal(event)">
+    <div class="modal-card brick-card" onclick="event.stopPropagation()">
+      <p id="confirm-message" class="modal-message"></p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="confirm-yes">Yes</button>
+        <button class="btn btn-secondary" id="confirm-no" onclick="hideModal()">Cancel</button>
+      </div>
     </div>
   </div>
 

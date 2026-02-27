@@ -117,7 +117,12 @@ let game = {
   currentWord: null,
   usedWords: new Set(),
   turnsThisRound: 0,
-  diceRolled: false
+  diceRolled: false,
+  timerEnabled: true,
+  timerDuration: 60,
+  timerInterval: null,
+  timerRemaining: 0,
+  history: []
 };
 
 const categories = ["nature", "vehicles", "buildings", "things"];
@@ -133,8 +138,8 @@ const difficultyPoints = { easy: 1, medium: 2, hard: 3 };
 // Screen Management
 // ============================================
 function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(`screen-${name}`).classList.add('active');
+  const current = document.querySelector('.screen.active');
+  const next = document.getElementById(`screen-${name}`);
 
   // Show/hide scoreboard bar during gameplay screens
   const bar = document.getElementById('scoreboard-bar');
@@ -144,6 +149,23 @@ function showScreen(name) {
     updateScoreboardBar();
   } else {
     bar.classList.add('hidden');
+  }
+
+  if (current && current !== next) {
+    current.classList.add('fading-out');
+    current.classList.remove('visible');
+    setTimeout(() => {
+      current.classList.remove('active', 'fading-out');
+      next.classList.add('active');
+      // Force reflow so the opacity transition triggers
+      void next.offsetWidth;
+      next.classList.add('visible');
+    }, 250);
+  } else {
+    if (current) current.classList.remove('active', 'visible');
+    next.classList.add('active');
+    void next.offsetWidth;
+    next.classList.add('visible');
   }
 }
 
@@ -217,8 +239,11 @@ function startGame() {
   game.currentPlayerIndex = 0;
   game.currentRound = 1;
   game.totalRounds = parseInt(document.getElementById('rounds-select').value);
+  game.timerEnabled = document.getElementById('timer-enabled').checked;
+  game.timerDuration = parseInt(document.getElementById('timer-duration').value);
   game.usedWords = new Set();
   game.turnsThisRound = 0;
+  game.history = [];
 
   startTurn();
 }
@@ -259,26 +284,35 @@ function rollDice() {
   const dice = document.getElementById('dice');
   const diceText = document.getElementById('dice-text');
 
-  dice.classList.add('rolling');
-
-  let ticks = 0;
-  const interval = setInterval(() => {
-    const cat = categories[ticks % 4];
-    diceText.textContent = `${categoryIcons[cat]} ${cat.charAt(0).toUpperCase() + cat.slice(1)}`;
-    dice.className = `dice rolling ${cat}`;
-    ticks++;
-  }, 80);
+  // Shake for anticipation first
+  dice.classList.add('shaking');
 
   setTimeout(() => {
-    clearInterval(interval);
-    const chosen = categories[Math.floor(Math.random() * 4)];
-    game.currentCategory = chosen;
-    dice.className = `dice ${chosen}`;
-    diceText.textContent = `${categoryIcons[chosen]} ${chosen.charAt(0).toUpperCase() + chosen.slice(1)}`;
-    document.querySelector('.dice-hint').textContent = '';
+    dice.classList.remove('shaking');
+    dice.classList.add('rolling');
 
-    document.getElementById('difficulty-selection').classList.remove('hidden');
-  }, 800);
+    let ticks = 0;
+    const interval = setInterval(() => {
+      const cat = categories[ticks % 4];
+      diceText.textContent = `${categoryIcons[cat]} ${cat.charAt(0).toUpperCase() + cat.slice(1)}`;
+      dice.className = `dice rolling ${cat}`;
+      ticks++;
+    }, 80);
+
+    setTimeout(() => {
+      clearInterval(interval);
+      const chosen = categories[Math.floor(Math.random() * 4)];
+      game.currentCategory = chosen;
+      dice.className = `dice landed ${chosen}`;
+      diceText.textContent = `${categoryIcons[chosen]} ${chosen.charAt(0).toUpperCase() + chosen.slice(1)}`;
+      document.querySelector('.dice-hint').textContent = '';
+
+      // Remove landed class after animation completes
+      setTimeout(() => dice.classList.remove('landed'), 350);
+
+      document.getElementById('difficulty-selection').classList.remove('hidden');
+    }, 500);
+  }, 300);
 }
 
 // ============================================
@@ -346,9 +380,62 @@ function startGuessing() {
     game.players[game.currentPlayerIndex];
 
   showScreen('guess');
+  startTimer();
+}
+
+// ============================================
+// Countdown Timer
+// ============================================
+function startTimer() {
+  stopTimer();
+  const container = document.getElementById('timer-container');
+  if (!game.timerEnabled) {
+    container.classList.add('hidden');
+    return;
+  }
+
+  container.classList.remove('hidden');
+  container.classList.remove('warning');
+
+  const ring = document.getElementById('timer-ring-progress');
+  const text = document.getElementById('timer-text');
+  const circumference = 2 * Math.PI * 45; // r=45
+  game.timerRemaining = game.timerDuration;
+
+  ring.classList.remove('warning');
+  ring.style.strokeDashoffset = '0';
+  text.textContent = game.timerRemaining;
+
+  game.timerInterval = setInterval(() => {
+    game.timerRemaining--;
+    text.textContent = game.timerRemaining;
+
+    const progress = 1 - (game.timerRemaining / game.timerDuration);
+    ring.style.strokeDashoffset = (circumference * progress).toFixed(2);
+
+    if (game.timerRemaining <= 10) {
+      ring.classList.add('warning');
+      container.classList.add('warning');
+    }
+
+    if (game.timerRemaining <= 0) {
+      stopTimer();
+      nobodyGuessed();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (game.timerInterval) {
+    clearInterval(game.timerInterval);
+    game.timerInterval = null;
+  }
+  const container = document.getElementById('timer-container');
+  container.classList.remove('warning');
 }
 
 function somebodyGuessed() {
+  stopTimer();
   const container = document.getElementById('guesser-buttons');
   container.innerHTML = '';
   game.players.forEach((name, i) => {
@@ -363,6 +450,7 @@ function somebodyGuessed() {
 }
 
 function nobodyGuessed() {
+  stopTimer();
   resolveGuess(null);
 }
 
@@ -372,6 +460,18 @@ function nobodyGuessed() {
 function resolveGuess(guesserIndex) {
   const pts = difficultyPoints[game.currentDifficulty];
   const builderIndex = game.currentPlayerIndex;
+
+  // Record history
+  game.history.push({
+    round: game.currentRound,
+    builder: game.players[builderIndex],
+    category: game.currentCategory,
+    difficulty: game.currentDifficulty,
+    word: game.currentWord,
+    guesser: guesserIndex !== null ? game.players[guesserIndex] : null,
+    points: pts
+  });
+
   let resultHTML = '';
 
   if (guesserIndex !== null) {
@@ -379,9 +479,11 @@ function resolveGuess(guesserIndex) {
     game.scores[guesserIndex] += pts;
     resultHTML = `
       <p>The word was: <strong>${game.currentWord}</strong></p>
-      <p><span class="points-gained">${game.players[guesserIndex]} +${pts}</span> (guessed correctly)</p>
-      <p><span class="points-gained">${game.players[builderIndex]} +${pts}</span> (builder)</p>
+      <p><span class="points-gained points-animate">${game.players[guesserIndex]} +${pts}</span> (guessed correctly)</p>
+      <p><span class="points-gained points-animate" style="animation-delay:0.2s">${game.players[builderIndex]} +${pts}</span> (builder)</p>
     `;
+    // Fire confetti on correct guess
+    setTimeout(() => launchConfetti(), 300);
   } else {
     resultHTML = `
       <p>The word was: <strong>${game.currentWord}</strong></p>
@@ -393,6 +495,33 @@ function resolveGuess(guesserIndex) {
   updateFullScoreboard('scoreboard-full');
   updateScoreboardBar();
   showScreen('score');
+}
+
+// ============================================
+// Confetti
+// ============================================
+function launchConfetti() {
+  const container = document.createElement('div');
+  container.className = 'confetti-container';
+  document.body.appendChild(container);
+
+  const colors = ['#d01012', '#0057a8', '#ffd700', '#00852b', '#f57c20'];
+  const shapes = ['square', 'circle'];
+
+  for (let i = 0; i < 40; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const shape = shapes[Math.floor(Math.random() * shapes.length)];
+    piece.style.background = color;
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.animationDelay = Math.random() * 0.5 + 's';
+    piece.style.animationDuration = (1 + Math.random() * 1) + 's';
+    if (shape === 'circle') piece.style.borderRadius = '50%';
+    container.appendChild(piece);
+  }
+
+  setTimeout(() => container.remove(), 2500);
 }
 
 function updateFullScoreboard(containerId) {
@@ -411,6 +540,72 @@ function updateFullScoreboard(containerId) {
       </div>
     `;
   }).join('');
+}
+
+// ============================================
+// How to Play
+// ============================================
+function showHowToPlay() {
+  document.getElementById('how-to-play').classList.remove('hidden');
+}
+
+function hideHowToPlay() {
+  document.getElementById('how-to-play').classList.add('hidden');
+}
+
+function closeHowToPlay(e) {
+  if (e.target === e.currentTarget) hideHowToPlay();
+}
+
+// ============================================
+// Modal / Confirmation
+// ============================================
+function showModal(message, onConfirm) {
+  const modal = document.getElementById('confirm-modal');
+  document.getElementById('confirm-message').textContent = message;
+  modal.classList.remove('hidden');
+
+  const yesBtn = document.getElementById('confirm-yes');
+  // Clone to remove old listeners
+  const newYes = yesBtn.cloneNode(true);
+  yesBtn.parentNode.replaceChild(newYes, yesBtn);
+  newYes.addEventListener('click', () => {
+    hideModal();
+    onConfirm();
+  });
+}
+
+function hideModal() {
+  document.getElementById('confirm-modal').classList.add('hidden');
+}
+
+function closeModal(e) {
+  if (e.target === e.currentTarget) hideModal();
+}
+
+function confirmEndGame() {
+  showModal('End the game early?', () => {
+    stopTimer();
+    endGame();
+  });
+}
+
+function confirmGoHome() {
+  showModal('Return to the home screen?', () => {
+    stopTimer();
+    showScreen('home');
+  });
+}
+
+function backToDifficulty() {
+  showScreen('turn');
+}
+
+// ============================================
+// Skip Turn
+// ============================================
+function skipTurn() {
+  nextTurn();
 }
 
 // ============================================
@@ -457,7 +652,38 @@ function endGame() {
 
   document.getElementById('winner-display').innerHTML = winnerHTML;
   updateFullScoreboard('final-scores');
+  renderGameSummary();
   showScreen('gameover');
+}
+
+function renderGameSummary() {
+  const h = game.history;
+  const totalCorrect = h.filter(e => e.guesser !== null).length;
+  const hardGuessed = h.filter(e => e.guesser !== null && e.difficulty === 'hard');
+  const hardestWord = hardGuessed.length > 0 ? hardGuessed[hardGuessed.length - 1].word : '—';
+  const maxPts = h.reduce((max, e) => e.guesser !== null && e.points > max ? e.points : max, 0);
+
+  const statsHTML = `
+    <div class="stat-card"><div class="stat-value">${totalCorrect}</div><div class="stat-label">Correct Guesses</div></div>
+    <div class="stat-card"><div class="stat-value">${hardestWord}</div><div class="stat-label">Hardest Guessed</div></div>
+    <div class="stat-card"><div class="stat-value">${maxPts > 0 ? maxPts + 'pts' : '—'}</div><div class="stat-label">Best Turn</div></div>
+  `;
+  document.getElementById('game-stats').innerHTML = statsHTML;
+
+  const historyHTML = h.map(e => {
+    const result = e.guesser
+      ? `<span class="history-result correct">${e.guesser} +${e.points}</span>`
+      : `<span class="history-result">No guess</span>`;
+    return `
+      <div class="history-row">
+        <span class="category-badge ${e.category}" style="padding:0.2rem 0.5rem;font-size:0.7rem">${categoryIcons[e.category]}</span>
+        <span class="history-word">${e.word}</span>
+        <span style="font-size:0.75rem;color:var(--text-muted)">${e.builder}</span>
+        ${result}
+      </div>
+    `;
+  }).join('');
+  document.getElementById('game-history').innerHTML = historyHTML;
 }
 
 function playAgain() {
@@ -466,5 +692,35 @@ function playAgain() {
   game.currentRound = 1;
   game.usedWords = new Set();
   game.turnsThisRound = 0;
+  game.history = [];
   startTurn();
 }
+
+// ============================================
+// Keyboard Support
+// ============================================
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+
+  // Setup screen: Enter starts game (unless in an input that's not the last)
+  const setupScreen = document.getElementById('screen-setup');
+  if (setupScreen.classList.contains('active')) {
+    const inputs = setupScreen.querySelectorAll('.player-name-input');
+    const focused = document.activeElement;
+    const focusedIndex = Array.from(inputs).indexOf(focused);
+    if (focusedIndex >= 0 && focusedIndex < inputs.length - 1) {
+      inputs[focusedIndex + 1].focus();
+    } else {
+      startGame();
+    }
+    e.preventDefault();
+    return;
+  }
+
+  // Score screen: Enter advances to next turn
+  const scoreScreen = document.getElementById('screen-score');
+  if (scoreScreen.classList.contains('active')) {
+    nextTurn();
+    e.preventDefault();
+  }
+});
