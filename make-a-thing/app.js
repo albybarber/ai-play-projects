@@ -5,16 +5,16 @@ const words = {
   nature: {
     easy: [
       "Tree", "Flower", "Dog", "Cat", "Fish", "Bird", "Sun", "Moon",
-      "Star", "Butterfly", "Frog", "Snail", "Bee", "Mushroom", "Leaf",
-      "Snake", "Turtle", "Rabbit", "Duck", "Ladybug", "Rainbow", "Cloud",
-      "Mountain", "Cactus", "Whale"
+      "Star", "Frog", "Snail", "Mushroom", "Snake", "Turtle", "Duck",
+      "Rainbow", "Cloud", "Mountain", "Cactus", "Rock", "Egg", "Bone",
+      "Nest", "Log", "Hill"
     ],
     medium: [
-      "Palm Tree", "Octopus", "Penguin", "Seahorse", "Scorpion",
-      "Volcano", "Waterfall", "Coral Reef", "Porcupine", "Bat",
-      "Crocodile", "Jellyfish", "Parrot", "Sunflower", "Dragonfly",
-      "Owl", "Flamingo", "Peacock", "Starfish", "Hedgehog",
-      "Chameleon", "Elephant", "Giraffe", "Deer", "Wolf"
+      "Palm Tree", "Octopus", "Penguin", "Volcano", "Whale",
+      "Crocodile", "Sunflower", "Owl", "Elephant", "Giraffe",
+      "Deer", "Wolf", "Bat", "Butterfly", "Rabbit", "Parrot",
+      "Starfish", "Ladybug", "Hedgehog", "Bee", "Leaf",
+      "Seahorse", "Flamingo", "Jellyfish", "Porcupine"
     ],
     hard: [
       "Bonsai Tree", "Venus Flytrap", "Coral", "Narwhal", "Platypus",
@@ -26,19 +26,18 @@ const words = {
   },
   vehicles: {
     easy: [
-      "Car", "Truck", "Bus", "Boat", "Train", "Airplane", "Bicycle",
-      "Motorcycle", "Helicopter", "Rocket", "Tractor", "Taxi",
-      "Ambulance", "Fire Truck", "Canoe", "Skateboard", "Scooter",
-      "Van", "Jet", "Raft", "Sailboat", "Wagon", "Sled",
-      "Hot Air Balloon", "Submarine"
+      "Car", "Truck", "Bus", "Boat", "Train", "Airplane", "Rocket",
+      "Tractor", "Taxi", "Van", "Raft", "Sailboat", "Wagon", "Sled",
+      "Canoe", "Jet", "Scooter", "Skateboard", "Fire Truck", "Ambulance",
+      "Trailer", "Cart", "Ship", "Bike", "Sleigh"
     ],
     medium: [
-      "Monster Truck", "Cruise Ship", "Fighter Jet", "Dump Truck",
-      "Double Decker Bus", "Speedboat", "Hang Glider", "Bulldozer",
-      "Forklift", "Gondola", "Hovercraft", "Ice Cream Truck",
-      "Limousine", "Race Car", "Rickshaw", "Segway", "Tandem Bicycle",
-      "Tow Truck", "Unicycle", "Yacht", "Cement Mixer", "Crane Truck",
-      "Go-Kart", "Jet Ski", "Kayak"
+      "Helicopter", "Submarine", "Monster Truck", "Dump Truck",
+      "Bulldozer", "Race Car", "Tow Truck", "Speedboat",
+      "Hot Air Balloon", "Motorcycle", "Cruise Ship", "Go-Kart",
+      "Ice Cream Truck", "Kayak", "Forklift", "Crane Truck",
+      "Cement Mixer", "Bicycle", "Yacht", "Double Decker Bus",
+      "Limousine", "Jet Ski", "Unicycle", "Fighter Jet", "Gondola"
     ],
     hard: [
       "Catamaran", "Zeppelin", "Chariot", "Dog Sled", "Lunar Rover",
@@ -52,18 +51,18 @@ const words = {
   },
   buildings: {
     easy: [
-      "House", "Castle", "Bridge", "Tower", "Church", "School",
-      "Hospital", "Barn", "Lighthouse", "Tent", "Igloo", "Garage",
-      "Shed", "Shop", "Hotel", "Hut", "Fence", "Gate", "Well",
-      "Doghouse", "Treehouse", "Windmill", "Mailbox", "Chimney",
-      "Playground"
+      "House", "Tower", "Bridge", "Wall", "Fence", "Gate", "Tent",
+      "Barn", "Shed", "Hut", "Igloo", "Well", "Steps", "Chimney",
+      "Doghouse", "Castle", "Shop", "Garage", "Arch", "Ramp",
+      "Door", "Roof", "Pillar", "Bench", "Table"
     ],
     medium: [
-      "Skyscraper", "Stadium", "Museum", "Pyramid", "Temple",
-      "Prison", "Airport", "Train Station", "Clock Tower", "Greenhouse",
-      "Library", "Observatory", "Palace", "Pier", "Water Tower",
-      "Amusement Park", "Aquarium", "Fire Station", "Gas Station",
-      "Shopping Mall", "Cabin", "Cottage", "Pagoda", "Arch", "Gazebo"
+      "Church", "School", "Hospital", "Lighthouse", "Windmill",
+      "Treehouse", "Hotel", "Pyramid", "Cabin", "Cottage",
+      "Fire Station", "Gas Station", "Pier", "Playground",
+      "Skyscraper", "Train Station", "Clock Tower", "Water Tower",
+      "Library", "Palace", "Stadium", "Greenhouse", "Mailbox",
+      "Gazebo", "Temple"
     ],
     hard: [
       "Colosseum", "Taj Mahal", "Eiffel Tower", "Great Wall",
@@ -77,19 +76,18 @@ const words = {
   },
   things: {
     easy: [
-      "Chair", "Table", "Cup", "Hat", "Key", "Shoe", "Book",
-      "Clock", "Lamp", "Guitar", "Sword", "Crown", "Camera",
-      "Umbrella", "Ladder", "Glasses", "Candle", "Bell", "Flag",
-      "Trophy", "Hammer", "Scissors", "Pencil", "Pizza", "Cake"
+      "Chair", "Table", "Cup", "Hat", "Bed", "Shoe", "Book",
+      "Lamp", "Sword", "Crown", "Ladder", "Candle", "Flag",
+      "Hammer", "Pencil", "Cake", "Box", "Bottle", "Bowl",
+      "Spoon", "Cross", "Ring", "Arrow", "Boat", "Ball"
     ],
     medium: [
-      "Telescope", "Typewriter", "Treasure Chest", "Robot",
-      "Roller Coaster", "Pirate Flag", "Drum Set", "Chandelier",
-      "Grandfather Clock", "Globe", "Anchor", "Binoculars",
-      "Compass", "Hourglass", "Microscope", "Sewing Machine",
-      "Thermometer", "Toaster", "Watering Can", "Wheelchair",
-      "Backpack", "Birdhouse", "Cuckoo Clock", "Fishing Rod",
-      "Spinning Wheel"
+      "Guitar", "Clock", "Camera", "Umbrella", "Trophy",
+      "Glasses", "Bell", "Scissors", "Pizza", "Key",
+      "Robot", "Treasure Chest", "Anchor", "Toaster",
+      "Backpack", "Birdhouse", "Watering Can", "Fishing Rod",
+      "Wheelchair", "Globe", "Hourglass", "Telescope",
+      "Pirate Flag", "Drum Set", "Thermometer"
     ],
     hard: [
       "DNA Helix", "Solar System", "Rube Goldberg Machine",
