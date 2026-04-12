@@ -4,499 +4,532 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UTV Storage Shelter Planner</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=JetBrains+Mono:wght@400;600&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bark: #2C1F14;
-    --timber: #5C3D1E;
-    --cedar: #8B5E3C;
-    --grain: #C49A6C;
-    --straw: #E8C97A;
-    --sky: #B8D4E8;
-    --metal: #8FA3B1;
-    --rust: #C0392B;
-    --moss: #4A6741;
-    --light: #F5ECD7;
-    --ink: #1A1208;
+    --ink: #0b1824;
+    --panel: #0f2033;
+    --surface: #132540;
+    --border: #1a3550;
+    --line: #254d6e;
+    --cyan: #5eb8d4;
+    --cyan-hi: #90d4ed;
+    --cyan-dim: rgba(94,184,212,0.2);
+    --amber: #ffc947;
+    --amber-dim: rgba(255,201,71,0.12);
+    --white: #ddf0fa;
+    --muted: #7aabcc;
+    --dim: #3d6e8a;
+    --moss: #3dba7e;
+    --rust: #e05252;
+    --rust-dim: rgba(224,82,82,0.1);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: var(--bark);
-    color: var(--light);
-    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--ink);
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
     min-height: 100vh;
-    background-image:
-      repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 60px),
-      repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 60px);
+    background-image: radial-gradient(circle, rgba(94,184,212,0.1) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 
+  /* ─── HEADER ────────────────────────────────────────────────────────────── */
   header {
-    background: var(--timber);
-    border-bottom: 3px solid var(--straw);
-    padding: 20px 32px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
     display: flex;
-    align-items: baseline;
-    gap: 16px;
+    align-items: stretch;
+    position: relative;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--amber), rgba(255,201,71,0.2), transparent);
+  }
+
+  .header-main {
+    padding: 14px 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .header-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 4px;
+    color: var(--dim);
+    text-transform: uppercase;
   }
   header h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.4rem;
-    color: var(--straw);
-    letter-spacing: 2px;
-  }
-  header span {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--grain);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--white);
     letter-spacing: 1px;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--muted);
+    letter-spacing: 0.5px;
   }
 
+  .header-actions {
+    border-left: 1px solid var(--border);
+    padding: 14px 0 14px 24px;
+    margin-left: 24px;
+    display: flex;
+    align-items: center;
+  }
+
+  .print-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    background: transparent;
+    color: var(--amber);
+    border: 1px solid rgba(255,201,71,0.5);
+    cursor: pointer;
+    transition: 0.15s;
+    position: relative;
+  }
+  .print-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; right: -4px;
+    width: 100%; height: 100%;
+    border: 1px solid rgba(255,201,71,0.15);
+    pointer-events: none;
+  }
+  .print-btn:hover { background: var(--amber-dim); border-color: var(--amber); }
+  .print-btn.active { background: var(--amber); color: var(--ink); font-weight: 600; }
+  .print-btn.active::after { display: none; }
+
+  /* ─── LAYOUT ────────────────────────────────────────────────────────────── */
   .layout {
     display: grid;
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 300px 1fr;
     min-height: calc(100vh - 72px);
   }
 
-  /* SIDEBAR */
+  /* ─── SIDEBAR ───────────────────────────────────────────────────────────── */
   .sidebar {
-    background: #1A1208;
-    border-right: 2px solid var(--timber);
-    padding: 24px 20px;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 18px 16px;
     overflow-y: auto;
   }
 
   .section-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
     letter-spacing: 3px;
-    color: var(--grain);
+    color: var(--dim);
     text-transform: uppercase;
-    margin-bottom: 12px;
-    margin-top: 24px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--timber);
+    margin-bottom: 10px;
+    margin-top: 22px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
+  .section-label::before { content: '▸'; color: var(--cyan); font-size: 0.45rem; }
   .section-label:first-child { margin-top: 0; }
 
   .dim-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     gap: 8px;
     transition: opacity 0.2s;
   }
   .dim-row label {
-    font-size: 0.82rem;
-    color: var(--light);
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: var(--muted);
     flex: 1;
+    min-width: 0;
   }
   .dim-row .val {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.82rem;
-    color: var(--straw);
-    width: 52px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem;
+    color: var(--amber);
+    width: 48px;
     text-align: right;
+    flex-shrink: 0;
   }
+
   input[type=range] {
     -webkit-appearance: none;
-    width: 90px;
-    height: 4px;
-    background: var(--timber);
-    border-radius: 2px;
+    width: 78px;
+    height: 2px;
+    background: var(--line);
     outline: none;
+    flex-shrink: 0;
   }
   input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 14px; height: 14px;
-    background: var(--straw);
-    border-radius: 50%;
+    width: 10px; height: 16px;
+    background: var(--cyan);
+    border-radius: 1px;
     cursor: pointer;
   }
+  input[type=range]:focus::-webkit-slider-thumb { background: var(--cyan-hi); }
 
   .toggle-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     transition: opacity 0.2s;
   }
-  .toggle-row label { font-size: 0.82rem; color: var(--light); }
-  .toggle {
-    position: relative; width: 40px; height: 20px;
+  .toggle-row label:first-child {
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: var(--muted);
   }
+  .toggle { position: relative; width: 36px; height: 18px; flex-shrink: 0; }
   .toggle input { opacity: 0; width: 0; height: 0; }
   .slider-tog {
     position: absolute; inset: 0;
-    background: var(--timber); border-radius: 20px; cursor: pointer;
+    background: var(--line);
+    border-radius: 0;
+    cursor: pointer;
     transition: 0.2s;
+    border: 1px solid var(--border);
   }
   .slider-tog:before {
     content: ''; position: absolute;
-    width: 14px; height: 14px; left: 3px; bottom: 3px;
-    background: var(--grain); border-radius: 50%;
+    width: 10px; height: 10px; left: 3px; bottom: 3px;
+    background: var(--dim);
+    border-radius: 0;
     transition: 0.2s;
   }
-  .toggle input:checked + .slider-tog { background: var(--moss); }
-  .toggle input:checked + .slider-tog:before { transform: translateX(20px); background: var(--straw); }
+  .toggle input:checked + .slider-tog {
+    background: rgba(94,184,212,0.12);
+    border-color: var(--cyan);
+  }
+  .toggle input:checked + .slider-tog:before { transform: translateX(18px); background: var(--cyan); }
 
-  .toggle-row.snow-toggle .slider-tog { background: #5A3020; }
-  .toggle-row.snow-toggle input:checked + .slider-tog { background: #8B3A2A; }
-  .toggle-row.snow-toggle input:checked + .slider-tog:before { background: #E8856A; }
+  .toggle-row.snow-toggle .slider-tog { border-color: rgba(224,82,82,0.4); }
+  .toggle-row.snow-toggle input:checked + .slider-tog { background: var(--rust-dim); border-color: var(--rust); }
+  .toggle-row.snow-toggle input:checked + .slider-tog:before { background: var(--rust); }
 
-  .dimmed { opacity: 0.3; pointer-events: none; }
+  .dimmed { opacity: 0.2; pointer-events: none; }
 
+  /* Stat boxes */
   .stat-box {
-    background: var(--timber);
-    border: 1px solid var(--cedar);
-    border-radius: 4px;
-    padding: 12px 14px;
-    margin-bottom: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--cyan);
+    padding: 9px 12px;
+    margin-bottom: 7px;
   }
-  .stat-box.cost-box {
-    border-color: var(--moss);
-    background: rgba(74,103,65,0.15);
-  }
+  .stat-box.cost-box { border-left-color: var(--moss); }
   .stat-box .stat-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.6rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
     letter-spacing: 2px;
-    color: var(--grain);
+    color: var(--dim);
     text-transform: uppercase;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
   .stat-box .stat-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.6rem;
-    color: var(--straw);
-    letter-spacing: 1px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: var(--amber);
+    letter-spacing: 0.5px;
+    line-height: 1;
   }
-  .stat-box.cost-box .stat-val { color: #6DBF67; }
-  .stat-box .stat-sub {
-    font-size: 0.72rem;
-    color: var(--grain);
-    margin-top: 2px;
-  }
+  .stat-box.cost-box .stat-val { color: var(--moss); }
+  .stat-box .stat-sub { font-size: 0.66rem; color: var(--dim); margin-top: 2px; }
 
-  /* MAIN */
-  .main {
-    padding: 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-  }
+  /* ─── MAIN ──────────────────────────────────────────────────────────────── */
+  .main { padding: 22px; display: flex; flex-direction: column; gap: 22px; }
 
   .canvas-wrap {
-    background: #0F0A04;
-    border: 2px solid var(--timber);
-    border-radius: 4px;
-    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px;
     position: relative;
   }
-  .canvas-title {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 3px;
-    color: var(--grain);
-    text-transform: uppercase;
-    margin-bottom: 14px;
-  }
-  canvas {
-    display: block;
-    width: 100%;
+  .canvas-wrap::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 2px;
+    background: linear-gradient(90deg, var(--cyan), transparent 60%);
   }
 
+  canvas { display: block; width: 100%; }
+
+  /* ─── TABS ──────────────────────────────────────────────────────────────── */
   .tabs {
     display: flex;
-    gap: 2px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
   }
   .tab {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
     letter-spacing: 2px;
     text-transform: uppercase;
-    padding: 7px 16px;
-    background: var(--timber);
-    color: var(--grain);
+    padding: 7px 15px;
+    background: transparent;
+    color: var(--dim);
     border: none;
+    border-right: 1px solid var(--border);
     cursor: pointer;
     transition: 0.15s;
+    position: relative;
   }
+  .tab:last-child { border-right: none; }
   .tab.active {
-    background: var(--straw);
-    color: var(--ink);
+    color: var(--cyan);
+    background: rgba(94,184,212,0.05);
+    border-bottom: 2px solid var(--cyan);
+    margin-bottom: -1px;
   }
-  .tab:hover:not(.active) { background: var(--cedar); color: var(--light); }
+  .tab:hover:not(.active) { color: var(--muted); }
 
-  /* SNOW WARNING */
+  /* ─── SNOW WARNING ──────────────────────────────────────────────────────── */
   .snow-warn {
     display: none;
     align-items: flex-start;
     gap: 12px;
-    background: rgba(192,57,43,0.12);
-    border: 1px solid #C0392B;
-    border-left: 4px solid #C0392B;
-    border-radius: 4px;
-    padding: 14px 16px;
-    font-size: 0.82rem;
-    color: #E8856A;
+    background: var(--rust-dim);
+    border: 1px solid rgba(224,82,82,0.4);
+    border-left: 3px solid var(--rust);
+    padding: 12px 16px;
+    font-size: 0.78rem;
+    color: #f09090;
     line-height: 1.6;
   }
   .snow-warn.visible { display: flex; }
   .snow-warn strong {
     display: block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
     letter-spacing: 2px;
-    color: #C0392B;
+    color: var(--rust);
     text-transform: uppercase;
     margin-bottom: 4px;
   }
 
-  /* MATERIALS TABLE */
+  /* ─── MATERIALS ─────────────────────────────────────────────────────────── */
   .materials {
-    background: #0F0A04;
-    border: 2px solid var(--timber);
-    border-radius: 4px;
-    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px;
+    position: relative;
+  }
+  .materials::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 2px;
+    background: linear-gradient(90deg, var(--moss), transparent 60%);
   }
   .mat-title {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
     letter-spacing: 3px;
-    color: var(--grain);
+    color: var(--dim);
     text-transform: uppercase;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.82rem;
-  }
+  .mat-title::before { content: '▸'; color: var(--moss); font-size: 0.45rem; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
   th {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--grain);
+    color: var(--dim);
     text-align: left;
-    padding: 6px 10px;
-    border-bottom: 1px solid var(--timber);
+    padding: 5px 9px;
+    border-bottom: 1px solid var(--border);
   }
   td {
-    padding: 8px 10px;
-    border-bottom: 1px solid rgba(92,61,30,0.3);
-    color: var(--light);
+    padding: 6px 9px;
+    border-bottom: 1px solid rgba(26,53,80,0.5);
+    color: var(--white);
     vertical-align: top;
   }
   tr:last-child td { border-bottom: none; }
-  td.mono { font-family: 'IBM Plex Mono', monospace; color: var(--straw); }
-  td.note { font-size: 0.72rem; color: var(--grain); }
-  td.cost { font-family: 'IBM Plex Mono', monospace; color: #6DBF67; }
+  td.mono { font-family: 'JetBrains Mono', monospace; color: var(--cyan); font-size: 0.73rem; }
+  td.note { font-size: 0.68rem; color: var(--dim); }
+  td.cost { font-family: 'JetBrains Mono', monospace; color: var(--moss); }
   .cat-row td {
-    background: rgba(92,61,30,0.25);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
+    background: rgba(94,184,212,0.04);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--cedar);
-    padding: 4px 10px;
+    color: var(--cyan);
+    padding: 4px 9px;
+    border-bottom: 1px solid rgba(94,184,212,0.08);
   }
   .total-row td {
-    border-top: 2px solid var(--cedar);
-    font-family: 'IBM Plex Mono', monospace;
+    border-top: 1px solid var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
     font-weight: 600;
-    padding-top: 14px;
-    font-size: 0.85rem;
+    padding-top: 11px;
+    font-size: 0.78rem;
+    color: var(--muted);
   }
-  .total-row .cost { font-size: 1.1rem; color: #6DBF67; }
+  .total-row .cost { font-size: 1rem; color: var(--moss); }
 
-  .notes-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-  }
+  /* ─── NOTES GRID ────────────────────────────────────────────────────────── */
+  .notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .note-card {
-    background: #0F0A04;
-    border: 1px solid var(--timber);
-    border-left: 3px solid var(--straw);
-    border-radius: 4px;
-    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--cyan);
+    padding: 12px 14px;
   }
   .note-card h4 {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.57rem;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--straw);
+    color: var(--cyan);
     margin-bottom: 8px;
   }
-  .note-card ul {
-    list-style: none;
-    padding: 0;
-  }
+  .note-card ul { list-style: none; padding: 0; }
   .note-card ul li {
-    font-size: 0.78rem;
-    color: var(--grain);
+    font-size: 0.73rem;
+    color: var(--muted);
     line-height: 1.6;
-    padding-left: 12px;
+    padding-left: 14px;
     position: relative;
   }
-  .note-card ul li:before {
-    content: '—';
-    position: absolute; left: 0;
-    color: var(--cedar);
-  }
+  .note-card ul li:before { content: '—'; position: absolute; left: 0; color: var(--dim); }
   .note-card.green { border-left-color: var(--moss); }
-  .note-card.green h4 { color: #6DBF67; }
-  .note-card.red { border-left-color: #C0392B; }
-  .note-card.red h4 { color: #E8856A; }
+  .note-card.green h4 { color: var(--moss); }
+  .note-card.red { border-left-color: var(--rust); }
+  .note-card.red h4 { color: #f09090; }
 
-  /* PRINT BUTTON */
-  .print-btn {
-    margin-left: auto;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 8px 20px;
-    background: transparent;
-    color: var(--straw);
-    border: 1px solid var(--straw);
-    border-radius: 3px;
-    cursor: pointer;
-    transition: 0.15s;
-  }
-  .print-btn:hover { background: var(--straw); color: var(--ink); }
-  .print-btn.active { background: var(--straw); color: var(--ink); }
-
-  /* PRINT PANEL */
-  .print-panel {
-    display: none;
-    flex-direction: column;
-    gap: 28px;
-    padding: 28px;
-  }
+  /* ─── PRINT PANEL ───────────────────────────────────────────────────────── */
+  .print-panel { display: none; flex-direction: column; gap: 22px; padding: 24px; }
   .print-panel.visible { display: flex; }
 
   .pp-header {
-    border-bottom: 3px solid var(--straw);
-    padding-bottom: 16px;
+    border-bottom: 2px solid var(--amber);
+    padding-bottom: 14px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
   }
   .pp-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem;
-    color: var(--straw);
-    letter-spacing: 2px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: 1px;
+    text-transform: uppercase;
   }
   .pp-meta {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--grain);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--dim);
     text-align: right;
     line-height: 1.8;
   }
 
-  .pp-specs {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-  }
+  .pp-specs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .pp-spec {
-    background: #0F0A04;
-    border: 1px solid var(--timber);
-    border-radius: 4px;
-    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--cyan);
+    padding: 9px 12px;
   }
   .pp-spec-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.58rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--grain);
+    color: var(--dim);
     margin-bottom: 4px;
   }
   .pp-spec-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.3rem;
-    color: var(--straw);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--amber);
   }
 
   .pp-section-title {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.57rem;
     letter-spacing: 3px;
     text-transform: uppercase;
-    color: var(--grain);
-    border-bottom: 1px solid var(--timber);
-    padding-bottom: 8px;
-    margin-bottom: 14px;
+    color: var(--dim);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 7px;
+    margin-bottom: 12px;
   }
 
-  .pp-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
+  .pp-steps { display: flex; flex-direction: column; gap: 10px; }
   .pp-step {
-    background: #0F0A04;
-    border: 1px solid var(--timber);
-    border-radius: 4px;
-    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--cyan);
+    padding: 13px 17px;
     display: grid;
-    grid-template-columns: 48px 1fr;
-    gap: 16px;
+    grid-template-columns: 42px 1fr;
+    gap: 12px;
     align-items: start;
   }
   .pp-step-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem;
-    color: var(--cedar);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: var(--line);
     line-height: 1;
   }
   .pp-step-body h3 {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--straw);
-    margin-bottom: 10px;
+    color: var(--cyan);
+    margin-bottom: 8px;
   }
-  .pp-step-body ul {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
+  .pp-step-body ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 3px; }
   .pp-step-body ul li {
-    font-size: 0.82rem;
-    color: var(--grain);
+    font-size: 0.78rem;
+    color: var(--muted);
     padding-left: 14px;
     position: relative;
     line-height: 1.6;
   }
-  .pp-step-body ul li:before {
-    content: '—';
-    position: absolute; left: 0;
-    color: var(--cedar);
-  }
-  .pp-step-body ul li strong { color: var(--light); }
+  .pp-step-body ul li:before { content: '—'; position: absolute; left: 0; color: var(--dim); }
+  .pp-step-body ul li strong { color: var(--white); }
 
   .pp-warn {
-    background: rgba(192,57,43,0.12);
-    border-left: 3px solid #C0392B;
-    border-radius: 3px;
+    background: var(--rust-dim);
+    border-left: 2px solid var(--rust);
     padding: 8px 12px;
     margin-top: 10px;
-    font-size: 0.75rem;
-    color: #E8856A;
+    font-size: 0.73rem;
+    color: #f09090;
     line-height: 1.5;
   }
 
@@ -506,50 +539,62 @@
     .pp-specs { grid-template-columns: repeat(2, 1fr); }
   }
 
-  /* PRINT MEDIA */
   @media print {
-    body { background: white; color: black; }
-    header { background: white; border-bottom: 2px solid black; }
-    header h1 { color: black; }
-    header span { color: #555; }
+    body { background: white; color: black; background-image: none; }
+    header { background: white; border-bottom: 2px solid #1a3a5a; }
+    header::before { background: #b8860b; }
+    header h1 { color: #0b1824; }
+    .header-sub { color: #555; }
+    .header-tag { color: #888; }
     .print-btn { display: none; }
     .layout { display: none; }
     .print-panel { display: flex !important; padding: 0; }
-    .pp-title { color: black; }
+    .pp-title { color: #0b1824; }
     .pp-meta { color: #555; }
-    .pp-spec { background: #f5f5f5; border-color: #ccc; }
+    .pp-header { border-color: #b8860b; }
+    .pp-spec { background: #f5f7fa; border-color: #ccc; border-top-color: #1a6a8a; }
     .pp-spec-label { color: #555; }
-    .pp-spec-val { color: black; }
+    .pp-spec-val { color: #b8860b; }
     .pp-section-title { color: #555; border-color: #ccc; }
-    .pp-step { background: white; border-color: #ccc; break-inside: avoid; }
-    .pp-step-num { color: #999; }
-    .pp-step-body h3 { color: black; }
+    .pp-step { background: white; border-color: #ccc; border-left-color: #1a6a8a; break-inside: avoid; }
+    .pp-step-num { color: #ccc; }
+    .pp-step-body h3 { color: #1a4a6a; }
     .pp-step-body ul li { color: #333; }
     .pp-step-body ul li:before { color: #999; }
     .pp-step-body ul li strong { color: black; }
     .pp-warn { background: #fff3f0; border-color: #c00; color: #c00; }
-    table { font-size: 0.78rem; }
+    table { font-size: 0.76rem; }
     td, th { color: black; border-color: #ccc; }
-    td.cost { color: #2a6e2a; }
-    td.mono { color: black; }
+    td.cost { color: #1a6e3a; }
+    td.mono { color: #1a4a6a; }
     td.note { color: #555; }
-    .cat-row td { background: #eee; color: #333; }
+    .cat-row td { background: #eef4ff; color: #1a4a6a; }
     .total-row td { color: black; }
-    .total-row .cost { color: #2a6e2a; }
+    .total-row .cost { color: #1a6e3a; }
     .materials { background: white; border-color: #ccc; }
     .mat-title { color: #555; }
+    .note-card { background: white; border-color: #ccc; border-left-color: #1a6a8a; }
+    .note-card h4 { color: #1a4a6a; }
+    .note-card ul li { color: #333; }
+    .note-card.green h4 { color: #1a6e3a; }
+    .note-card.red h4 { color: #c00; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>UTV Storage Shelter Planner</h1>
-  <span>Yamaha Wolverine X4 · PT Lumber + Metal Roof · Open-Span LVL Header · Mountain Build</span>
-  <button class="print-btn" id="print-btn" onclick="togglePrintMode()">Print Plan</button>
+  <div class="header-main">
+    <div class="header-tag">Mountain Build · Open-Span · PT Lumber + Metal Roof</div>
+    <h1>UTV Storage Shelter Planner</h1>
+    <div class="header-sub">Yamaha Wolverine X4 · LVL Header · Corrugated Metal · Helical Pier Foundation</div>
+  </div>
+  <div class="header-actions">
+    <button class="print-btn" id="print-btn" onclick="togglePrintMode()">Print Plan</button>
+  </div>
 </header>
 
-<!-- PRINT PANEL (hidden by default, shown in print mode) -->
+<!-- PRINT PANEL -->
 <div class="print-panel" id="print-panel"></div>
 
 <div class="layout">
@@ -674,7 +719,7 @@
         <h4>Foundation on a Sloped Mountain Site</h4>
         <ul>
           <li>Your site is sloped — this means posts will be different heights. That's normal. Level the top of the frame, not the ground.</li>
-          <li>Use <strong style="color:var(--light)">helical piers</strong> (drill-in anchors) — ideal for a slope because you don't need to dig or pour. Drive them below frost line (~42–48" in most mountain areas).</li>
+          <li>Use <strong style="color:var(--white)">helical piers</strong> (drill-in anchors) — ideal for a slope because you don't need to dig or pour. Drive them below frost line (~42–48" in most mountain areas).</li>
           <li>If you use surface pads instead: dig out a level spot for each one, pour an 80 lb bag into a tube form, set a Simpson ABA66 post base while wet. Much harder to level on a slope than helical piers.</li>
           <li>Measure post heights carefully: uphill posts will be short, downhill posts will be tall. Cut all posts to height after the frame is level — don't pre-cut.</li>
           <li>Start with the 4 corner posts. Use a long level or laser level to establish the frame plane before cutting anything.</li>
@@ -720,41 +765,56 @@ const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
 let view = 'front';
 
+// Blueprint color palette
 const C = {
-  post: '#5C3D1E', beam: '#7A5030', roof: '#8FA3B1',
-  roofDark: '#5A7080', wall: '#6B4A2A', wallLight: '#9B7550',
-  open: 'rgba(184,212,232,0.12)', openBorder: '#B8D4E8',
-  wood: '#8B5E3C', woodDark: '#5C3D1E',
-  ground: '#2C1F14', gravel: '#3D3228',
-  utv: '#4A6741', splitter: '#8FA3B1',
-  dim: '#E8C97A', label: '#C49A6C', grid: 'rgba(255,255,255,0.04)',
-  bg: '#0F0A04', sky: 'rgba(184,212,232,0.06)',
-  divider: '#7A5030', straw: '#E8C97A', grain: '#C49A6C', cedar: '#8B5E3C',
+  post: '#5eb8d4',
+  beam: '#7acce3',
+  roof: '#2d6a84',
+  roofDark: '#1a3d4e',
+  wall: '#1a4060',
+  wallLight: '#2d6a84',
+  open: 'rgba(94,184,212,0.05)',
+  openBorder: 'rgba(94,184,212,0.35)',
+  wood: '#7a6040',
+  woodDark: '#4a3820',
+  ground: '#060e17',
+  gravel: '#101820',
+  utv: '#2a9a60',
+  splitter: '#5a8aaa',
+  dim: '#ffc947',
+  label: '#5eb8d4',
+  grid: 'rgba(94,184,212,0.05)',
+  bg: '#0a1525',
+  sky: 'rgba(94,184,212,0.03)',
+  divider: '#4a9ab8',
+  straw: '#ffc947',
+  grain: '#5eb8d4',
+  cedar: '#4a9ab8',
 };
 
 // Rough 2025 unit prices
 const PRICES = {
-  post6x6: 45,        // 6×6 PT 12ft post
-  concrete: 7,        // 80 lb bag
-  postBase: 15,       // Simpson ABA66
-  helical: 55,        // DIY helical pier kit
-  gravel: 32,         // per ton
-  lvlPerFt: 8,        // LVL beam per linear foot
-  postCap: 12,        // Simpson BC6
-  beamPerFt: 5.5,     // 6×6 PT per linear foot
-  rafter26PerFt: 1.8, // 2×6 per linear foot
-  rafter28PerFt: 2.5, // 2×8 per linear foot
-  hurricaneTie: 2,    // each
-  metalPerSqft: 1.5,  // corrugated metal per sq ft
-  ridgePerFt: 3,      // ridge cap per linear foot
-  closure: 20,        // per closure strip set
-  roofScrew: 0.08,    // each
-  sidingPerSqft: 1.6, // T1-11 or LP SmartSide per sq ft
-  post4x4: 12,        // 4×4 PT 6ft
-  rail2x4PerFt: 0.55, // 2×4 per linear foot
-  screwBox: 28,       // 5 lb box
-  joistHanger: 1.5,   // each
-  lagBox: 15,         // box of 50
+  post6x6: 45,
+  concrete: 7,
+  postBase: 15,
+  helical: 55,
+  gravel: 32,
+  lvlPerFt: 8,
+  postCap: 12,
+  beamPerFt: 5.5,
+  rafter26PerFt: 1.8,
+  rafter28PerFt: 2.5,
+  hurricaneTie: 2,
+  metalPerSqft: 1.5,
+  ridgePerFt: 3,
+  closure: 20,
+  roofScrew: 0.08,
+  sidingPerSqft: 1.6,
+  post4x4: 12,
+  rail2x4PerFt: 0.55,
+  screwBox: 28,
+  joistHanger: 1.5,
+  lagBox: 15,
 };
 
 function getParams() {
@@ -774,7 +834,6 @@ function getParams() {
   };
 }
 
-// Effective total width (2-bay mode uses just UTV+splitter width)
 function eW(p) { return p.woodBay ? p.W : p.utvW + p.splW; }
 function woodBayW(p) { return p.woodBay ? Math.max(0, p.W - p.utvW - p.splW) : 0; }
 function rearH(p) { return p.fH + (p.pitch / 12) * p.D; }
@@ -787,19 +846,44 @@ function setView(v) {
 
 function resizeCanvas() {
   const wrap = cv.parentElement;
-  cv.width = wrap.clientWidth - 40;
+  cv.width = wrap.clientWidth - 32;
   draw();
 }
 
-function draw() {
-  const p = getParams();
-  ctx.clearRect(0, 0, cv.width, cv.height);
+// Blueprint dot grid in canvas
+function drawCanvasBg() {
   ctx.fillStyle = C.bg;
   ctx.fillRect(0, 0, cv.width, cv.height);
-  ctx.strokeStyle = C.grid;
-  ctx.lineWidth = 1;
-  for (let x = 0; x < cv.width; x += 40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x, cv.height); ctx.stroke(); }
-  for (let y = 0; y < cv.height; y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(cv.width,y); ctx.stroke(); }
+  // Fine dot grid
+  ctx.fillStyle = 'rgba(94,184,212,0.12)';
+  for (let x = 0; x < cv.width; x += 20) {
+    for (let y = 0; y < cv.height; y += 20) {
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+}
+
+// Crosshatch fill for walls/solid elements
+function drawHatch(x, y, w, h, color, spacing) {
+  spacing = spacing || 6;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 0.5;
+  for (let i = -h; i < w + h; i += spacing) {
+    ctx.beginPath();
+    ctx.moveTo(x + i, y);
+    ctx.lineTo(x + i + h, y + h);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function draw() {
+  drawCanvasBg();
+  const p = getParams();
   if (view === 'front') drawFront(p);
   else if (view === 'top') drawTop(p);
   else drawSide(p);
@@ -817,13 +901,15 @@ function drawFront(p) {
   const ox = margin + (cw - margin*2 - W*S)/2;
   const oy = ch - margin - 20;
 
-  // Ground
+  // Ground — hatched earth
   ctx.fillStyle = C.ground;
   ctx.fillRect(ox - 10, oy, W*S + 20, 20);
+  drawHatch(ox - 10, oy, W*S + 20, 20, 'rgba(94,184,212,0.15)', 5);
+
   if (p.gravel && p.woodBay) {
     ctx.fillStyle = C.gravel;
     ctx.fillRect(ox, oy, W*S, 10);
-    ctx.fillStyle = 'rgba(200,180,150,0.2)';
+    ctx.fillStyle = 'rgba(94,184,212,0.08)';
     for (let i = 0; i < 60; i++) {
       const gx = ox + Math.random() * W*S;
       const gy = oy + Math.random() * 10;
@@ -842,26 +928,38 @@ function drawFront(p) {
   // UTV Bay
   const ux = ox;
   if (p.sideWalls) {
-    ctx.fillStyle = C.wall;
+    ctx.fillStyle = 'rgba(26,64,96,0.8)';
     ctx.fillRect(ux, oy - fHs, 8, fHs);
+    drawHatch(ux, oy - fHs, 8, fHs, 'rgba(94,184,212,0.25)', 5);
+    ctx.strokeStyle = C.post; ctx.lineWidth = 1;
+    ctx.strokeRect(ux, oy - fHs, 8, fHs);
   }
   ctx.fillStyle = C.open;
   ctx.fillRect(ux + 8, oy - fHs + 8, uW - 16, fHs - 8);
   ctx.strokeStyle = C.openBorder;
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 0.8;
   ctx.setLineDash([4,4]);
   ctx.strokeRect(ux + 8, oy - fHs + 8, uW - 16, fHs - 8);
   ctx.setLineDash([]);
   drawUTV(ctx, ux + uW/2, oy, uW * 0.75, S);
-  labelText('UTV BAY', ux + uW/2, oy - fHs + 22, C.label, '0.65rem');
-  labelText(`${p.utvW} ft`, ux + uW/2, oy - fHs + 38, C.dim, '0.6rem');
+  labelText('UTV BAY', ux + uW/2, oy - fHs + 20, C.label, '0.6rem');
+  labelText(`${p.utvW} ft`, ux + uW/2, oy - fHs + 34, C.dim, '0.58rem');
 
   // Splitter Bay
   const sx = ox + uW;
   if (p.sideWalls) {
-    ctx.fillStyle = C.wall;
+    ctx.fillStyle = 'rgba(26,64,96,0.8)';
     ctx.fillRect(sx, oy - fHs, 8, fHs);
-    if (!p.woodBay) ctx.fillRect(sx + sW - 8, oy - fHs, 8, fHs);
+    drawHatch(sx, oy - fHs, 8, fHs, 'rgba(94,184,212,0.25)', 5);
+    ctx.strokeStyle = C.post; ctx.lineWidth = 1;
+    ctx.strokeRect(sx, oy - fHs, 8, fHs);
+    if (!p.woodBay) {
+      ctx.fillStyle = 'rgba(26,64,96,0.8)';
+      ctx.fillRect(sx + sW - 8, oy - fHs, 8, fHs);
+      drawHatch(sx + sW - 8, oy - fHs, 8, fHs, 'rgba(94,184,212,0.25)', 5);
+      ctx.strokeStyle = C.post; ctx.lineWidth = 1;
+      ctx.strokeRect(sx + sW - 8, oy - fHs, 8, fHs);
+    }
   }
   ctx.fillStyle = C.open;
   ctx.fillRect(sx + 8, oy - fHs + 8, sW - 16, fHs - 8);
@@ -870,23 +968,29 @@ function drawFront(p) {
   ctx.strokeRect(sx + 8, oy - fHs + 8, sW - 16, fHs - 8);
   ctx.setLineDash([]);
   drawSplitter(ctx, sx + sW/2, oy, sW * 0.5, S);
-  labelText('SPLITTER BAY', sx + sW/2, oy - fHs + 22, C.label, '0.65rem');
-  labelText(`${p.splW} ft`, sx + sW/2, oy - fHs + 38, C.dim, '0.6rem');
+  labelText('SPLITTER BAY', sx + sW/2, oy - fHs + 20, C.label, '0.6rem');
+  labelText(`${p.splW} ft`, sx + sW/2, oy - fHs + 34, C.dim, '0.58rem');
 
-  // Wood Bay (only if enabled)
+  // Wood Bay
   if (p.woodBay && wW > 0) {
     const wx = ox + uW + sW;
     drawWoodStack(ctx, wx, oy, wW, fHs, S);
     if (p.divWall) {
-      ctx.fillStyle = C.divider;
+      ctx.fillStyle = 'rgba(26,64,96,0.8)';
       ctx.fillRect(wx, oy - fHs, 6, fHs);
+      drawHatch(wx, oy - fHs, 6, fHs, 'rgba(94,184,212,0.3)', 4);
+      ctx.strokeStyle = C.divider; ctx.lineWidth = 1;
+      ctx.strokeRect(wx, oy - fHs, 6, fHs);
     }
     if (p.sideWalls) {
-      ctx.fillStyle = C.wall;
+      ctx.fillStyle = 'rgba(26,64,96,0.8)';
       ctx.fillRect(wx + wW - 8, oy - fHs, 8, fHs);
+      drawHatch(wx + wW - 8, oy - fHs, 8, fHs, 'rgba(94,184,212,0.25)', 5);
+      ctx.strokeStyle = C.post; ctx.lineWidth = 1;
+      ctx.strokeRect(wx + wW - 8, oy - fHs, 8, fHs);
     }
-    labelText('WOOD BAY', wx + wW/2, oy - fHs + 22, C.label, '0.65rem');
-    labelText(`${woodBayW(p)} ft`, wx + wW/2, oy - fHs + 38, C.dim, '0.6rem');
+    labelText('WOOD BAY', wx + wW/2, oy - fHs + 20, C.label, '0.6rem');
+    labelText(`${woodBayW(p)} ft`, wx + wW/2, oy - fHs + 34, C.dim, '0.58rem');
   }
 
   // Roof
@@ -899,10 +1003,10 @@ function drawFront(p) {
   ctx.closePath();
   ctx.fillStyle = C.roofDark;
   ctx.fill();
+  drawHatch(ox - 12, oy - fHs - rearExtra, W*S + 24, rearExtra + 2, 'rgba(94,184,212,0.1)', 8);
   ctx.fillStyle = C.roof;
   ctx.fillRect(ox - 14, oy - fHs - 10, W*S + 28, 12);
-  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = 'rgba(94,184,212,0.2)'; ctx.lineWidth = 1;
   for (let i = 0; i <= 8; i++) {
     const rx = ox - 12 + (W*S + 24) * i/8;
     ctx.beginPath();
@@ -910,23 +1014,31 @@ function drawFront(p) {
     ctx.lineTo(rx, oy - fHs - rearExtra);
     ctx.stroke();
   }
+  ctx.strokeStyle = C.post; ctx.lineWidth = 1.5;
+  ctx.strokeRect(ox - 14, oy - fHs - 10, W*S + 28, 10);
 
   // Posts
-  ctx.fillStyle = C.post;
   const postXs = p.woodBay ? [ox, ox+uW+sW, ox+W*S] : [ox, ox+W*S];
-  postXs.forEach(px => ctx.fillRect(px - 5, oy - fHs, 10, fHs));
+  postXs.forEach(px => {
+    ctx.fillStyle = 'rgba(94,184,212,0.2)';
+    ctx.fillRect(px - 5, oy - fHs, 10, fHs);
+    ctx.strokeStyle = C.post; ctx.lineWidth = 1.5;
+    ctx.strokeRect(px - 5, oy - fHs, 10, fHs);
+  });
 
   // LVL Header beam
-  ctx.fillStyle = C.beam;
+  ctx.fillStyle = 'rgba(122,204,227,0.15)';
   ctx.fillRect(ox, oy - fHs - 2, uW + sW, 14);
-  ctx.strokeStyle = C.straw; ctx.lineWidth = 0.8; ctx.setLineDash([3,3]);
+  ctx.strokeStyle = C.beam; ctx.lineWidth = 1.2;
+  ctx.strokeRect(ox, oy - fHs - 2, uW + sW, 14);
+  ctx.strokeStyle = 'rgba(255,201,71,0.4)'; ctx.lineWidth = 0.6; ctx.setLineDash([3,3]);
   ctx.strokeRect(ox+2, oy - fHs, uW + sW - 4, 10);
   ctx.setLineDash([]);
-  labelText('LVL HEADER', ox + (uW+sW)/2, oy - fHs - 10, C.straw, '0.55rem');
+  labelText('LVL HEADER', ox + (uW+sW)/2, oy - fHs - 12, C.straw, '0.52rem');
 
-  drawDimH(ctx, ox - 30, oy, fHs, `${p.fH} ft`, C.dim);
+  drawDimH(ctx, ox - 32, oy, fHs, `${p.fH} ft`, C.dim);
   drawDimW(ctx, ox, oy + 30, W*S, `${W} ft`, C.dim);
-  labelText('FRONT VIEW (OPEN FACE)', cw/2, 18, C.grain, '0.65rem');
+  labelText('FRONT VIEW — OPEN FACE', cw/2, 14, 'rgba(94,184,212,0.5)', '0.52rem');
 }
 
 function drawTop(p) {
@@ -943,73 +1055,91 @@ function drawTop(p) {
   const uW = p.utvW*S, sW = p.splW*S, wW = woodBayW(p)*S;
   const dS = p.D*S;
 
-  ctx.fillStyle = p.gravel && p.woodBay ? C.gravel : '#1A1208';
+  ctx.fillStyle = p.gravel && p.woodBay ? C.gravel : '#0d1e2e';
   ctx.fillRect(ox, oy, W*S, dS);
 
   // UTV bay
-  ctx.fillStyle = 'rgba(74,103,65,0.15)';
+  ctx.fillStyle = 'rgba(42,154,96,0.08)';
   ctx.fillRect(ox, oy, uW, dS);
-  ctx.fillStyle = 'rgba(74,103,65,0.5)';
+  ctx.fillStyle = 'rgba(42,154,96,0.35)';
   const uvw = uW*0.8, uvd = dS*0.55;
   ctx.fillRect(ox + (uW-uvw)/2, oy + dS*0.1, uvw, uvd);
-  ctx.strokeStyle = '#4A6741'; ctx.lineWidth = 1;
+  ctx.strokeStyle = '#3dba7e'; ctx.lineWidth = 0.8;
   ctx.strokeRect(ox + (uW-uvw)/2, oy + dS*0.1, uvw, uvd);
-  labelText('UTV', ox+uW/2, oy+dS*0.38, '#6DBF67', '0.7rem');
+  labelText('UTV', ox+uW/2, oy+dS*0.38, '#3dba7e', '0.65rem');
 
   // Splitter bay
-  ctx.fillStyle = 'rgba(143,163,177,0.12)';
+  ctx.fillStyle = 'rgba(94,184,212,0.06)';
   ctx.fillRect(ox+uW, oy, sW, dS);
-  ctx.fillStyle = 'rgba(143,163,177,0.4)';
+  ctx.fillStyle = 'rgba(94,184,212,0.25)';
   const spw = sW*0.5, spd = dS*0.35;
   ctx.fillRect(ox+uW+(sW-spw)/2, oy+dS*0.15, spw, spd);
-  ctx.strokeStyle = '#8FA3B1'; ctx.lineWidth = 1;
+  ctx.strokeStyle = C.cyan; ctx.lineWidth = 0.8;
   ctx.strokeRect(ox+uW+(sW-spw)/2, oy+dS*0.15, spw, spd);
-  labelText('SPLITTER', ox+uW+sW/2, oy+dS*0.33, '#8FA3B1', '0.62rem');
+  labelText('SPLITTER', ox+uW+sW/2, oy+dS*0.33, C.muted, '0.58rem');
 
   // Wood bay
   if (p.woodBay && wW > 0) {
-    ctx.fillStyle = 'rgba(139,94,60,0.15)';
+    ctx.fillStyle = 'rgba(122,96,64,0.1)';
     ctx.fillRect(ox+uW+sW, oy, wW, dS);
     const rows = 3, rowH = dS*0.18;
     for (let r = 0; r < rows; r++) {
-      ctx.fillStyle = r%2===0 ? 'rgba(139,94,60,0.6)' : 'rgba(92,61,30,0.6)';
+      ctx.fillStyle = r%2===0 ? 'rgba(122,96,64,0.45)' : 'rgba(74,56,32,0.45)';
       ctx.fillRect(ox+uW+sW + wW*0.08, oy + dS*0.08 + r*(rowH+4), wW*0.84, rowH);
-      ctx.strokeStyle = 'rgba(200,160,100,0.3)'; ctx.lineWidth = 0.5;
+      ctx.strokeStyle = 'rgba(122,96,64,0.3)'; ctx.lineWidth = 0.5;
       ctx.strokeRect(ox+uW+sW + wW*0.08, oy + dS*0.08 + r*(rowH+4), wW*0.84, rowH);
     }
-    labelText('WOOD', ox+uW+sW+wW/2, oy+dS*0.75, C.cedar, '0.7rem');
+    labelText('WOOD', ox+uW+sW+wW/2, oy+dS*0.75, C.cedar, '0.65rem');
   }
 
-  // Walls
-  ctx.fillStyle = C.wall;
+  // Walls — hatch fills
   const wt = 6;
-  if (p.backWall) ctx.fillRect(ox, oy+dS-wt, W*S, wt);
+  if (p.backWall) {
+    ctx.fillStyle = 'rgba(26,64,96,0.8)';
+    ctx.fillRect(ox, oy+dS-wt, W*S, wt);
+    drawHatch(ox, oy+dS-wt, W*S, wt, 'rgba(94,184,212,0.3)', 4);
+    ctx.strokeStyle = C.wall; ctx.lineWidth = 1;
+    ctx.strokeRect(ox, oy+dS-wt, W*S, wt);
+  }
   if (p.sideWalls) {
+    ctx.fillStyle = 'rgba(26,64,96,0.8)';
     ctx.fillRect(ox, oy, wt, dS);
+    drawHatch(ox, oy, wt, dS, 'rgba(94,184,212,0.3)', 4);
+    ctx.strokeStyle = C.wall; ctx.lineWidth = 1;
+    ctx.strokeRect(ox, oy, wt, dS);
+
+    ctx.fillStyle = 'rgba(26,64,96,0.8)';
     ctx.fillRect(ox+W*S-wt, oy, wt, dS);
+    drawHatch(ox+W*S-wt, oy, wt, dS, 'rgba(94,184,212,0.3)', 4);
+    ctx.strokeStyle = C.wall; ctx.lineWidth = 1;
+    ctx.strokeRect(ox+W*S-wt, oy, wt, dS);
   }
   if (p.woodBay && wW > 0) {
-    ctx.fillStyle = C.post;
+    ctx.fillStyle = 'rgba(94,184,212,0.2)';
     ctx.fillRect(ox+uW+sW-4, oy, 8, dS);
+    ctx.strokeStyle = C.post; ctx.lineWidth = 1;
+    ctx.strokeRect(ox+uW+sW-4, oy, 8, dS);
   }
 
   // Header beam
-  ctx.fillStyle = C.beam;
+  ctx.fillStyle = 'rgba(122,204,227,0.1)';
   ctx.fillRect(ox, oy, uW+sW, 7);
-  ctx.strokeStyle = C.straw; ctx.lineWidth=0.5; ctx.setLineDash([4,3]);
+  ctx.strokeStyle = C.beam; ctx.lineWidth = 1;
+  ctx.strokeRect(ox, oy, uW+sW, 7);
+  ctx.strokeStyle = 'rgba(255,201,71,0.4)'; ctx.lineWidth=0.5; ctx.setLineDash([4,3]);
   ctx.strokeRect(ox, oy, uW+sW, 7);
   ctx.setLineDash([]);
-  labelText('LVL HEADER', ox+(uW+sW)/2, oy-6, C.straw, '0.52rem');
+  labelText('LVL HEADER', ox+(uW+sW)/2, oy-6, C.straw, '0.5rem');
 
   // Open front
-  ctx.strokeStyle = C.openBorder; ctx.lineWidth = 2; ctx.setLineDash([6,4]);
+  ctx.strokeStyle = 'rgba(94,184,212,0.5)'; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
   ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox+W*S, oy); ctx.stroke();
   ctx.setLineDash([]);
-  labelText('← OPEN FRONT →', ox+W*S/2, oy-14, C.openBorder, '0.6rem');
+  labelText('← OPEN FRONT →', ox+W*S/2, oy-14, 'rgba(94,184,212,0.6)', '0.58rem');
 
   drawDimW(ctx, ox, oy+dS+30, W*S, `${W} ft`, C.dim);
-  drawDimH(ctx, ox-30, oy, dS, `${p.D} ft`, C.dim);
-  labelText('TOP VIEW / FLOOR PLAN', cw/2, 18, C.grain, '0.65rem');
+  drawDimH(ctx, ox-32, oy, dS, `${p.D} ft`, C.dim);
+  labelText('TOP VIEW — FLOOR PLAN', cw/2, 14, 'rgba(94,184,212,0.5)', '0.52rem');
 }
 
 function drawSide(p) {
@@ -1027,23 +1157,28 @@ function drawSide(p) {
   const rHs = rH*S;
   const dS = p.D*S;
 
+  // Ground
   ctx.fillStyle = C.ground;
   ctx.fillRect(ox-10, oy, p.D*S+20, 20);
+  drawHatch(ox-10, oy, p.D*S+20, 20, 'rgba(94,184,212,0.15)', 5);
 
   ctx.fillStyle = C.sky;
   ctx.fillRect(ox, oy-rHs-20, dS, rHs+20);
 
   if (p.sideWalls) {
-    ctx.fillStyle = C.wall;
-    ctx.fillRect(ox-6, oy-fHs, 10, fHs);
-    ctx.fillRect(ox+dS-6, oy-rHs, 10, rHs);
-    ctx.fillStyle = C.wallLight;
-    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = 'rgba(26,64,96,0.6)';
     ctx.beginPath();
     ctx.moveTo(ox, oy); ctx.lineTo(ox, oy-fHs);
     ctx.lineTo(ox+dS, oy-rHs); ctx.lineTo(ox+dS, oy);
     ctx.closePath(); ctx.fill();
-    ctx.globalAlpha = 1;
+    drawHatch(ox, oy-rHs, dS, rHs, 'rgba(94,184,212,0.06)', 12);
+
+    ctx.fillStyle = 'rgba(94,184,212,0.3)';
+    ctx.fillRect(ox-6, oy-fHs, 10, fHs);
+    ctx.fillRect(ox+dS-6, oy-rHs, 10, rHs);
+    ctx.strokeStyle = C.post; ctx.lineWidth = 1;
+    ctx.strokeRect(ox-6, oy-fHs, 10, fHs);
+    ctx.strokeRect(ox+dS-6, oy-rHs, 10, rHs);
   }
 
   // Roof
@@ -1054,10 +1189,11 @@ function drawSide(p) {
   ctx.lineTo(ox-14, oy-fHs-12);
   ctx.closePath();
   ctx.fillStyle = C.roofDark; ctx.fill();
+  drawHatch(ox-14, oy-rHs-12, dS+28, rHs+12, 'rgba(94,184,212,0.08)', 10);
   ctx.beginPath();
   ctx.moveTo(ox, oy-fHs); ctx.lineTo(ox+dS, oy-rHs);
   ctx.strokeStyle = C.roof; ctx.lineWidth = 2; ctx.stroke();
-  ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(94,184,212,0.15)'; ctx.lineWidth = 0.8;
   const nRafters = 5;
   for (let i = 0; i <= nRafters; i++) {
     const rx = ox + dS*i/nRafters;
@@ -1072,58 +1208,59 @@ function drawSide(p) {
     for (let r = 0; r < 4; r++) {
       ctx.fillStyle = r%2===0 ? C.wood : C.woodDark;
       ctx.fillRect(woodX, oy - stackH + r*(stackH/4), stackW, stackH/4 - 2);
-      ctx.strokeStyle = 'rgba(200,160,100,0.4)'; ctx.lineWidth=0.5;
+      ctx.strokeStyle = 'rgba(122,96,64,0.4)'; ctx.lineWidth=0.5;
       for (let l = 0; l < 6; l++) {
         ctx.strokeRect(woodX + l*(stackW/6)+1, oy - stackH + r*(stackH/4)+1, stackW/6-2, stackH/4-4);
       }
     }
-    labelText('WOOD', woodX+stackW/2, oy-stackH-8, C.cedar, '0.62rem');
+    labelText('WOOD', woodX+stackW/2, oy-stackH-8, C.cedar, '0.58rem');
   }
 
   drawDimW(ctx, ox, oy+30, dS, `${p.D} ft`, C.dim);
-  drawDimH(ctx, ox-30, oy, fHs, `${p.fH} ft`, C.dim);
-  drawDimH(ctx, ox+dS+25, oy, rHs, `${rH.toFixed(1)} ft`, C.dim);
+  drawDimH(ctx, ox-32, oy, fHs, `${p.fH} ft`, C.dim);
+  drawDimH(ctx, ox+dS+28, oy, rHs, `${rH.toFixed(1)} ft`, C.dim);
 
   const midX = ox + dS*0.3;
   const midY = oy - fHs - (rHs-fHs)*0.3;
-  ctx.strokeStyle = C.straw; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+  ctx.strokeStyle = 'rgba(255,201,71,0.5)'; ctx.lineWidth=0.8; ctx.setLineDash([3,3]);
   ctx.beginPath(); ctx.moveTo(midX, midY); ctx.lineTo(midX+30, midY); ctx.lineTo(midX+30, midY - (rHs-fHs)*0.3); ctx.stroke();
   ctx.setLineDash([]);
-  labelText(`${p.pitch}/12`, midX+34, midY - (rHs-fHs)*0.15, C.straw, '0.6rem');
-  labelText('SIDE VIEW (CROSS-SECTION)', cw/2, 18, C.grain, '0.65rem');
+  labelText(`${p.pitch}/12`, midX+36, midY - (rHs-fHs)*0.15, C.straw, '0.58rem');
+  labelText('SIDE VIEW — CROSS-SECTION', cw/2, 14, 'rgba(94,184,212,0.5)', '0.52rem');
 }
 
 function drawUTV(ctx, cx, groundY, w, S) {
   const h = w*0.55, bh = h*0.45;
   const x = cx - w/2, y = groundY - bh;
-  ctx.fillStyle = '#3A5230';
+  ctx.strokeStyle = '#2a9a60'; ctx.lineWidth = 1;
+  ctx.strokeRect(x, y - h*0.5, w, h*0.5);
+  ctx.fillStyle = 'rgba(42,154,96,0.15)';
   ctx.fillRect(x, y - h*0.5, w, h*0.5);
-  ctx.fillStyle = '#4A6741';
+  ctx.strokeRect(x, y - bh, w, bh);
+  ctx.fillStyle = 'rgba(42,154,96,0.2)';
   ctx.fillRect(x, y - bh, w, bh);
-  ctx.fillStyle = '#1A1208';
+  ctx.strokeStyle = '#1a1208'; ctx.fillStyle = 'rgba(10,21,37,0.9)';
   [[x+w*0.18, groundY],[x+w*0.82, groundY]].forEach(([wx,wy]) => {
     ctx.beginPath(); ctx.arc(wx, wy-6, 10, 0, Math.PI*2); ctx.fill();
-    ctx.strokeStyle = '#555'; ctx.lineWidth=1; ctx.stroke();
+    ctx.strokeStyle = 'rgba(94,184,212,0.3)'; ctx.lineWidth=1; ctx.stroke();
   });
-  ctx.strokeStyle = '#6DBF67'; ctx.lineWidth=1.5;
-  ctx.beginPath();
-  ctx.moveTo(x+w*0.25, y-bh); ctx.lineTo(x+w*0.25, y-bh-h*0.45);
-  ctx.lineTo(x+w*0.75, y-bh-h*0.45); ctx.lineTo(x+w*0.75, y-bh);
-  ctx.stroke();
 }
 
 function drawSplitter(ctx, cx, groundY, w, S) {
   const h = w*0.5;
-  ctx.fillStyle = '#6A8090';
+  ctx.strokeStyle = C.splitter; ctx.lineWidth = 0.8;
+  ctx.strokeRect(cx-w/2, groundY-h, w, h*0.25);
+  ctx.fillStyle = 'rgba(90,138,170,0.2)';
   ctx.fillRect(cx-w/2, groundY-h, w, h*0.25);
-  ctx.fillStyle = '#8FA3B1';
+  ctx.strokeRect(cx-w*0.1, groundY-h*0.9, w*0.2, h*0.8);
   ctx.fillRect(cx-w*0.1, groundY-h*0.9, w*0.2, h*0.8);
-  ctx.fillStyle = '#C0392B';
+  ctx.fillStyle = 'rgba(224,82,82,0.5)';
+  ctx.strokeStyle = '#e05252'; ctx.lineWidth = 0.8;
   ctx.beginPath();
   ctx.moveTo(cx, groundY-h*1.1);
   ctx.lineTo(cx-w*0.15, groundY-h*0.85);
   ctx.lineTo(cx+w*0.15, groundY-h*0.85);
-  ctx.closePath(); ctx.fill();
+  ctx.closePath(); ctx.fill(); ctx.stroke();
 }
 
 function drawWoodStack(ctx, x, groundY, w, h, S) {
@@ -1135,7 +1272,7 @@ function drawWoodStack(ctx, x, groundY, w, h, S) {
     ctx.fillRect(x + w*0.06, groundY - rh*(r+1), w*0.88, rh - 2);
     const logW = (w*0.88)/7;
     for (let l = 0; l < 7; l++) {
-      ctx.strokeStyle = 'rgba(230,190,130,0.35)'; ctx.lineWidth=0.5;
+      ctx.strokeStyle = 'rgba(196,160,100,0.3)'; ctx.lineWidth=0.5;
       ctx.beginPath();
       ctx.arc(x+w*0.06+logW*(l+0.5), groundY - rh*(r+0.5), logW*0.4, 0, Math.PI*2);
       ctx.stroke();
@@ -1144,22 +1281,38 @@ function drawWoodStack(ctx, x, groundY, w, h, S) {
 }
 
 function drawDimW(ctx, x, y, w, label, color) {
-  ctx.strokeStyle = color; ctx.lineWidth = 1;
+  ctx.strokeStyle = color; ctx.lineWidth = 0.8;
+  // Extension lines
+  ctx.strokeStyle = color + '60'; ctx.setLineDash([2,2]);
+  ctx.beginPath(); ctx.moveTo(x, y-24); ctx.lineTo(x, y+5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x+w, y-24); ctx.lineTo(x+w, y+5); ctx.stroke();
+  ctx.setLineDash([]);
+  // Dimension line
+  ctx.strokeStyle = color; ctx.lineWidth = 0.8;
   ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x+w, y); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x, y-5); ctx.lineTo(x, y+5); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x+w, y-5); ctx.lineTo(x+w, y+5); ctx.stroke();
-  labelText(label, x+w/2, y+14, color, '0.68rem');
+  // 45° ticks
+  ctx.beginPath(); ctx.moveTo(x-4, y-4); ctx.lineTo(x+4, y+4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x+w-4, y-4); ctx.lineTo(x+w+4, y+4); ctx.stroke();
+  labelText(label, x+w/2, y+13, color, '0.62rem');
 }
 
 function drawDimH(ctx, x, y, h, label, color) {
-  ctx.strokeStyle = color; ctx.lineWidth = 1;
+  ctx.strokeStyle = color; ctx.lineWidth = 0.8;
+  // Extension lines
+  ctx.strokeStyle = color + '60'; ctx.setLineDash([2,2]);
+  ctx.beginPath(); ctx.moveTo(x-5, y); ctx.lineTo(x+20, y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x-5, y-h); ctx.lineTo(x+20, y-h); ctx.stroke();
+  ctx.setLineDash([]);
+  // Dimension line
+  ctx.strokeStyle = color; ctx.lineWidth = 0.8;
   ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y-h); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x-5, y); ctx.lineTo(x+5, y); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x-5, y-h); ctx.lineTo(x+5, y-h); ctx.stroke();
+  // 45° ticks
+  ctx.beginPath(); ctx.moveTo(x-4, y-4); ctx.lineTo(x+4, y+4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x-4, y-h-4); ctx.lineTo(x+4, y-h+4); ctx.stroke();
   ctx.save();
   ctx.translate(x-14, y-h/2);
   ctx.rotate(-Math.PI/2);
-  ctx.font = '600 0.65rem IBM Plex Mono, monospace';
+  ctx.font = '600 0.62rem JetBrains Mono, monospace';
   ctx.fillStyle = color;
   ctx.textAlign = 'center';
   ctx.fillText(label, 0, 0);
@@ -1167,7 +1320,7 @@ function drawDimH(ctx, x, y, h, label, color) {
 }
 
 function labelText(text, x, y, color, size) {
-  ctx.font = `600 ${size} IBM Plex Mono, monospace`;
+  ctx.font = `600 ${size} JetBrains Mono, monospace`;
   ctx.fillStyle = color;
   ctx.textAlign = 'center';
   ctx.fillText(text, x, y);
@@ -1180,15 +1333,14 @@ function updateMaterials() {
   const avgH = (p.fH + rH) / 2;
   const wbW = woodBayW(p);
 
-  // Snow load determines rafter spec
-  const rafterOC = p.snowLoad ? 4/3 : 2; // 16" OC or 24" OC
+  const rafterOC = p.snowLoad ? 4/3 : 2;
   const rafterSize = p.snowLoad ? '2×8' : '2×6';
   const rafterPricePerFt = p.snowLoad ? PRICES.rafter28PerFt : PRICES.rafter26PerFt;
 
   const nPosts = p.woodBay ? 6 : 4;
   const headerSpan = p.utvW + p.splW;
   const nRafters = Math.ceil(W / rafterOC) + 1;
-  const rafterL = Math.ceil(Math.sqrt(p.D*p.D + Math.pow((rH-p.fH),2)) + 2); // +2ft overhang
+  const rafterL = Math.ceil(Math.sqrt(p.D*p.D + Math.pow((rH-p.fH),2)) + 2);
   const roofSqft = Math.ceil(rafterL * W * 1.1);
   const backSqft = p.backWall ? W * avgH : 0;
   const sideSqft = p.sideWalls ? p.D * avgH * 2 : 0;
@@ -1261,9 +1413,9 @@ function updateMaterials() {
       <td class="note">${r.note}</td>
     </tr>`;
   }).join('') + `<tr class="total-row">
-    <td colspan="3" style="color:var(--grain)">Estimated Total</td>
+    <td colspan="3" style="color:var(--dim)">Estimated Total</td>
     <td class="cost">$${totalCost.toLocaleString()}</td>
-    <td class="note" style="font-size:0.72rem">materials only · excludes tools, delivery, and tax</td>
+    <td class="note" style="font-size:0.68rem">materials only · excludes tools, delivery, and tax</td>
   </tr>`;
 
   return totalCost;
@@ -1285,14 +1437,12 @@ function updateStats() {
 function update() {
   const p = getParams();
 
-  // Slider display values
   const fields = ['totalW','totalD','frontH','pitch','utvW','splW'];
   const suffixes = [' ft',' ft',' ft','/12',' ft',' ft'];
   fields.forEach((f,i) => {
     document.getElementById(f+'_v').textContent = document.getElementById(f).value + suffixes[i];
   });
 
-  // Wood bay mode: dim wood-only controls when off
   const hasBay = p.woodBay;
   document.getElementById('totalW-row').classList.toggle('dimmed', !hasBay);
   document.getElementById('divWall-row').classList.toggle('dimmed', !hasBay);
@@ -1300,13 +1450,10 @@ function update() {
   document.getElementById('wood-stat-box').style.display = hasBay ? '' : 'none';
   document.getElementById('cord-stat-box').style.display = hasBay ? '' : 'none';
 
-  // Snow load warning
   document.getElementById('snow-warn').classList.toggle('visible', p.snowLoad && p.pitch < 6);
 
   updateStats();
   const totalCost = updateMaterials();
-
-  // Update cost stat
   document.getElementById('stat-cost').textContent = `$${totalCost.toLocaleString()}`;
 
   draw();
@@ -1453,7 +1600,7 @@ function generatePrintPanel() {
     <div class="pp-header">
       <div>
         <div class="pp-title">Build Plan: UTV Storage Shelter</div>
-        <div style="font-size:0.78rem; color:var(--grain); margin-top:6px; font-family:'IBM Plex Mono',monospace">${bayDesc}</div>
+        <div style="font-size:0.73rem; color:var(--dim); margin-top:6px; font-family:'JetBrains Mono',monospace">${bayDesc}</div>
       </div>
       <div class="pp-meta">
         ${new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'})}<br>
@@ -1498,12 +1645,11 @@ function generatePrintPanel() {
       </table>
     </div>
 
-    <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--grain); text-align:center; padding-top:8px; border-top:1px solid var(--timber)">
+    <div style="font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--dim); text-align:center; padding-top:8px; border-top:1px solid var(--border)">
       Generated with UTV Storage Shelter Planner · ai-play-projects · Prices are rough 2025 estimates — verify with your local lumber yard
     </div>
   `;
 
-  // Copy the materials table into the print panel
   const srcBody = document.getElementById('mat-body');
   document.getElementById('print-mat-body').innerHTML = srcBody.innerHTML;
 }
