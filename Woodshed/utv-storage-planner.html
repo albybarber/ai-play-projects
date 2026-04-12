@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UTV Storage Shelter Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bark: #2C1F14;
+    --timber: #5C3D1E;
+    --cedar: #8B5E3C;
+    --grain: #C49A6C;
+    --straw: #E8C97A;
+    --sky: #B8D4E8;
+    --metal: #8FA3B1;
+    --rust: #C0392B;
+    --moss: #4A6741;
+    --light: #F5ECD7;
+    --ink: #1A1208;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bark);
+    color: var(--light);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    background-image: 
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 60px),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 60px);
+  }
+
+  header {
+    background: var(--timber);
+    border-bottom: 3px solid var(--straw);
+    padding: 20px 32px;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem;
+    color: var(--straw);
+    letter-spacing: 2px;
+  }
+  header span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--grain);
+    letter-spacing: 1px;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    min-height: calc(100vh - 72px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: #1A1208;
+    border-right: 2px solid var(--timber);
+    padding: 24px 20px;
+    overflow-y: auto;
+  }
+
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    color: var(--grain);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    margin-top: 24px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--timber);
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  .dim-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+  .dim-row label {
+    font-size: 0.82rem;
+    color: var(--light);
+    flex: 1;
+  }
+  .dim-row .val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--straw);
+    width: 52px;
+    text-align: right;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 90px;
+    height: 4px;
+    background: var(--timber);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    background: var(--straw);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .toggle-row label { font-size: 0.82rem; color: var(--light); }
+  .toggle {
+    position: relative; width: 40px; height: 20px;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider-tog {
+    position: absolute; inset: 0;
+    background: var(--timber); border-radius: 20px; cursor: pointer;
+    transition: 0.2s;
+  }
+  .slider-tog:before {
+    content: ''; position: absolute;
+    width: 14px; height: 14px; left: 3px; bottom: 3px;
+    background: var(--grain); border-radius: 50%;
+    transition: 0.2s;
+  }
+  .toggle input:checked + .slider-tog { background: var(--moss); }
+  .toggle input:checked + .slider-tog:before { transform: translateX(20px); background: var(--straw); }
+
+  .stat-box {
+    background: var(--timber);
+    border: 1px solid var(--cedar);
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .stat-box .stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    color: var(--grain);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .stat-box .stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    color: var(--straw);
+    letter-spacing: 1px;
+  }
+  .stat-box .stat-sub {
+    font-size: 0.72rem;
+    color: var(--grain);
+    margin-top: 2px;
+  }
+
+  /* MAIN */
+  .main {
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .canvas-wrap {
+    background: #0F0A04;
+    border: 2px solid var(--timber);
+    border-radius: 4px;
+    padding: 20px;
+    position: relative;
+  }
+  .canvas-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    color: var(--grain);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 14px;
+  }
+  .tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 7px 16px;
+    background: var(--timber);
+    color: var(--grain);
+    border: none;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .tab.active {
+    background: var(--straw);
+    color: var(--ink);
+  }
+  .tab:hover:not(.active) { background: var(--cedar); color: var(--light); }
+
+  /* MATERIALS TABLE */
+  .materials {
+    background: #0F0A04;
+    border: 2px solid var(--timber);
+    border-radius: 4px;
+    padding: 20px;
+  }
+  .mat-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    color: var(--grain);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--grain);
+    text-align: left;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--timber);
+  }
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(92,61,30,0.3);
+    color: var(--light);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.mono { font-family: 'IBM Plex Mono', monospace; color: var(--straw); }
+  td.note { font-size: 0.72rem; color: var(--grain); }
+  .cat-row td {
+    background: rgba(92,61,30,0.25);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cedar);
+    padding: 4px 10px;
+  }
+
+  .notes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .note-card {
+    background: #0F0A04;
+    border: 1px solid var(--timber);
+    border-left: 3px solid var(--straw);
+    border-radius: 4px;
+    padding: 14px 16px;
+  }
+  .note-card h4 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--straw);
+    margin-bottom: 8px;
+  }
+  .note-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .note-card ul li {
+    font-size: 0.78rem;
+    color: var(--grain);
+    line-height: 1.6;
+    padding-left: 12px;
+    position: relative;
+  }
+  .note-card ul li:before {
+    content: '—';
+    position: absolute; left: 0;
+    color: var(--cedar);
+  }
+  .note-card.green { border-left-color: var(--moss); }
+  .note-card.green h4 { color: #6DBF67; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .notes-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>UTV Storage Shelter Planner</h1>
+  <span>Yamaha Wolverine X4 · 1–2 Cord Wood · PT Lumber + Metal Roof · Open-Span UTV/Splitter Bay</span>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="section-label">Structure Dimensions</div>
+
+    <div class="dim-row">
+      <label>Total Width</label>
+      <input type="range" id="totalW" min="20" max="40" value="28" step="1">
+      <span class="val" id="totalW_v">28 ft</span>
+    </div>
+    <div class="dim-row">
+      <label>Total Depth</label>
+      <input type="range" id="totalD" min="14" max="30" value="20" step="1">
+      <span class="val" id="totalD_v">20 ft</span>
+    </div>
+    <div class="dim-row">
+      <label>Front Wall Height</label>
+      <input type="range" id="frontH" min="8" max="12" value="9" step="1">
+      <span class="val" id="frontH_v">9 ft</span>
+    </div>
+    <div class="dim-row">
+      <label>Roof Pitch (rise/run)</label>
+      <input type="range" id="pitch" min="2" max="8" value="4" step="1">
+      <span class="val" id="pitch_v">4/12</span>
+    </div>
+
+    <div class="section-label">Bay Layout</div>
+    <div class="dim-row">
+      <label>UTV Bay Width</label>
+      <input type="range" id="utvW" min="8" max="14" value="10" step="1">
+      <span class="val" id="utvW_v">10 ft</span>
+    </div>
+    <div class="dim-row">
+      <label>Splitter Bay Width</label>
+      <input type="range" id="splW" min="6" max="10" value="8" step="1">
+      <span class="val" id="splW_v">8 ft</span>
+    </div>
+
+    <div class="section-label">Options</div>
+    <div class="toggle-row">
+      <label>Wood rack divider wall</label>
+      <label class="toggle"><input type="checkbox" id="divWall" checked><span class="slider-tog"></span></label>
+    </div>
+    <div class="toggle-row">
+      <label>Side walls (UTV + splitter)</label>
+      <label class="toggle"><input type="checkbox" id="sideWalls" checked><span class="slider-tog"></span></label>
+    </div>
+    <div class="toggle-row">
+      <label>Back wall (all bays)</label>
+      <label class="toggle"><input type="checkbox" id="backWall" checked><span class="slider-tog"></span></label>
+    </div>
+    <div class="toggle-row">
+      <label>Gravel (wood bay only)</label>
+      <label class="toggle"><input type="checkbox" id="gravel"><span class="slider-tog"></span></label>
+    </div>
+
+    <div class="section-label">Quick Stats</div>
+    <div class="stat-box">
+      <div class="stat-label">Footprint</div>
+      <div class="stat-val" id="stat-fp">560 sq ft</div>
+      <div class="stat-sub">28 × 20 ft</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Wood Bay Width</div>
+      <div class="stat-val" id="stat-wood">10 ft</div>
+      <div class="stat-sub">remainder after UTV + splitter bays</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Est. Cord Capacity</div>
+      <div class="stat-val" id="stat-cord">2.1 cords</div>
+      <div class="stat-sub">stacked 4 ft high × bay width × depth</div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <div class="canvas-wrap">
+      <div class="tabs">
+        <button class="tab active" onclick="setView('front')">Front View</button>
+        <button class="tab" onclick="setView('top')">Top / Floor Plan</button>
+        <button class="tab" onclick="setView('side')">Side View</button>
+      </div>
+      <canvas id="cv" height="420"></canvas>
+    </div>
+
+    <div class="materials">
+      <div class="mat-title">Materials List</div>
+      <table id="mat-table">
+        <thead>
+          <tr>
+            <th>Item</th><th>Size / Spec</th><th>Qty</th><th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="mat-body"></tbody>
+      </table>
+    </div>
+
+    <div class="notes-grid">
+      <div class="note-card">
+        <h4>Foundation &amp; Footings — Minimal Groundwork</h4>
+        <ul>
+          <li>Use helical piers or surface-mount post bases on small concrete pads — no deep excavation needed</li>
+          <li>6×6 PT posts on Simpson ABA66 or equivalent adjustable bases; set pads just below grade</li>
+          <li>UTV + splitter area: compact existing ground, add a thin crusher run layer if soft — no full gravel bed needed</li>
+          <li>Wood bay: stack on 2×4 PT runners laid on grade — keeps wood up, zero groundwork</li>
+          <li>Check frost line depth (36–42" in Catskills) — helical piers go below it without major digging</li>
+        </ul>
+      </div>
+      <div class="note-card green">
+        <h4>Airflow for Wood Storage</h4>
+        <ul>
+          <li>Open front on wood bay is key — never close it in</li>
+          <li>Gaps in back wall siding (1–2" spacing) or hardware cloth panels improve cross-ventilation</li>
+          <li>Stack wood on a raised pallet or 2×4 runners to keep off ground</li>
+          <li>Orient wood bay to prevailing wind if possible</li>
+        </ul>
+      </div>
+      <div class="note-card">
+        <h4>Roof Details</h4>
+        <ul>
+          <li>Corrugated metal (26 ga.) on 2×6 rafters, 24" OC</li>
+          <li>Ridge cap and closure strips seal against pests / weather</li>
+          <li>Extend eaves 12–18" on front and sides for rain runoff away from wood and UTV</li>
+          <li>Slope roof away from the open front to direct runoff to back</li>
+        </ul>
+      </div>
+      <div class="note-card">
+        <h4>Wolverine X4 Clearance</h4>
+        <ul>
+          <li>X4 is ~61" wide, ~75" tall (cab) — 10 ft bay gives comfortable clearance</li>
+          <li>Allow at least 18" on each side for doors and access</li>
+          <li>9 ft front wall height clears the machine with ~12" to spare</li>
+          <li>Consider a wheel stop (4×4 treated) near the back wall</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let view = 'front';
+
+// Colors
+const C = {
+  post: '#5C3D1E', beam: '#7A5030', roof: '#8FA3B1',
+  roofDark: '#5A7080', wall: '#6B4A2A', wallLight: '#9B7550',
+  open: 'rgba(184,212,232,0.12)', openBorder: '#B8D4E8',
+  wood: '#8B5E3C', woodDark: '#5C3D1E',
+  ground: '#2C1F14', gravel: '#3D3228',
+  utv: '#4A6741', splitter: '#8FA3B1',
+  dim: '#E8C97A', label: '#C49A6C', grid: 'rgba(255,255,255,0.04)',
+  bg: '#0F0A04', sky: 'rgba(184,212,232,0.06)',
+  divider: '#7A5030',
+};
+
+function getParams() {
+  return {
+    W: +document.getElementById('totalW').value,
+    D: +document.getElementById('totalD').value,
+    fH: +document.getElementById('frontH').value,
+    pitch: +document.getElementById('pitch').value,
+    utvW: +document.getElementById('utvW').value,
+    splW: +document.getElementById('splW').value,
+    divWall: document.getElementById('divWall').checked,
+    sideWalls: document.getElementById('sideWalls').checked,
+    backWall: document.getElementById('backWall').checked,
+    gravel: document.getElementById('gravel').checked,
+  };
+}
+
+function woodBayW(p) { return p.W - p.utvW - p.splW; }
+function rearH(p) { return p.fH + (p.pitch / 12) * p.D; }
+
+function setView(v) {
+  view = v;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['front','top','side'][i] === v));
+  draw();
+}
+
+function resizeCanvas() {
+  const wrap = cv.parentElement;
+  cv.width = wrap.clientWidth - 40;
+  draw();
+}
+
+function draw() {
+  const p = getParams();
+  ctx.clearRect(0, 0, cv.width, cv.height);
+
+  // Background
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, cv.width, cv.height);
+
+  // Grid
+  ctx.strokeStyle = C.grid;
+  ctx.lineWidth = 1;
+  for (let x = 0; x < cv.width; x += 40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x, cv.height); ctx.stroke(); }
+  for (let y = 0; y < cv.height; y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(cv.width,y); ctx.stroke(); }
+
+  if (view === 'front') drawFront(p);
+  else if (view === 'top') drawTop(p);
+  else drawSide(p);
+}
+
+function drawFront(p) {
+  const cw = cv.width, ch = cv.height;
+  const margin = 60;
+  const scale = (cw - margin*2) / p.W;
+  const maxH = rearH(p); // use rear (taller) for scale
+  const scaleH = (ch - margin*2 - 40) / maxH;
+  const S = Math.min(scale, scaleH);
+
+  const ox = margin + (cw - margin*2 - p.W*S)/2;
+  const oy = ch - margin - 20;
+
+  // Ground
+  ctx.fillStyle = C.ground;
+  ctx.fillRect(ox - 10, oy, p.W*S + 20, 20);
+  if (p.gravel) {
+    ctx.fillStyle = C.gravel;
+    ctx.fillRect(ox, oy, p.W*S, 10);
+    // gravel texture
+    ctx.fillStyle = 'rgba(200,180,150,0.2)';
+    for (let i = 0; i < 60; i++) {
+      const gx = ox + Math.random() * p.W*S;
+      const gy = oy + Math.random() * 10;
+      ctx.fillRect(gx, gy, 2, 1);
+    }
+  }
+
+  // Bay widths in canvas units
+  const uW = p.utvW * S;
+  const sW = p.splW * S;
+  const wW = woodBayW(p) * S;
+  const fHs = p.fH * S;
+
+  // Roof profile: flat front, sloped back — front view shows gabled or single slope
+  // Single shed slope: front is lower side, back is higher
+  // Draw roof as trapezoid (front view: rectangle with slight angle indicator)
+
+  // Sky tint behind structure
+  ctx.fillStyle = C.sky;
+  ctx.fillRect(ox, oy - fHs - 20, p.W*S, fHs + 20);
+
+  // --- UTV Bay (left) ---
+  const ux = ox;
+  // Back/sides if enabled
+  if (p.sideWalls) {
+    ctx.fillStyle = C.wall;
+    ctx.fillRect(ux, oy - fHs, 8, fHs);
+  }
+  // Open front indicator
+  ctx.fillStyle = C.open;
+  ctx.fillRect(ux + 8, oy - fHs + 8, uW - 16, fHs - 8);
+  ctx.strokeStyle = C.openBorder;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+  ctx.strokeRect(ux + 8, oy - fHs + 8, uW - 16, fHs - 8);
+  ctx.setLineDash([]);
+
+  // UTV silhouette
+  drawUTV(ctx, ux + uW/2, oy, uW * 0.75, S);
+
+  // UTV label
+  labelText('UTV BAY', ux + uW/2, oy - fHs + 22, C.label, '0.65rem');
+  labelText(`${p.utvW} ft`, ux + uW/2, oy - fHs + 38, C.dim, '0.6rem');
+
+  // --- Splitter Bay (middle) ---
+  const sx = ox + uW;
+  if (p.sideWalls) {
+    ctx.fillStyle = C.wall;
+    ctx.fillRect(sx, oy - fHs, 8, fHs);
+    ctx.fillRect(sx + sW - 8, oy - fHs, 8, fHs);
+  }
+  ctx.fillStyle = C.open;
+  ctx.fillRect(sx + 8, oy - fHs + 8, sW - 16, fHs - 8);
+  ctx.strokeStyle = C.openBorder;
+  ctx.setLineDash([4,4]);
+  ctx.strokeRect(sx + 8, oy - fHs + 8, sW - 16, fHs - 8);
+  ctx.setLineDash([]);
+
+  // Splitter icon
+  drawSplitter(ctx, sx + sW/2, oy, sW * 0.5, S);
+
+  labelText('SPLITTER BAY', sx + sW/2, oy - fHs + 22, C.label, '0.65rem');
+  labelText(`${p.splW} ft`, sx + sW/2, oy - fHs + 38, C.dim, '0.6rem');
+
+  // --- Wood Bay (right) ---
+  const wx = ox + uW + sW;
+  // Open front — show wood stacks
+  drawWoodStack(ctx, wx, oy, wW, fHs, S);
+
+  // Optional divider
+  if (p.divWall) {
+    ctx.fillStyle = C.divider;
+    ctx.fillRect(wx, oy - fHs, 6, fHs);
+  }
+
+  // Side wall right
+  if (p.sideWalls) {
+    ctx.fillStyle = C.wall;
+    ctx.fillRect(wx + wW - 8, oy - fHs, 8, fHs);
+  }
+
+  labelText('WOOD BAY', wx + wW/2, oy - fHs + 22, C.label, '0.65rem');
+  labelText(`${woodBayW(p)} ft`, wx + wW/2, oy - fHs + 38, C.dim, '0.6rem');
+
+  // ROOF (shed slope, front low / back high)
+  const rearExtra = (p.pitch / 12) * p.D * S;
+  ctx.beginPath();
+  ctx.moveTo(ox - 12, oy - fHs); // front left
+  ctx.lineTo(ox + p.W*S + 12, oy - fHs); // front right
+  ctx.lineTo(ox + p.W*S + 12, oy - fHs - rearExtra); // back right (higher)
+  ctx.lineTo(ox - 12, oy - fHs - rearExtra); // back left (higher)
+  ctx.closePath();
+  ctx.fillStyle = C.roofDark;
+  ctx.fill();
+  // Front fascia
+  ctx.fillStyle = C.roof;
+  ctx.fillRect(ox - 14, oy - fHs - 10, p.W*S + 28, 12);
+  // Ribs
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i <= 8; i++) {
+    const rx = ox - 12 + (p.W*S + 24) * i/8;
+    ctx.beginPath();
+    ctx.moveTo(rx, oy - fHs - 10);
+    ctx.lineTo(rx, oy - fHs - rearExtra);
+    ctx.stroke();
+  }
+
+  // Posts — corners only + divider between splitter and wood bay (NO post between UTV and splitter)
+  ctx.fillStyle = C.post;
+  [ox, ox+uW+sW, ox+p.W*S].forEach(px => {
+    ctx.fillRect(px - 5, oy - fHs, 10, fHs);
+  });
+
+  // Header beam spanning UTV + splitter bay (LVL / triple 2×12)
+  ctx.fillStyle = C.beam;
+  ctx.fillRect(ox, oy - fHs - 2, uW + sW, 14);
+  ctx.strokeStyle = C.straw; ctx.lineWidth = 0.8; ctx.setLineDash([3,3]);
+  ctx.strokeRect(ox+2, oy - fHs, uW + sW - 4, 10);
+  ctx.setLineDash([]);
+  labelText('LVL HEADER', ox + (uW+sW)/2, oy - fHs - 10, C.straw, '0.55rem');
+
+  // Dimension lines
+  drawDimH(ctx, ox - 30, oy, fHs, `${p.fH} ft`, C.dim);
+  drawDimW(ctx, ox, oy + 30, p.W*S, `${p.W} ft`, C.dim);
+
+  // Label
+  labelText('FRONT VIEW (OPEN FACE)', cw/2, 18, C.grain, '0.65rem');
+}
+
+function drawTop(p) {
+  const cw = cv.width, ch = cv.height;
+  const margin = 60;
+  const scaleW = (cw - margin*2) / p.W;
+  const scaleD = (ch - margin*2 - 40) / p.D;
+  const S = Math.min(scaleW, scaleD);
+
+  const ox = margin + (cw - margin*2 - p.W*S)/2;
+  const oy = margin + (ch - margin*2 - 40 - p.D*S)/2 + 20;
+
+  const uW = p.utvW*S, sW = p.splW*S, wW = woodBayW(p)*S;
+  const dS = p.D*S;
+
+  // Background fill
+  if (p.gravel) {
+    ctx.fillStyle = C.gravel;
+    ctx.fillRect(ox, oy, p.W*S, dS);
+  } else {
+    ctx.fillStyle = '#1A1208';
+    ctx.fillRect(ox, oy, p.W*S, dS);
+  }
+
+  // --- UTV bay ---
+  ctx.fillStyle = 'rgba(74,103,65,0.15)';
+  ctx.fillRect(ox, oy, uW, dS);
+  // UTV footprint
+  ctx.fillStyle = 'rgba(74,103,65,0.5)';
+  const uvw = uW*0.8, uvd = dS*0.55;
+  ctx.fillRect(ox + (uW-uvw)/2, oy + dS*0.1, uvw, uvd);
+  ctx.strokeStyle = '#4A6741';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(ox + (uW-uvw)/2, oy + dS*0.1, uvw, uvd);
+  labelText('UTV', ox+uW/2, oy+dS*0.38, '#6DBF67', '0.7rem');
+
+  // --- Splitter bay ---
+  ctx.fillStyle = 'rgba(143,163,177,0.12)';
+  ctx.fillRect(ox+uW, oy, sW, dS);
+  ctx.fillStyle = 'rgba(143,163,177,0.4)';
+  const spw = sW*0.5, spd = dS*0.35;
+  ctx.fillRect(ox+uW+(sW-spw)/2, oy+dS*0.15, spw, spd);
+  ctx.strokeStyle = '#8FA3B1';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(ox+uW+(sW-spw)/2, oy+dS*0.15, spw, spd);
+  labelText('SPLITTER', ox+uW+sW/2, oy+dS*0.33, '#8FA3B1', '0.62rem');
+
+  // --- Wood bay ---
+  ctx.fillStyle = 'rgba(139,94,60,0.15)';
+  ctx.fillRect(ox+uW+sW, oy, wW, dS);
+  // Wood stack rows
+  const rows = 3, rowH = dS*0.18;
+  for (let r = 0; r < rows; r++) {
+    ctx.fillStyle = r%2===0 ? 'rgba(139,94,60,0.6)' : 'rgba(92,61,30,0.6)';
+    ctx.fillRect(ox+uW+sW + wW*0.08, oy + dS*0.08 + r*(rowH+4), wW*0.84, rowH);
+    ctx.strokeStyle = 'rgba(200,160,100,0.3)';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(ox+uW+sW + wW*0.08, oy + dS*0.08 + r*(rowH+4), wW*0.84, rowH);
+  }
+  labelText('WOOD', ox+uW+sW+wW/2, oy+dS*0.75, C.cedar, '0.7rem');
+
+  // Walls
+  ctx.fillStyle = C.wall;
+  const wt = 6;
+  // back wall
+  if (p.backWall) {
+    ctx.fillRect(ox, oy+dS-wt, p.W*S, wt);
+  }
+  // side walls
+  if (p.sideWalls) {
+    ctx.fillRect(ox, oy, wt, dS); // left
+    ctx.fillRect(ox+p.W*S-wt, oy, wt, dS); // right (wood side)
+  }
+  // Posts — corners + divider at splitter/wood boundary only (no post between UTV and splitter)
+  ctx.fillStyle = C.post;
+  ctx.fillRect(ox+uW+sW-4, oy, 8, dS); // only post between splitter and wood bay
+
+  // Header beam top-view (shown as thick line across UTV+splitter front)
+  ctx.fillStyle = C.beam;
+  ctx.fillRect(ox, oy, uW+sW, 7);
+  ctx.strokeStyle = C.straw; ctx.lineWidth=0.5; ctx.setLineDash([4,3]);
+  ctx.strokeRect(ox, oy, uW+sW, 7);
+  ctx.setLineDash([]);
+  labelText('LVL HEADER', ox+(uW+sW)/2, oy-6, C.straw, '0.52rem');
+
+  // Open front indicator
+  ctx.strokeStyle = C.openBorder;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox+p.W*S, oy); ctx.stroke();
+  ctx.setLineDash([]);
+  labelText('← OPEN FRONT →', ox+p.W*S/2, oy-14, C.openBorder, '0.6rem');
+
+  // Dimension lines
+  drawDimW(ctx, ox, oy+dS+30, p.W*S, `${p.W} ft`, C.dim);
+  drawDimH(ctx, ox-30, oy, dS, `${p.D} ft`, C.dim);
+
+  labelText('TOP VIEW / FLOOR PLAN', cw/2, 18, C.grain, '0.65rem');
+}
+
+function drawSide(p) {
+  const cw = cv.width, ch = cv.height;
+  const margin = 60;
+  const rH = rearH(p);
+  const scaleD = (cw - margin*2) / p.D;
+  const scaleH = (ch - margin*2 - 40) / (rH + 2);
+  const S = Math.min(scaleD, scaleH);
+
+  const ox = margin + (cw - margin*2 - p.D*S)/2;
+  const oy = ch - margin - 20;
+
+  const fHs = p.fH*S;
+  const rHs = rH*S;
+  const dS = p.D*S;
+
+  // Ground
+  ctx.fillStyle = C.ground;
+  ctx.fillRect(ox-10, oy, p.D*S+20, 20);
+
+  // Sky
+  ctx.fillStyle = C.sky;
+  ctx.fillRect(ox, oy-rHs-20, dS, rHs+20);
+
+  // Wall fill
+  if (p.sideWalls) {
+    ctx.fillStyle = C.wall;
+    // Left face (front open, just post)
+    ctx.fillRect(ox-6, oy-fHs, 10, fHs);
+    // Right rear post
+    ctx.fillRect(ox+dS-6, oy-rHs, 10, rHs);
+    // Side wall fill
+    ctx.fillStyle = C.wallLight;
+    ctx.globalAlpha = 0.3;
+    ctx.beginPath();
+    ctx.moveTo(ox, oy);
+    ctx.lineTo(ox, oy-fHs);
+    ctx.lineTo(ox+dS, oy-rHs);
+    ctx.lineTo(ox+dS, oy);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // Roof
+  ctx.beginPath();
+  ctx.moveTo(ox-14, oy-fHs);
+  ctx.lineTo(ox+dS+14, oy-rHs);
+  ctx.lineTo(ox+dS+14, oy-rHs-12);
+  ctx.lineTo(ox-14, oy-fHs-12);
+  ctx.closePath();
+  ctx.fillStyle = C.roofDark;
+  ctx.fill();
+  // roof underside suggestion
+  ctx.beginPath();
+  ctx.moveTo(ox, oy-fHs);
+  ctx.lineTo(ox+dS, oy-rHs);
+  ctx.strokeStyle = C.roof;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  // Rafters
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1;
+  const nRafters = 5;
+  for (let i = 0; i <= nRafters; i++) {
+    const rx = ox + dS*i/nRafters;
+    const ry = oy - fHs - (rHs-fHs)*i/nRafters;
+    ctx.beginPath(); ctx.moveTo(rx, oy); ctx.lineTo(rx, ry); ctx.stroke();
+  }
+
+  // Wood stack (side view, back portion)
+  const woodX = ox + dS*0.55;
+  const stackW = dS*0.4;
+  const stackH = fHs*0.55;
+  for (let r = 0; r < 4; r++) {
+    ctx.fillStyle = r%2===0 ? C.wood : C.woodDark;
+    ctx.fillRect(woodX, oy - stackH + r*(stackH/4), stackW, stackH/4 - 2);
+    // Log ends
+    ctx.strokeStyle = 'rgba(200,160,100,0.4)'; ctx.lineWidth=0.5;
+    for (let l = 0; l < 6; l++) {
+      ctx.strokeRect(woodX + l*(stackW/6)+1, oy - stackH + r*(stackH/4)+1, stackW/6-2, stackH/4-4);
+    }
+  }
+  labelText('WOOD', woodX+stackW/2, oy-stackH-8, C.cedar, '0.62rem');
+
+  // Dimension lines
+  drawDimW(ctx, ox, oy+30, dS, `${p.D} ft`, C.dim);
+  drawDimH(ctx, ox-30, oy, fHs, `${p.fH} ft`, C.dim);
+  drawDimH(ctx, ox+dS+25, oy, rHs, `${rH.toFixed(1)} ft`, C.dim);
+
+  // Pitch annotation
+  const midX = ox + dS*0.3;
+  const midY = oy - fHs - (rHs-fHs)*0.3;
+  ctx.strokeStyle = C.straw; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(midX, midY); ctx.lineTo(midX+30, midY); ctx.lineTo(midX+30, midY - (rHs-fHs)*0.3); ctx.stroke();
+  ctx.setLineDash([]);
+  labelText(`${p.pitch}/12`, midX+34, midY - (rHs-fHs)*0.15, C.straw, '0.6rem');
+
+  labelText('SIDE VIEW (CROSS-SECTION)', cw/2, 18, C.grain, '0.65rem');
+}
+
+function drawUTV(ctx, cx, groundY, w, S) {
+  const h = w*0.55, bh = h*0.45;
+  const x = cx - w/2, y = groundY - bh;
+  // Body
+  ctx.fillStyle = '#3A5230';
+  ctx.fillRect(x, y - h*0.5, w, h*0.5);
+  ctx.fillStyle = '#4A6741';
+  ctx.fillRect(x, y - bh, w, bh);
+  // Wheels
+  ctx.fillStyle = '#1A1208';
+  [[x+w*0.18, groundY],[x+w*0.82, groundY]].forEach(([wx,wy]) => {
+    ctx.beginPath(); ctx.arc(wx, wy-6, 10, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#555'; ctx.lineWidth=1; ctx.stroke();
+  });
+  // Cage
+  ctx.strokeStyle = '#6DBF67'; ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.moveTo(x+w*0.25, y-bh);
+  ctx.lineTo(x+w*0.25, y-bh-h*0.45);
+  ctx.lineTo(x+w*0.75, y-bh-h*0.45);
+  ctx.lineTo(x+w*0.75, y-bh);
+  ctx.stroke();
+}
+
+function drawSplitter(ctx, cx, groundY, w, S) {
+  const h = w*0.5;
+  ctx.fillStyle = '#6A8090';
+  ctx.fillRect(cx-w/2, groundY-h, w, h*0.25);
+  ctx.fillStyle = '#8FA3B1';
+  ctx.fillRect(cx-w*0.1, groundY-h*0.9, w*0.2, h*0.8);
+  ctx.fillStyle = '#C0392B';
+  ctx.beginPath();
+  ctx.moveTo(cx, groundY-h*1.1);
+  ctx.lineTo(cx-w*0.15, groundY-h*0.85);
+  ctx.lineTo(cx+w*0.15, groundY-h*0.85);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawWoodStack(ctx, x, groundY, w, h, S) {
+  const stackH = h * 0.65;
+  const rows = 4;
+  for (let r = 0; r < rows; r++) {
+    ctx.fillStyle = r%2===0 ? C.wood : C.woodDark;
+    const rh = stackH/rows;
+    ctx.fillRect(x + w*0.06, groundY - rh*(r+1), w*0.88, rh - 2);
+    // Log circles
+    const logW = (w*0.88)/7;
+    for (let l = 0; l < 7; l++) {
+      ctx.strokeStyle = 'rgba(230,190,130,0.35)'; ctx.lineWidth=0.5;
+      ctx.beginPath();
+      ctx.arc(x+w*0.06+logW*(l+0.5), groundY - rh*(r+0.5), logW*0.4, 0, Math.PI*2);
+      ctx.stroke();
+    }
+  }
+}
+
+function drawDimW(ctx, x, y, w, label, color) {
+  ctx.strokeStyle = color; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x+w, y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x, y-5); ctx.lineTo(x, y+5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x+w, y-5); ctx.lineTo(x+w, y+5); ctx.stroke();
+  labelText(label, x+w/2, y+14, color, '0.68rem');
+}
+
+function drawDimH(ctx, x, y, h, label, color) {
+  ctx.strokeStyle = color; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y-h); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x-5, y); ctx.lineTo(x+5, y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x-5, y-h); ctx.lineTo(x+5, y-h); ctx.stroke();
+  ctx.save();
+  ctx.translate(x-14, y-h/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.font = '600 0.65rem IBM Plex Mono, monospace';
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.fillText(label, 0, 0);
+  ctx.restore();
+}
+
+function labelText(text, x, y, color, size) {
+  ctx.font = `600 ${size} IBM Plex Mono, monospace`;
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.fillText(text, x, y);
+}
+
+// Materials list
+function updateMaterials() {
+  const p = getParams();
+  const rH = rearH(p);
+  const avgH = (p.fH + rH) / 2;
+  const wbW = woodBayW(p);
+
+  // Post count: 6 — corners (4) + one divider post front+back between splitter/wood bay
+  // NO post between UTV and splitter — spanned by LVL header
+  const nPosts = 6;
+  // LVL header span = UTV bay + splitter bay width
+  const headerSpan = p.utvW + p.splW;
+  // Beams: top plates
+  const beamLF = p.W; // front top plate
+  const beamLR = p.W; // rear
+  const beamSide = p.D * 2; // two sides
+  // Rafters: W/2 feet OC (every 2ft)
+  const nRafters = Math.ceil(p.W / 2) + 1;
+  const rafterL = Math.sqrt(p.D*p.D + Math.pow((rH-p.fH),2));
+  // Roof metal: sq ft
+  const roofSqft = Math.ceil(rafterL * p.W * 1.1); // 10% waste
+  // Siding: back wall + sides (if enabled)
+  const backSqft = p.backWall ? p.W * avgH : 0;
+  const sideSqft = p.sideWalls ? p.D * avgH * 2 : 0;
+  const divSqft = p.divWall ? p.D * p.fH : 0;
+  // Gravel: wood bay only if toggled (minimal)
+  const gravelTons = p.gravel ? Math.ceil((wbW * p.D * (4/12)) / 27 * 1.5) : 0;
+  // Concrete pads (small, surface-mount footings — one per post)
+  const cBags = nPosts * 1; // 1 bag per pad, surface-mount style
+
+  const rows = [
+    {cat: 'Foundation — Minimal Groundwork'},
+    {item:'6×6 PT Post', spec:'12 ft length', qty: nPosts, note:'6 posts total — no post between UTV/splitter bays'},
+    {item:'Concrete (surface pad)', spec:'80 lb bag', qty: cBags, note:'1 bag per post base pad; no deep tube forms needed'},
+    {item:'Adjustable Post Base', spec:'Simpson ABA66', qty: nPosts, note:'Surface-mount; keeps post end grain off concrete'},
+    {item:'Helical Pier (alt.)', spec:'6" dia, 42" depth', qty: nPosts, note:'Alternative to pads — drill-in, below frost line, no digging'},
+    ...(p.gravel ? [{item:'Crushed Gravel (3/4")', spec:'Ton', qty: gravelTons, note:'Wood bay only — 4" compacted for drainage'}] : []),
+    {cat: 'Open-Span Header (UTV + Splitter Bay)'},
+    {item:'LVL Beam (header)', spec:`3.5"×11.25", ${headerSpan} ft span`, qty: 1, note:'Spans full UTV+splitter opening — no interior post needed'},
+    {item:'LVL Beam (rear header)', spec:`3.5"×11.25", ${headerSpan} ft span`, qty: 1, note:'Matching rear beam for back of open span'},
+    {item:'Post Cap Hardware', spec:'Simpson BC6', qty: 4, note:'Beam-to-post connection at 4 header bearing points'},
+    {cat: 'Framing'},
+    {item:'6×6 PT Beam', spec:'Top plate, ft', qty: Math.ceil(beamLF + beamLR + beamSide), note:'Front/rear plates + side beams (wood bay + perimeter)'},
+    {item:'2×6 Rafters', spec:`${Math.ceil(rafterL)} ft ea`, qty: nRafters, note:'24" OC across full width'},
+    {item:'2×6 Ledger/Purlin', spec:`${p.W} ft run`, qty: 3, note:'Ridge + mid + eave purlins'},
+    {item:'Hurricane Ties', spec:'H2.5A', qty: nRafters*2, note:'Each rafter, both ends'},
+    {cat: 'Roofing'},
+    {item:'Corrugated Metal Panel', spec:'26-ga, sq ft', qty: roofSqft, note:'Order in 2 ft increments; include ridge cap'},
+    {item:'Ridge Cap', spec:`${p.W} ft`, qty: 1, note:''},
+    {item:'Closure Strips', spec:'Foam, eave + ridge', qty: 2, note:'Seals against pests'},
+    {item:'Metal Roofing Screws', spec:'1.5" w/ washer', qty: Math.ceil(roofSqft/3), note:'~1 per 3 sq ft'},
+    {cat: 'Siding / Walls'},
+    ...(p.backWall ? [{item:'T1-11 or LP SmartSide', spec:'sq ft', qty: Math.ceil(backSqft), note:'Back wall — all bays'}] : []),
+    ...(p.sideWalls ? [{item:'T1-11 or LP SmartSide', spec:'sq ft', qty: Math.ceil(sideSqft), note:'Side walls — UTV + splitter side'}] : []),
+    ...(p.divWall ? [{item:'2×6 + Siding — Divider', spec:'sq ft', qty: Math.ceil(divSqft), note:'Between splitter + wood bay'}] : []),
+    {cat: 'Wood Storage Rack'},
+    {item:'4×4 PT Upright', spec:'6 ft', qty: 4, note:'Wood bay corners + mid supports'},
+    {item:'2×4 Horizontal Rail', spec:`${p.D} ft`, qty: 6, note:'3 tiers × 2 rails'},
+    {item:'PT 2×4 Ground Runners', spec:`${p.D} ft`, qty: Math.ceil(wbW/2), note:'Laid on grade — no groundwork, keeps wood off soil'},
+    {cat: 'Hardware & Fasteners'},
+    {item:'Structural Screws 3"', spec:'lb box', qty: 5, note:'General framing'},
+    {item:'Joist Hanger', spec:'LUS26', qty: nRafters*2, note:''},
+    {item:'Galv. Lag Screw 1/2×5"', spec:'box/50', qty: 3, note:'Beam-to-post + LVL header connections'},
+  ];
+
+  const tbody = document.getElementById('mat-body');
+  tbody.innerHTML = rows.map(r => {
+    if (r.cat) return `<tr class="cat-row"><td colspan="4">${r.cat}</td></tr>`;
+    return `<tr>
+      <td>${r.item}</td>
+      <td class="mono">${r.spec}</td>
+      <td class="mono">${r.qty}</td>
+      <td class="note">${r.note}</td>
+    </tr>`;
+  }).join('');
+}
+
+function updateStats() {
+  const p = getParams();
+  document.getElementById('stat-fp').textContent = `${p.W * p.D} sq ft`;
+  document.querySelector('#stat-fp').nextElementSibling.textContent = `${p.W} × ${p.D} ft`;
+  const wbw = woodBayW(p);
+  document.getElementById('stat-wood').textContent = `${wbw} ft`;
+  // Cord estimate: stack 4ft high, full depth, wood bay width
+  const cords = (wbw * p.D * 4) / 128;
+  document.getElementById('stat-cord').textContent = `${cords.toFixed(1)} cords`;
+}
+
+function update() {
+  // Update display values
+  const fields = ['totalW','totalD','frontH','pitch','utvW','splW'];
+  const labels = ['ft','ft','ft','/12','ft','ft'];
+  fields.forEach((f,i) => {
+    document.getElementById(f+'_v').textContent = document.getElementById(f).value + ' ' + labels[i];
+  });
+  updateStats();
+  updateMaterials();
+  draw();
+}
+
+// Bind all inputs
+document.querySelectorAll('input').forEach(el => el.addEventListener('input', update));
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+update();
+</script>
+</body>
+</html>
