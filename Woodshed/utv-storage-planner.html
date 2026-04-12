@@ -660,6 +660,10 @@
       <label>Heavy snow load</label>
       <label class="toggle"><input type="checkbox" id="snowLoad" checked><span class="slider-tog"></span></label>
     </div>
+    <div class="toggle-row">
+      <label>Center post (no LVL)</label>
+      <label class="toggle"><input type="checkbox" id="centerPost"><span class="slider-tog"></span></label>
+    </div>
 
     <div class="section-label">Quick Stats</div>
     <div class="stat-box">
@@ -815,6 +819,7 @@ const PRICES = {
   screwBox: 28,
   joistHanger: 1.5,
   lagBox: 15,
+  lumber2x12PerFt: 2.2,  // 2×12 #2 PT per linear foot
 };
 
 function getParams() {
@@ -831,6 +836,7 @@ function getParams() {
     gravel: document.getElementById('gravel').checked,
     woodBay: document.getElementById('woodBay').checked,
     snowLoad: document.getElementById('snowLoad').checked,
+    centerPost: document.getElementById('centerPost').checked,
   };
 }
 
@@ -1019,6 +1025,7 @@ function drawFront(p) {
 
   // Posts
   const postXs = p.woodBay ? [ox, ox+uW+sW, ox+W*S] : [ox, ox+W*S];
+  if (p.centerPost) postXs.splice(1, 0, ox+uW); // insert center post between UTV and splitter
   postXs.forEach(px => {
     ctx.fillStyle = 'rgba(94,184,212,0.2)';
     ctx.fillRect(px - 5, oy - fHs, 10, fHs);
@@ -1026,15 +1033,27 @@ function drawFront(p) {
     ctx.strokeRect(px - 5, oy - fHs, 10, fHs);
   });
 
-  // LVL Header beam
-  ctx.fillStyle = 'rgba(122,204,227,0.15)';
-  ctx.fillRect(ox, oy - fHs - 2, uW + sW, 14);
-  ctx.strokeStyle = C.beam; ctx.lineWidth = 1.2;
-  ctx.strokeRect(ox, oy - fHs - 2, uW + sW, 14);
-  ctx.strokeStyle = 'rgba(255,201,71,0.4)'; ctx.lineWidth = 0.6; ctx.setLineDash([3,3]);
-  ctx.strokeRect(ox+2, oy - fHs, uW + sW - 4, 10);
-  ctx.setLineDash([]);
-  labelText('LVL HEADER', ox + (uW+sW)/2, oy - fHs - 12, C.straw, '0.52rem');
+  // Header beam(s)
+  if (p.centerPost) {
+    // Two separate built-up 3-ply 2×12 beams
+    [[ox, uW, `3-PLY 2×12 (${p.utvW} ft)`], [ox+uW, sW, `3-PLY 2×12 (${p.splW} ft)`]].forEach(([bx, bw, lbl]) => {
+      ctx.fillStyle = 'rgba(122,204,227,0.12)';
+      ctx.fillRect(bx, oy - fHs - 2, bw, 14);
+      ctx.strokeStyle = C.beam; ctx.lineWidth = 1.2;
+      ctx.strokeRect(bx, oy - fHs - 2, bw, 14);
+      labelText(lbl, bx + bw/2, oy - fHs - 12, C.straw, '0.48rem');
+    });
+  } else {
+    // Single LVL spanning both bays
+    ctx.fillStyle = 'rgba(122,204,227,0.15)';
+    ctx.fillRect(ox, oy - fHs - 2, uW + sW, 14);
+    ctx.strokeStyle = C.beam; ctx.lineWidth = 1.2;
+    ctx.strokeRect(ox, oy - fHs - 2, uW + sW, 14);
+    ctx.strokeStyle = 'rgba(255,201,71,0.4)'; ctx.lineWidth = 0.6; ctx.setLineDash([3,3]);
+    ctx.strokeRect(ox+2, oy - fHs, uW + sW - 4, 10);
+    ctx.setLineDash([]);
+    labelText('LVL HEADER', ox + (uW+sW)/2, oy - fHs - 12, C.straw, '0.52rem');
+  }
 
   drawDimH(ctx, ox - 32, oy, fHs, `${p.fH} ft`, C.dim);
   drawDimW(ctx, ox, oy + 30, W*S, `${W} ft`, C.dim);
@@ -1121,15 +1140,33 @@ function drawTop(p) {
     ctx.strokeRect(ox+uW+sW-4, oy, 8, dS);
   }
 
-  // Header beam
-  ctx.fillStyle = 'rgba(122,204,227,0.1)';
-  ctx.fillRect(ox, oy, uW+sW, 7);
-  ctx.strokeStyle = C.beam; ctx.lineWidth = 1;
-  ctx.strokeRect(ox, oy, uW+sW, 7);
-  ctx.strokeStyle = 'rgba(255,201,71,0.4)'; ctx.lineWidth=0.5; ctx.setLineDash([4,3]);
-  ctx.strokeRect(ox, oy, uW+sW, 7);
-  ctx.setLineDash([]);
-  labelText('LVL HEADER', ox+(uW+sW)/2, oy-6, C.straw, '0.5rem');
+  // Center post (top view)
+  if (p.centerPost) {
+    ctx.fillStyle = 'rgba(94,184,212,0.3)';
+    ctx.fillRect(ox+uW-4, oy, 8, dS);
+    ctx.strokeStyle = C.post; ctx.lineWidth = 1;
+    ctx.strokeRect(ox+uW-4, oy, 8, dS);
+  }
+
+  // Header beam(s)
+  if (p.centerPost) {
+    [[ox, uW], [ox+uW, sW]].forEach(([bx, bw]) => {
+      ctx.fillStyle = 'rgba(122,204,227,0.1)';
+      ctx.fillRect(bx, oy, bw, 7);
+      ctx.strokeStyle = C.beam; ctx.lineWidth = 1;
+      ctx.strokeRect(bx, oy, bw, 7);
+    });
+    labelText('3-PLY 2×12', ox+(uW+sW)/2, oy-6, C.straw, '0.5rem');
+  } else {
+    ctx.fillStyle = 'rgba(122,204,227,0.1)';
+    ctx.fillRect(ox, oy, uW+sW, 7);
+    ctx.strokeStyle = C.beam; ctx.lineWidth = 1;
+    ctx.strokeRect(ox, oy, uW+sW, 7);
+    ctx.strokeStyle = 'rgba(255,201,71,0.4)'; ctx.lineWidth=0.5; ctx.setLineDash([4,3]);
+    ctx.strokeRect(ox, oy, uW+sW, 7);
+    ctx.setLineDash([]);
+    labelText('LVL HEADER', ox+(uW+sW)/2, oy-6, C.straw, '0.5rem');
+  }
 
   // Open front
   ctx.strokeStyle = 'rgba(94,184,212,0.5)'; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
@@ -1337,7 +1374,8 @@ function updateMaterials() {
   const rafterSize = p.snowLoad ? '2×8' : '2×6';
   const rafterPricePerFt = p.snowLoad ? PRICES.rafter28PerFt : PRICES.rafter26PerFt;
 
-  const nPosts = p.woodBay ? 6 : 4;
+  const basePosts = p.woodBay ? 6 : 4;
+  const nPosts = p.centerPost ? basePosts + 2 : basePosts;
   const headerSpan = p.utvW + p.splW;
   const nRafters = Math.ceil(W / rafterOC) + 1;
   const rafterL = Math.ceil(Math.sqrt(p.D*p.D + Math.pow((rH-p.fH),2)) + 2);
@@ -1355,20 +1393,30 @@ function updateMaterials() {
     return { item, spec, qty: Math.round(qty * 10) / 10, cost, note };
   }
 
+  const postNote = p.centerPost
+    ? (p.woodBay ? `${nPosts} posts — corners + center (UTV/splitter divider) + splitter/wood divider, front & rear` : `${nPosts} posts — corners + center post front & rear`)
+    : (p.woodBay ? '6 posts — corners + splitter/wood divider front & rear' : '4 corner posts (no post between UTV/splitter)');
+
   const rows = [
     { cat: 'Foundation' },
-    matRow('6×6 PT Post', '12 ft length', nPosts, PRICES.post6x6,
-      nPosts === 4 ? '4 corner posts (no post between UTV/splitter)' : '6 posts — corners + splitter/wood divider front & rear'),
+    matRow('6×6 PT Post', '12 ft length', nPosts, PRICES.post6x6, postNote),
     matRow('Concrete (surface pad)', '80 lb bag', nPosts, PRICES.concrete, '1 bag per post; no deep tube forms needed'),
     matRow('Adjustable Post Base', 'Simpson ABA66', nPosts, PRICES.postBase, 'Keeps post end grain off concrete'),
     matRow('Helical Pier (alternative)', '6" dia, 42"+ depth', nPosts, PRICES.helical, 'Recommended for mountain slopes — drill-in, below frost, no digging'),
     ...(p.gravel && p.woodBay ? [matRow('Crushed Gravel (3/4")', 'ton', gravelTons, PRICES.gravel, 'Wood bay only — 4" compacted for drainage')] : []),
 
-    { cat: `Open-Span Header — ${headerSpan} ft span (UTV + Splitter)` },
-    matRow('LVL Beam (front header)', `3.5"×11.25", ${headerSpan} ft`, 1, headerSpan * PRICES.lvlPerFt,
-      p.snowLoad && headerSpan > 14 ? 'Verify LVL sizing with lumber yard for your snow load — may need 3.5"×14"' : 'No interior post needed'),
-    matRow('LVL Beam (rear header)', `3.5"×11.25", ${headerSpan} ft`, 1, headerSpan * PRICES.lvlPerFt, 'Matching rear beam'),
-    matRow('Post Cap Hardware', 'Simpson BC6', 4, PRICES.postCap, 'Beam-to-post at 4 bearing points'),
+    ...(p.centerPost ? [
+      { cat: `Split Header — ${p.utvW} ft UTV span + ${p.splW} ft Splitter span (center post)` },
+      matRow('3-ply 2×12 Header (UTV bay)', `3×2×12, ${p.utvW} ft`, 2, p.utvW * 3 * PRICES.lumber2x12PerFt, 'Front + rear — nail 3 layers of 2×12 together; no LVL needed for this span'),
+      matRow('3-ply 2×12 Header (Splitter bay)', `3×2×12, ${p.splW} ft`, 2, p.splW * 3 * PRICES.lumber2x12PerFt, 'Front + rear — 3-ply 2×12 is adequate for this shorter span'),
+      matRow('Post Cap Hardware', 'Simpson BC6', 6, PRICES.postCap, 'Beam-to-post: 3 posts × 2 sides (front beam + rear beam)'),
+    ] : [
+      { cat: `Open-Span Header — ${headerSpan} ft span (UTV + Splitter)` },
+      matRow('LVL Beam (front header)', `3.5"×11.25", ${headerSpan} ft`, 1, headerSpan * PRICES.lvlPerFt,
+        p.snowLoad && headerSpan > 14 ? 'Verify LVL sizing with lumber yard for your snow load — may need 3.5"×14"' : 'No interior post needed'),
+      matRow('LVL Beam (rear header)', `3.5"×11.25", ${headerSpan} ft`, 1, headerSpan * PRICES.lvlPerFt, 'Matching rear beam'),
+      matRow('Post Cap Hardware', 'Simpson BC6', 4, PRICES.postCap, 'Beam-to-post at 4 bearing points'),
+    ]),
 
     { cat: 'Framing' },
     matRow('6×6 PT Beam', `Top plate, ${beamLF} LF`, beamLF, PRICES.beamPerFt, 'Front/rear/side top plates'),
@@ -1485,7 +1533,8 @@ function generatePrintPanel() {
   const rH = rearH(p);
   const rafterSize = p.snowLoad ? '2×8' : '2×6';
   const rafterOC = p.snowLoad ? '16" OC' : '24" OC';
-  const nPosts = p.woodBay ? 6 : 4;
+  const basePosts2 = p.woodBay ? 6 : 4;
+  const nPosts = p.centerPost ? basePosts2 + 2 : basePosts2;
   const headerSpan = p.utvW + p.splW;
   const nBays = p.woodBay ? 3 : 2;
   const bayDesc = p.woodBay
@@ -1499,7 +1548,7 @@ function generatePrintPanel() {
     { label: 'Rear Height', val: `${rH.toFixed(1)} ft` },
     { label: 'Roof Pitch', val: `${p.pitch}/12` },
     { label: 'Rafter Spec', val: rafterSize },
-    { label: 'LVL Span', val: `${headerSpan} ft` },
+    { label: p.centerPost ? 'Header Type' : 'LVL Span', val: p.centerPost ? `3-ply 2×12` : `${headerSpan} ft` },
     { label: 'Snow Load', val: p.snowLoad ? 'Heavy' : 'Standard' },
   ];
 
@@ -1541,7 +1590,18 @@ function generatePrintPanel() {
         `Post layout: far-left (UTV side), ${p.woodBay ? 'between splitter+wood bay, ' : ''}far-right${p.woodBay ? ', plus rear versions of each' : ''}. <strong>No post between UTV and splitter bays</strong> — that opening is spanned by the LVL header.`,
       ],
     },
-    {
+    p.centerPost ? {
+      title: `Built-Up Headers — 3-ply 2×12 (${p.utvW} ft + ${p.splW} ft spans)`,
+      items: [
+        `With a center post between the UTV and splitter bays, each span is short enough for standard lumber — no LVL needed`,
+        `UTV bay: nail three 2×12s together face-to-face (3-ply) — ${p.utvW} ft long. Make two of these: one for the front, one for the rear.`,
+        `Splitter bay: same construction — three 2×12s, ${p.splW} ft long, front and rear.`,
+        'Nail the plies together with 16d nails at 12" OC in a staggered pattern. Pre-drill near the ends to prevent splitting.',
+        'Set the center post first, then lift each header into position. These are manageable with one helper.',
+        'Connect with Simpson BC6 post caps at each bearing point — 3 posts × front and rear = 6 caps total.',
+        'Once headers are set, install 6×6 PT top plates along the sides and across the wood bay (if included).',
+      ],
+    } : {
       title: `LVL Header Beam — ${headerSpan} ft Open Span`,
       items: [
         `The LVL beam spans the full ${headerSpan} ft UTV + splitter opening — this is what lets both bays stay open with no interior post`,
