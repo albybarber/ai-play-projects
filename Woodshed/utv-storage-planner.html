@@ -720,14 +720,15 @@
 
     <div class="notes-grid">
       <div class="note-card red">
-        <h4>Foundation on a Sloped Mountain Site</h4>
+        <h4>Foundation — Dug Tube Footings on a Sloped Site</h4>
         <ul>
-          <li>Your site is sloped — this means posts will be different heights. That's normal. Level the top of the frame, not the ground.</li>
-          <li>Use <strong style="color:var(--white)">helical piers</strong> (drill-in anchors) — ideal for a slope because you don't need to dig or pour. Drive them below frost line (~42–48" in most mountain areas).</li>
-          <li>If you use surface pads instead: dig out a level spot for each one, pour an 80 lb bag into a tube form, set a Simpson ABA66 post base while wet. Much harder to level on a slope than helical piers.</li>
-          <li>Measure post heights carefully: uphill posts will be short, downhill posts will be tall. Cut all posts to height after the frame is level — don't pre-cut.</li>
-          <li>Start with the 4 corner posts. Use a long level or laser level to establish the frame plane before cutting anything.</li>
-          <li>The open front should face away from the prevailing wind and downslope if possible — helps with snow runoff and airflow.</li>
+          <li>Your site is sloped — posts will be different heights. That's normal. <strong style="color:var(--white)">Level the top of the frame, not the ground.</strong></li>
+          <li>Dig one hole per post, 10"–12" diameter, at least 42–48" deep (mountain frost line). Use a rented power auger — hand-digging that deep on a rocky slope is brutal.</li>
+          <li>Set a sonotube/tube form in each hole. Cut tube tops to the same height using a laser level — this makes setting post bases much easier.</li>
+          <li>Pour concrete in lifts (12"–18" at a time), rodding out air bubbles. Set a Simpson ABA66 post base anchor bolt in the top while wet. Double-check level and position before it sets.</li>
+          <li>Let concrete cure 48–72 hours before loading posts. Don't rush — a shifted anchor bolt is a pain to fix.</li>
+          <li>Uphill posts will be short, downhill posts will be tall. Cut all posts to height <em>after</em> the frame is level — don't pre-cut.</li>
+          <li>Start with the 4 corner posts. Use a laser level to establish the frame plane before cutting anything.</li>
         </ul>
       </div>
       <div class="note-card green">
@@ -820,6 +821,7 @@ const PRICES = {
   joistHanger: 1.5,
   lagBox: 15,
   lumber2x12PerFt: 2.2,  // 2×12 #2 PT per linear foot
+  tubeForm: 9,           // 10" dia sonotube/tube form ~4 ft length
 };
 
 function getParams() {
@@ -1400,9 +1402,9 @@ function updateMaterials() {
   const rows = [
     { cat: 'Foundation' },
     matRow('6×6 PT Post', '12 ft length', nPosts, PRICES.post6x6, postNote),
-    matRow('Concrete (surface pad)', '80 lb bag', nPosts, PRICES.concrete, '1 bag per post; no deep tube forms needed'),
-    matRow('Adjustable Post Base', 'Simpson ABA66', nPosts, PRICES.postBase, 'Keeps post end grain off concrete'),
-    matRow('Helical Pier (alternative)', '6" dia, 42"+ depth', nPosts, PRICES.helical, 'Recommended for mountain slopes — drill-in, below frost, no digging'),
+    matRow('Tube Form (Sonotube)', '10" dia × 48"', nPosts, PRICES.tubeForm, 'One per post — dig below frost line (42–48" min in mountain areas)'),
+    matRow('Concrete', '80 lb bag', nPosts * 4, PRICES.concrete, '~4 bags per 10"×48" footing (≈2.2 cu ft); mix in batches and pour in lifts'),
+    matRow('Adjustable Post Base', 'Simpson ABA66', nPosts, PRICES.postBase, 'Set anchor bolt in wet concrete; keeps post end grain above grade'),
     ...(p.gravel && p.woodBay ? [matRow('Crushed Gravel (3/4")', 'ton', gravelTons, PRICES.gravel, 'Wood bay only — 4" compacted for drainage')] : []),
 
     ...(p.centerPost ? [
@@ -1569,14 +1571,15 @@ function generatePrintPanel() {
       ],
     },
     {
-      title: `Foundation — ${nPosts} Posts (Recommended: Helical Piers)`,
+      title: `Foundation — ${nPosts} Tube Footings (Dig + Pour)`,
       items: [
-        '<strong>Helical piers are strongly recommended for a sloped mountain site</strong> — you drive them in with a drill attachment, no digging required, and they go well below frost line',
-        `Drive ${nPosts} helical piers: one at each corner${p.woodBay ? ' + one at the front and rear of the splitter/wood bay divider' : ''}`,
-        'Target depth: 42–48"+ below grade, or until you hit resistance. In mountain areas frost line can be 36–48" — go deeper than you think.',
-        'After all piers are in, attach Simpson ABA66 adjustable post bases. Use a laser or long level to set all bases to the same height — this is the most important step.',
-        '<strong>Alternative (surface pads):</strong> dig a level spot per post, set a tube form, pour an 80 lb bag of concrete, embed a post base while wet. Much harder to level on a slope than helical piers.',
-        'Let concrete cure 24–48 hours before loading posts (if using pads).',
+        `Dig ${nPosts} holes: one at each corner${p.woodBay ? ' + one front and rear at the splitter/wood bay divider' : ''}${p.centerPost ? ' + one front and rear at the center post' : ''}`,
+        '<strong>Rent a power auger</strong> — 10" bit, 48"+ depth. Hand-digging on a rocky mountain slope is brutal. Most rental yards have them.',
+        'Minimum depth: 42–48" in most mountain areas (below frost line). If you hit bedrock before that, you may need to widen the hole and use a larger footing — consult a local engineer.',
+        'Set a 10" sonotube/tube form in each hole. Using a laser level, mark all tube tops at the same height. Cut the tubes to that line — this makes setting post bases far easier.',
+        'Pour concrete in 12–18" lifts, rodding out air pockets with a stick after each pour. About 4 bags of 80lb concrete per footing.',
+        'Set a Simpson ABA66 anchor bolt in the top of each footing while wet. Check position carefully — it must align with your post layout. Double-check before the concrete sets.',
+        'Cure time: 48–72 hours minimum before loading posts. Do not rush this step.',
       ],
       warn: pitchWarn,
     },
