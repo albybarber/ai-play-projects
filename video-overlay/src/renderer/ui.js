@@ -117,31 +117,22 @@ export function initUI(compositor) {
     return str.length > n ? str.slice(0, n - 1) + '…' : str
   }
 
-  // --- Plugin status banner ---
-  window.bridge.onPluginStatus(status => {
+  // --- Stream ready banner ---
+  window.bridge.onStreamReady(({ url }) => {
     const banner = document.getElementById('plugin-banner')
     if (!banner) return
-    if (status.installed) {
-      banner.className = 'plugin-banner ok'
-      banner.innerHTML = '✓ Video Overlay Camera active — select it in Zoom / Teams / Meet'
-    } else {
-      banner.className = 'plugin-banner warn'
-      banner.innerHTML = `
-        Virtual camera not installed.
-        <button id="btn-install">Install now</button>
-      `
-      document.getElementById('btn-install').addEventListener('click', async () => {
-        banner.textContent = 'Installing… (enter your password if prompted)'
-        const result = await window.bridge.installPlugin()
-        if (result.ok) {
-          banner.className = 'plugin-banner ok'
-          banner.textContent = '✓ Installed! Restart your video app and select "Video Overlay Camera".'
-        } else {
-          banner.className = 'plugin-banner error'
-          banner.textContent = 'Install failed: ' + result.error
-        }
-      })
-    }
+    banner.className = 'plugin-banner ok'
+    banner.innerHTML = `
+      <span>🎥 Stream live —</span>
+      <code id="stream-url" style="
+        background:#0a2a0a; padding:2px 8px; border-radius:4px;
+        font-family:monospace; font-size:12px; cursor:pointer; user-select:all;
+      " title="Click to copy">${url}</code>
+      <span style="color:#6b7280; font-size:11px;">In OBS: add Browser Source → Start Virtual Camera</span>
+    `
+    document.getElementById('stream-url').addEventListener('click', () => {
+      navigator.clipboard.writeText(url)
+    })
   })
 
   // Initial state

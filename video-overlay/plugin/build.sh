@@ -16,7 +16,7 @@ cp "$SCRIPT_DIR/Info.plist" "$PLUGIN_DIR/Contents/Info.plist"
 # Compile universal binary (arm64 + x86_64)
 clang++ \
   -arch arm64 -arch x86_64 \
-  -dynamiclib \
+  -bundle \
   -std=c++17 \
   -fobjc-arc \
   -framework CoreMediaIO \

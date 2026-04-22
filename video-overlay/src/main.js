@@ -1,7 +1,69 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
-const vc = require('./virtual-camera')
-const installer = require('./installer')
+const http = require('http')
+
+const MJPEG_PORT = 7654
+const clients = new Set()
+let latestJpeg = null
+
+const VIEWER_HTML = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; width: 100vw; height: 100vh; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  img { width: 100%; height: 100%; object-fit: contain; display: block; }
+</style>
+</head>
+<body>
+  <img src="/stream" />
+</body>
+</html>`
+
+function startMjpegServer() {
+  const server = http.createServer((req, res) => {
+    if (req.url === '/health') {
+      res.writeHead(200)
+      res.end('ok')
+      return
+    }
+    if (req.url === '/stream') {
+      res.writeHead(200, {
+        'Content-Type': 'multipart/x-mixed-replace; boundary=mjpeg_boundary',
+        'Cache-Control': 'no-cache, no-store',
+        'Connection': 'close',
+        'Access-Control-Allow-Origin': '*',
+      })
+      if (latestJpeg) pushToClient(res, latestJpeg)
+      clients.add(res)
+      req.on('close', () => clients.delete(res))
+      return
+    }
+    // Viewer page — used by OBS Browser Source
+    res.writeHead(200, { 'Content-Type': 'text/html' })
+    res.end(VIEWER_HTML)
+  })
+  server.listen(MJPEG_PORT)
+  return server
+}
+
+function pushToClient(res, jpeg) {
+  try {
+    res.write(
+      `--mjpeg_boundary\r\nContent-Type: image/jpeg\r\nContent-Length: ${jpeg.length}\r\n\r\n`
+    )
+    res.write(jpeg)
+    res.write('\r\n')
+  } catch (_) {
+    clients.delete(res)
+  }
+}
+
+function broadcastFrame(jpegBuffer) {
+  latestJpeg = jpegBuffer
+  for (const client of clients) pushToClient(client, jpegBuffer)
+}
 
 let mainWindow
 
@@ -25,24 +87,18 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  vc.init()
+  startMjpegServer()
   createWindow()
 
-  // First-launch: check plugin installation
-  if (!installer.isInstalled()) {
-    setTimeout(() => {
-      if (!mainWindow) return
-      mainWindow.webContents.send('plugin:status', { installed: false })
-    }, 1500)
-  } else {
-    setTimeout(() => {
-      mainWindow && mainWindow.webContents.send('plugin:status', { installed: true })
-    }, 500)
-  }
+  setTimeout(() => {
+    mainWindow && mainWindow.webContents.send('stream:ready', {
+      url: `http://localhost:${MJPEG_PORT}`,
+      port: MJPEG_PORT,
+    })
+  }, 500)
 })
 
 app.on('window-all-closed', () => {
-  vc.cleanup()
   if (process.platform !== 'darwin') app.quit()
 })
 
@@ -50,18 +106,7 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow()
 })
 
-// Receive composited RGBA frame from renderer, forward to virtual camera
-ipcMain.on('frame', (_event, rgbaBuffer) => {
-  vc.sendFrame(rgbaBuffer)
-})
-
-// Install plugin on request
-ipcMain.handle('plugin:install', async () => {
-  const result = installer.install()
-  return result
-})
-
-// Check plugin status
-ipcMain.handle('plugin:check', async () => {
-  return { installed: installer.isInstalled() }
+// Receive JPEG frame from renderer, broadcast to all MJPEG clients
+ipcMain.on('frame:jpeg', (_event, jpegArrayBuffer) => {
+  broadcastFrame(Buffer.from(jpegArrayBuffer))
 })

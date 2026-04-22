@@ -73,10 +73,13 @@ export class Compositor {
     // 4. Siren (when expired)
     this.siren.draw(ctx, W, H)
 
-    // 5. Send frame to main process
-    if (this._frameCallback) {
-      const imageData = ctx.getImageData(0, 0, W, H)
-      this._frameCallback(imageData.data.buffer)
+    // 5. Send JPEG frame to main process (skip if previous encode still in flight)
+    if (this._frameCallback && !this._encoding) {
+      this._encoding = true
+      this.canvas.toBlob((blob) => {
+        this._encoding = false
+        if (blob) blob.arrayBuffer().then(buf => this._frameCallback(buf))
+      }, 'image/jpeg', 0.85)
     }
   }
 
