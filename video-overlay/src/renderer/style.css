@@ -1,5 +1,25 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Draggable titlebar — sits above everything, gives traffic lights room */
+.titlebar-drag {
+  height: 38px;
+  background: #0a0a14;
+  -webkit-app-region: drag;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-bottom: 1px solid #1a1a2a;
+  user-select: none;
+}
+.titlebar-drag .app-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4b5563;
+  letter-spacing: 0.04em;
+  -webkit-app-region: drag;
+}
+
 body {
   font-family: system-ui, -apple-system, sans-serif;
   background: #0f0f1a;
