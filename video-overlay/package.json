@@ -1,0 +1,18 @@
+{
+  "name": "video-overlay",
+  "version": "1.0.0",
+  "description": "Video overlay app with virtual camera output",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:plugin": "bash plugin/build.sh",
+    "install:plugin": "bash plugin/install.sh",
+    "setup": "npm run build:plugin && npm run install:plugin"
+  },
+  "dependencies": {
+    "electron": "^31.0.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.0.0"
+  }
+}
