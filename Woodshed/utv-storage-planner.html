@@ -52,7 +52,6 @@
     height: 3px;
     background: linear-gradient(90deg, var(--amber), rgba(255,201,71,0.2), transparent);
   }
-
   .header-main {
     padding: 14px 0;
     flex: 1;
@@ -91,120 +90,117 @@
     padding: 24px 28px 64px;
   }
 
-  .canvas-wrap {
+  /* ─── DRAWINGS ──────────────────────────────────────────────────────────── */
+  .drawings {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  .view-canvas {
+    width: 100%;
+    height: 320px;
     background: var(--surface);
     border: 1px solid var(--border);
-    padding: 16px;
-    position: relative;
+    border-radius: 4px;
   }
-  .canvas-wrap::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 2px;
-    background: linear-gradient(90deg, var(--cyan), transparent 60%);
-  }
-
-  canvas { display: block; width: 100%; }
+  .drawings #canvasTop { grid-row: span 2; height: 100%; min-height: 640px; }
 
   /* ─── MATERIALS ─────────────────────────────────────────────────────────── */
-  .materials {
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--cyan-hi);
+    margin-top: 24px;
+    margin-bottom: 6px;
+  }
+  .section-sub {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+  }
+  .materials-section { margin-bottom: 20px; }
+  .materials-section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--amber);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .materials-table {
+    width: 100%;
+    border-collapse: collapse;
     background: var(--surface);
     border: 1px solid var(--border);
-    padding: 16px;
-    position: relative;
   }
-  .materials::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 2px;
-    background: linear-gradient(90deg, var(--moss), transparent 60%);
-  }
-  .mat-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 3px;
-    color: var(--dim);
-    text-transform: uppercase;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .mat-title::before { content: '▸'; color: var(--moss); font-size: 0.45rem; }
-
-  table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-  th {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.52rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--dim);
+  .materials-table th, .materials-table td {
     text-align: left;
-    padding: 5px 9px;
+    padding: 8px 12px;
     border-bottom: 1px solid var(--border);
+    font-size: 0.88rem;
   }
-  td {
-    padding: 6px 9px;
-    border-bottom: 1px solid rgba(26,53,80,0.5);
-    color: var(--white);
-    vertical-align: top;
-  }
-  tr:last-child td { border-bottom: none; }
-  td.mono { font-family: 'JetBrains Mono', monospace; color: var(--cyan); font-size: 0.73rem; }
-  td.note { font-size: 0.68rem; color: var(--dim); }
-  td.cost { font-family: 'JetBrains Mono', monospace; color: var(--moss); }
-  .cat-row td {
-    background: rgba(94,184,212,0.04);
+  .materials-table th {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--cyan);
-    padding: 4px 9px;
-    border-bottom: 1px solid rgba(94,184,212,0.08);
-  }
-  .total-row td {
-    border-top: 1px solid var(--cyan);
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 600;
-    padding-top: 11px;
-    font-size: 0.78rem;
     color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
   }
-  .total-row .cost { font-size: 1rem; color: var(--moss); }
+  .materials-table td.qty { font-family: 'JetBrains Mono', monospace; color: var(--cyan); white-space: nowrap; }
+  .materials-table td.note { color: var(--muted); font-size: 0.82rem; }
 
-  /* ─── NOTES GRID ────────────────────────────────────────────────────────── */
-  .notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  /* ─── NOTES ─────────────────────────────────────────────────────────────── */
+  .notes { margin-top: 32px; }
   .note-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-left: 2px solid var(--cyan);
-    padding: 12px 14px;
+    border-left: 3px solid var(--amber);
+    border-radius: 4px;
+    padding: 18px 22px;
+    margin-bottom: 16px;
   }
-  .note-card h4 {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.57rem;
-    letter-spacing: 2px;
+  .note-card h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
     text-transform: uppercase;
-    color: var(--cyan);
-    margin-bottom: 8px;
+    letter-spacing: 1px;
+    color: var(--cyan-hi);
+    margin-bottom: 10px;
   }
-  .note-card ul { list-style: none; padding: 0; }
-  .note-card ul li {
-    font-size: 0.73rem;
-    color: var(--muted);
-    line-height: 1.6;
-    padding-left: 14px;
-    position: relative;
+  .note-card ol, .note-card ul {
+    margin-left: 20px;
+    color: var(--white);
+    font-size: 0.92rem;
+    line-height: 1.55;
   }
-  .note-card ul li:before { content: '—'; position: absolute; left: 0; color: var(--dim); }
-  .note-card.green { border-left-color: var(--moss); }
-  .note-card.green h4 { color: var(--moss); }
-  .note-card.red { border-left-color: var(--rust); }
-  .note-card.red h4 { color: #f09090; }
+  .note-card li { margin-bottom: 6px; }
+  .note-card strong { color: var(--amber); }
+
+  /* ─── PRINT ─────────────────────────────────────────────────────────────── */
+  @media print {
+    body { background: white; color: black; }
+    header { background: white; color: black; border-bottom: 2px solid black; }
+    header h1, .header-sub, .header-tag { color: black; }
+    .view-canvas { background: white; border: 1px solid #999; }
+    .materials-table { background: white; }
+    .materials-table th, .materials-table td { color: black; border-color: #ccc; }
+    .materials-section-title { color: black; }
+    .note-card { background: white; color: black; border: 1px solid #ccc; border-left: 3px solid #999; }
+    .note-card h3 { color: black; }
+    .note-card strong { color: black; text-decoration: underline; }
+    section { page-break-inside: avoid; }
+  }
 
   @media (max-width: 900px) {
-    .notes-grid { grid-template-columns: 1fr; }
+    .drawings { grid-template-columns: 1fr; }
+    .drawings #canvasTop { grid-row: span 1; min-height: 400px; }
   }
 </style>
 </head>
@@ -219,30 +215,62 @@
 </header>
 
 <div class="main">
-  <div class="canvas-wrap">
-    <canvas id="cv" height="420"></canvas>
-  </div>
+  <section class="drawings">
+    <canvas id="canvasFront" class="view-canvas"></canvas>
+    <canvas id="canvasTop" class="view-canvas"></canvas>
+    <canvas id="canvasSide" class="view-canvas"></canvas>
+  </section>
 
-  <div class="materials">
-    <div class="mat-title">Materials List</div>
-    <table id="mat-table">
-      <thead>
-        <tr>
-          <th>Item</th><th>Qty</th><th>Notes</th>
-        </tr>
-      </thead>
-      <tbody id="mat-body"></tbody>
-    </table>
-  </div>
+  <section class="materials" id="materials">
+    <h2 class="section-title">Materials Estimate</h2>
+    <p class="section-sub">Estimated quantities for the fixed 10 × 16 ft × 8 ft front-wall shelter. Verify with your lumber yard before ordering.</p>
+    <div id="materials-list"></div>
+  </section>
 
-  <div class="notes-grid" id="notes-grid">
-    <!-- Build notes — populated in Task 4 -->
-  </div>
+  <section class="notes" id="notes">
+    <h2 class="section-title">Build Notes</h2>
+
+    <article class="note-card">
+      <h3>Foundation &amp; Leveling on Uneven Ground</h3>
+      <ol>
+        <li>Lay out 6 post locations with string lines: 4 corners + 1 mid-span on each 16 ft side (8 ft on center).</li>
+        <li>Dig each hole to <strong>frost line — 48 in for Catskills, NY</strong>. Adjust for your region: deeper in colder zones, shallower in warmer ones.</li>
+        <li>Drop 3-4 in of gravel in each hole for drainage. Set a ground-contact-rated PT 6×6 post in each hole, plumb, and pour concrete around it. Brace each post until the concrete sets.</li>
+        <li>Each post lands at whatever ground elevation it sits at — the variation between holes is absorbed by how much post sticks out above grade.</li>
+        <li>After concrete cures (24-48 hrs), use a laser level (or a water level if you don't have one) to snap a level line across all 6 post tops.</li>
+        <li><strong>Cut each post to that line.</strong> The result: a perfectly level top-plate plane, even though the ground beneath is not.</li>
+        <li>Set the double 2×8 PT beams on the cut tops and fasten with structural screws or Simpson post caps.</li>
+      </ol>
+    </article>
+
+    <article class="note-card">
+      <h3>Roof Details</h3>
+      <ul>
+        <li>2×6 rafters at 24 in OC across the 10 ft bay width. Adequate for ~50 psf ground snow load (typical Catskills NY); verify locally if you're in a higher snow zone.</li>
+        <li>2×4 purlins along the slope. Spacing per the metal-panel manufacturer's spec (usually 24 in).</li>
+        <li>Hurricane ties (Simpson H1 or equivalent) at every rafter-to-beam connection.</li>
+        <li>Shed slope: front low, rear high. Runoff sheds away from the open front. 3/12 pitch keeps the rear wall reasonable (~12 ft) while shedding water and snow.</li>
+        <li>12 in eave overhang at the front keeps runoff off the threshold.</li>
+        <li>High-side flashing (against the back wall) instead of a ridge cap — shed roofs have no ridge.</li>
+        <li>Foam closure strips at the high and low edges seal corrugations against wind-driven precip and pests.</li>
+      </ul>
+    </article>
+
+    <article class="note-card">
+      <h3>Defender MAX HD11 Clearance</h3>
+      <ul>
+        <li>Vehicle dimensions: 162.4 in L × 65 in W × 81.4 in H (13.5 ft × 5.4 ft × 6.8 ft). Wheelbase 117.5 in.</li>
+        <li>Bay width 10 ft (120 in) gives ~27 in total side clearance — enough to open both doors and walk around.</li>
+        <li>Bay depth 16 ft (192 in) gives ~30 in of front+rear clearance combined. Park with the front bumper ~12 in inside the eave drip line; the rear has ~18 in to the back wall.</li>
+        <li>Front wall height 8 ft (96 in) clears the 81.4 in vehicle height by ~15 in — enough for a roof-mounted light bar or accessory rack.</li>
+        <li>A simple PT 2×6 wheel stop bolted to the ground or a beam at ~14 ft from the front prevents the bumper from contacting the back wall.</li>
+      </ul>
+    </article>
+  </section>
 </div>
 
 <script>
 const SHELTER = {
-  // Vehicle: 2026 Can-Am Defender MAX Limited HD11
   vehicle: {
     name: "Can-Am Defender MAX HD11",
     lengthIn: 162.4,
@@ -250,585 +278,498 @@ const SHELTER = {
     heightIn: 81.4,
     wheelbaseIn: 117.5,
   },
-  // Structure (all inches internally, ft used for display)
   bayWidthFt: 10,
   bayDepthFt: 16,
   frontWallHeightFt: 8,
-  roofPitch: 3,          // 3/12
+  roofPitch: 3,
   eaveOverhangIn: 12,
-  postSpacingFt: 8,      // mid-span post on each 16 ft side
-  postCount: 6,          // 4 corners + 2 mid-span
-  frostLineIn: 48,       // assumed Catskills NY
+  postSpacingFt: 8,
+  postCount: 6,
+  frostLineIn: 48,
   rafterSpacingIn: 24,
   snowLoadPsf: 50,
 };
 
-// Derived:
-//   rearWallHeightFt = 8 + (16 * 3/12) = 12 ft
-//   rafterRunFt = bayWidthFt = 10 ft  (rafters span the 10 ft width)
-//   roofLengthAlongSlopeFt = sqrt(10^2 + ((10*3/12))^2) ≈ 10.31 ft  (small extra for slope)
-
-let view = 'front';
-
-// Blueprint color palette
 const C = {
-  post: '#5eb8d4',
-  beam: '#7acce3',
-  roof: '#2d6a84',
-  roofDark: '#1a3d4e',
-  wall: '#1a4060',
-  wallLight: '#2d6a84',
-  open: 'rgba(94,184,212,0.05)',
-  openBorder: 'rgba(94,184,212,0.35)',
-  wood: '#7a6040',
-  woodDark: '#4a3820',
-  ground: '#060e17',
-  gravel: '#101820',
-  utv: '#2a9a60',
-  splitter: '#5a8aaa',
-  dim: '#ffc947',
-  label: '#5eb8d4',
-  grid: 'rgba(94,184,212,0.05)',
-  bg: '#0a1525',
-  sky: 'rgba(94,184,212,0.03)',
-  divider: '#4a9ab8',
-  straw: '#ffc947',
-  grain: '#5eb8d4',
-  cedar: '#4a9ab8',
+  cyan: '#5eb8d4',
+  cyanHi: '#90d4ed',
+  amber: '#ffc947',
+  white: '#ddf0fa',
+  muted: '#7aabcc',
+  dim: '#3d6e8a',
+  moss: '#3dba7e',
+  rust: '#e05252',
+  surface: '#132540',
+  border: '#254d6e',
 };
 
-// PRICES placeholder — will be replaced in Task 3
-const PRICES = {
-  post6x6: 45,
-  concrete: 7,
-  postBase: 15,
-  helical: 55,
-  gravel: 32,
-  lvlPerFt: 8,
-  postCap: 12,
-  beamPerFt: 5.5,
-  rafter26PerFt: 1.8,
-  rafter28PerFt: 2.5,
-  hurricaneTie: 2,
-  metalPerSqft: 1.5,
-  ridgePerFt: 3,
-  closure: 20,
-  roofScrew: 0.08,
-  sidingPerSqft: 1.6,
-  post4x4: 12,
-  rail2x4PerFt: 0.55,
-  screwBox: 28,
-  joistHanger: 1.5,
-  lagBox: 15,
-  lumber2x12PerFt: 2.2,  // 2×12 #2 PT per linear foot
-  tubeForm: 9,           // 10" dia sonotube/tube form ~4 ft length
-};
+const MATERIALS = [
+  {
+    section: "Foundation",
+    items: [
+      { qty: "6", item: "6×6 PT post, ground-contact rated, 12 ft length",
+        note: "Length covers 48\" embedment + ~7-8 ft above grade with extra for level cut" },
+      { qty: "12-16 bags", item: "60 lb concrete mix (Quikrete or equiv)",
+        note: "≈2 bags per hole; round up for wet/sloppy holes" },
+      { qty: "1 bag", item: "Gravel for hole bottoms (drainage)",
+        note: "~3-4\" gravel in each hole before setting post" },
+      { qty: "6", item: "Simpson post cap or 2× 1/2\" galv lag bolts per post",
+        note: "Beam-to-post connection at cut line" },
+    ],
+  },
+  {
+    section: "Framing — Top Plates & Beams",
+    items: [
+      { qty: "4", item: "2×8×16 PT (long-side top plates — doubled)",
+        note: "Two on each 16 ft side, screwed together to form a built-up beam" },
+      { qty: "2", item: "2×8×10 PT (front + rear cross-headers)",
+        note: "Tie front and rear posts together at the top" },
+    ],
+  },
+  {
+    section: "Framing — Rafters & Purlins",
+    items: [
+      { qty: "9", item: "2×6×12 rafters",
+        note: "24\" OC across 16 ft length = 9 rafters; 12 ft length covers 10 ft span + overhang/cuts" },
+      { qty: "6", item: "2×4×16 purlins",
+        note: "Verify with metal panel mfr — typical spacing 24\" along the slope" },
+      { qty: "9", item: "Simpson H1 hurricane ties",
+        note: "One per rafter-to-beam connection" },
+    ],
+  },
+  {
+    section: "Roofing",
+    items: [
+      { qty: "≈190 sq ft", item: "26 ga corrugated metal roof panels",
+        note: "16 ft length × 10.31 ft slope length ≈ 165 sq ft + 12\" eave overhang front and back + 10% waste" },
+      { qty: "16 ft", item: "Ridge cap (or closure trim at high side against back wall)",
+        note: "Shed roof has no ridge — use a high-side flashing against the back wall" },
+      { qty: "20 ft", item: "Foam closure strips (high and low edges)",
+        note: "Seals corrugations against pests and wind-driven precip" },
+      { qty: "1 box (250)", item: "Roofing screws with EPDM washers",
+        note: "Color-match panels; ~1 screw per sq ft is generous" },
+    ],
+  },
+  {
+    section: "Back Wall",
+    items: [
+      { qty: "≈160 sq ft", item: "T1-11 or LP SmartSide sheathing (4×8 sheets)",
+        note: "10 ft wide × 12 ft rear wall height = 120 sq ft; round up to 5 sheets (160 sq ft)" },
+      { qty: "1 lb", item: "Galvanized siding nails or screws",
+        note: "Per manufacturer schedule" },
+    ],
+  },
+  {
+    section: "Hardware & Fasteners",
+    items: [
+      { qty: "1 box", item: "Structural screws (GRK RSS or equiv, 3-5\")",
+        note: "Beam build-up + post connections" },
+      { qty: "1 lb", item: "16d galvanized framing nails or 3\" deck screws",
+        note: "Rafters, purlins, blocking" },
+    ],
+  },
+];
 
-// Blueprint dot grid in canvas
-function drawCanvasBg() {
-  ctx.fillStyle = C.bg;
-  ctx.fillRect(0, 0, cv.width, cv.height);
-  // Fine dot grid
-  ctx.fillStyle = 'rgba(94,184,212,0.12)';
-  for (let x = 0; x < cv.width; x += 20) {
-    for (let y = 0; y < cv.height; y += 20) {
-      ctx.fillRect(x, y, 1, 1);
-    }
-  }
+// ─── CANVAS HELPERS ──────────────────────────────────────────────────────────
+
+function ftToIn(ft) { return ft * 12; }
+
+function scaleFor(canvas, maxRealIn, paddingPx = 60) {
+  const usable = canvas.width - paddingPx * 2;
+  return usable / maxRealIn;
 }
 
-// Crosshatch fill for walls/solid elements
-function drawHatch(x, y, w, h, color, spacing) {
-  spacing = spacing || 6;
+function strokeRect(ctx, x, y, w, h, color, lineWidth = 2) {
   ctx.save();
-  ctx.beginPath();
-  ctx.rect(x, y, w, h);
-  ctx.clip();
   ctx.strokeStyle = color;
-  ctx.lineWidth = 0.5;
-  for (let i = -h; i < w + h; i += spacing) {
-    ctx.beginPath();
-    ctx.moveTo(x + i, y);
-    ctx.lineTo(x + i + h, y + h);
-    ctx.stroke();
-  }
+  ctx.lineWidth = lineWidth;
+  ctx.strokeRect(x, y, w, h);
   ctx.restore();
 }
 
-function draw() {
-  // Canvas drawings re-implemented in Task 2
+function dashedLine(ctx, x1, y1, x2, y2, color, dash = [6, 6]) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash(dash);
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.restore();
 }
 
-function drawFront(p) {
-  const cw = cv.width, ch = cv.height;
-  const W = eW(p);
-  const margin = 60;
-  const scale = (cw - margin*2) / W;
-  const maxH = rearH(p);
-  const scaleH = (ch - margin*2 - 40) / maxH;
-  const S = Math.min(scale, scaleH);
+function labelText(ctx, text, x, y, color, size = 11, family = "'JetBrains Mono', monospace") {
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.font = `${size}px ${family}`;
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
 
-  const ox = margin + (cw - margin*2 - W*S)/2;
-  const oy = ch - margin - 20;
-
-  // Ground — hatched earth
-  ctx.fillStyle = C.ground;
-  ctx.fillRect(ox - 10, oy, W*S + 20, 20);
-  drawHatch(ox - 10, oy, W*S + 20, 20, 'rgba(94,184,212,0.15)', 5);
-
-  if (p.gravel && p.woodBay) {
-    ctx.fillStyle = C.gravel;
-    ctx.fillRect(ox, oy, W*S, 10);
-    ctx.fillStyle = 'rgba(94,184,212,0.08)';
-    for (let i = 0; i < 60; i++) {
-      const gx = ox + Math.random() * W*S;
-      const gy = oy + Math.random() * 10;
-      ctx.fillRect(gx, gy, 2, 1);
-    }
-  }
-
-  const uW = p.utvW * S;
-  const sW = p.splW * S;
-  const wW = woodBayW(p) * S;
-  const fHs = p.fH * S;
-
-  ctx.fillStyle = C.sky;
-  ctx.fillRect(ox, oy - fHs - 20, W*S, fHs + 20);
-
-  // UTV Bay
-  const ux = ox;
-  if (p.sideWalls) {
-    ctx.fillStyle = 'rgba(26,64,96,0.8)';
-    ctx.fillRect(ux, oy - fHs, 8, fHs);
-    drawHatch(ux, oy - fHs, 8, fHs, 'rgba(94,184,212,0.25)', 5);
-    ctx.strokeStyle = C.post; ctx.lineWidth = 1;
-    ctx.strokeRect(ux, oy - fHs, 8, fHs);
-  }
-  ctx.fillStyle = C.open;
-  ctx.fillRect(ux + 8, oy - fHs + 8, uW - 16, fHs - 8);
-  ctx.strokeStyle = C.openBorder;
-  ctx.lineWidth = 0.8;
-  ctx.setLineDash([4,4]);
-  ctx.strokeRect(ux + 8, oy - fHs + 8, uW - 16, fHs - 8);
-  ctx.setLineDash([]);
-  drawUTV(ctx, ux + uW/2, oy, uW * 0.75, S);
-  labelText('UTV BAY', ux + uW/2, oy - fHs + 20, C.label, '0.6rem');
-  labelText(`${p.utvW} ft`, ux + uW/2, oy - fHs + 34, C.dim, '0.58rem');
-
-  // Splitter Bay
-  const sx = ox + uW;
-  if (p.sideWalls) {
-    ctx.fillStyle = 'rgba(26,64,96,0.8)';
-    ctx.fillRect(sx, oy - fHs, 8, fHs);
-    drawHatch(sx, oy - fHs, 8, fHs, 'rgba(94,184,212,0.25)', 5);
-    ctx.strokeStyle = C.post; ctx.lineWidth = 1;
-    ctx.strokeRect(sx, oy - fHs, 8, fHs);
-    if (!p.woodBay) {
-      ctx.fillStyle = 'rgba(26,64,96,0.8)';
-      ctx.fillRect(sx + sW - 8, oy - fHs, 8, fHs);
-      drawHatch(sx + sW - 8, oy - fHs, 8, fHs, 'rgba(94,184,212,0.25)', 5);
-      ctx.strokeStyle = C.post; ctx.lineWidth = 1;
-      ctx.strokeRect(sx + sW - 8, oy - fHs, 8, fHs);
-    }
-  }
-  ctx.fillStyle = C.open;
-  ctx.fillRect(sx + 8, oy - fHs + 8, sW - 16, fHs - 8);
-  ctx.strokeStyle = C.openBorder;
-  ctx.setLineDash([4,4]);
-  ctx.strokeRect(sx + 8, oy - fHs + 8, sW - 16, fHs - 8);
-  ctx.setLineDash([]);
-  drawSplitter(ctx, sx + sW/2, oy, sW * 0.5, S);
-  labelText('SPLITTER BAY', sx + sW/2, oy - fHs + 20, C.label, '0.6rem');
-  labelText(`${p.splW} ft`, sx + sW/2, oy - fHs + 34, C.dim, '0.58rem');
-
-  // Wood Bay
-  if (p.woodBay && wW > 0) {
-    const wx = ox + uW + sW;
-    drawWoodStack(ctx, wx, oy, wW, fHs, S);
-    if (p.divWall) {
-      ctx.fillStyle = 'rgba(26,64,96,0.8)';
-      ctx.fillRect(wx, oy - fHs, 6, fHs);
-      drawHatch(wx, oy - fHs, 6, fHs, 'rgba(94,184,212,0.3)', 4);
-      ctx.strokeStyle = C.divider; ctx.lineWidth = 1;
-      ctx.strokeRect(wx, oy - fHs, 6, fHs);
-    }
-    if (p.sideWalls) {
-      ctx.fillStyle = 'rgba(26,64,96,0.8)';
-      ctx.fillRect(wx + wW - 8, oy - fHs, 8, fHs);
-      drawHatch(wx + wW - 8, oy - fHs, 8, fHs, 'rgba(94,184,212,0.25)', 5);
-      ctx.strokeStyle = C.post; ctx.lineWidth = 1;
-      ctx.strokeRect(wx + wW - 8, oy - fHs, 8, fHs);
-    }
-    labelText('WOOD BAY', wx + wW/2, oy - fHs + 20, C.label, '0.6rem');
-    labelText(`${woodBayW(p)} ft`, wx + wW/2, oy - fHs + 34, C.dim, '0.58rem');
-  }
-
-  // Roof
-  const rearExtra = (p.pitch / 12) * p.D * S;
+function drawDimWidth(ctx, x1, x2, y, text) {
+  ctx.save();
+  ctx.strokeStyle = C.muted;
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(ox - 12, oy - fHs);
-  ctx.lineTo(ox + W*S + 12, oy - fHs);
-  ctx.lineTo(ox + W*S + 12, oy - fHs - rearExtra);
-  ctx.lineTo(ox - 12, oy - fHs - rearExtra);
-  ctx.closePath();
-  ctx.fillStyle = C.roofDark;
+  ctx.moveTo(x1, y - 6); ctx.lineTo(x1, y + 6);
+  ctx.moveTo(x2, y - 6); ctx.lineTo(x2, y + 6);
+  ctx.moveTo(x1, y); ctx.lineTo(x2, y);
+  ctx.stroke();
+  ctx.fillStyle = C.muted;
+  ctx.font = "10px 'JetBrains Mono', monospace";
+  const tw = ctx.measureText(text).width;
+  ctx.fillText(text, (x1 + x2) / 2 - tw / 2, y + 18);
+  ctx.restore();
+}
+
+function drawDimHeight(ctx, x, y1, y2, text) {
+  ctx.save();
+  ctx.strokeStyle = C.muted;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x - 6, y1); ctx.lineTo(x + 6, y1);
+  ctx.moveTo(x - 6, y2); ctx.lineTo(x + 6, y2);
+  ctx.moveTo(x, y1); ctx.lineTo(x, y2);
+  ctx.stroke();
+  ctx.fillStyle = C.muted;
+  ctx.font = "10px 'JetBrains Mono', monospace";
+  ctx.save();
+  ctx.translate(x - 14, (y1 + y2) / 2);
+  ctx.rotate(-Math.PI / 2);
+  const tw = ctx.measureText(text).width;
+  ctx.fillText(text, -tw / 2, 0);
+  ctx.restore();
+  ctx.restore();
+}
+
+// ─── FRONT VIEW ──────────────────────────────────────────────────────────────
+
+function drawDefenderFront(ctx, centerX, baseY, s) {
+  const wIn = SHELTER.vehicle.widthIn;
+  const hIn = SHELTER.vehicle.heightIn;
+  const w = wIn * s;
+  const h = hIn * s;
+  const x = centerX - w / 2;
+  const y = baseY - h;
+
+  ctx.save();
+  ctx.fillStyle = C.moss;
+  ctx.globalAlpha = 0.12;
+  ctx.fillRect(x, y + h * 0.45, w, h * 0.55);
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = C.moss;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y + h * 0.45, w, h * 0.55);
+
+  const cabInsetX = w * 0.08;
+  ctx.strokeRect(x + cabInsetX, y, w - cabInsetX * 2, h * 0.45);
+  ctx.beginPath();
+  ctx.moveTo(x + cabInsetX, y);
+  ctx.lineTo(x + w - cabInsetX, y);
+  ctx.stroke();
+
+  ctx.fillStyle = '#0b1824';
+  const wheelW = w * 0.12;
+  const wheelH = h * 0.12;
+  ctx.beginPath();
+  ctx.ellipse(x + wheelW * 0.8, baseY - wheelH / 2, wheelW / 2, wheelH / 2, 0, 0, Math.PI * 2);
   ctx.fill();
-  drawHatch(ox - 12, oy - fHs - rearExtra, W*S + 24, rearExtra + 2, 'rgba(94,184,212,0.1)', 8);
-  ctx.fillStyle = C.roof;
-  ctx.fillRect(ox - 14, oy - fHs - 10, W*S + 28, 12);
-  ctx.strokeStyle = 'rgba(94,184,212,0.2)'; ctx.lineWidth = 1;
-  for (let i = 0; i <= 8; i++) {
-    const rx = ox - 12 + (W*S + 24) * i/8;
-    ctx.beginPath();
-    ctx.moveTo(rx, oy - fHs - 10);
-    ctx.lineTo(rx, oy - fHs - rearExtra);
-    ctx.stroke();
-  }
-  ctx.strokeStyle = C.post; ctx.lineWidth = 1.5;
-  ctx.strokeRect(ox - 14, oy - fHs - 10, W*S + 28, 10);
+  ctx.beginPath();
+  ctx.ellipse(x + w - wheelW * 0.8, baseY - wheelH / 2, wheelW / 2, wheelH / 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+  labelText(ctx, "DEFENDER MAX HD11", x, y - 8, C.moss, 9);
+}
+
+function drawFront(ctx, canvas) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const bayWidthIn = ftToIn(SHELTER.bayWidthFt);
+  const frontHeightIn = ftToIn(SHELTER.frontWallHeightFt);
+  const s = scaleFor(canvas, bayWidthIn);
+  const padX = (canvas.width - bayWidthIn * s) / 2;
+  const baseY = canvas.height - 60;
+  const topY = baseY - frontHeightIn * s;
+
+  // Ground line
+  ctx.strokeStyle = C.dim;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, baseY);
+  ctx.lineTo(canvas.width, baseY);
+  ctx.stroke();
 
   // Posts
-  const postXs = p.woodBay ? [ox, ox+uW+sW, ox+W*S] : [ox, ox+W*S];
-  if (p.centerPost) postXs.splice(1, 0, ox+uW); // insert center post between UTV and splitter
-  postXs.forEach(px => {
-    ctx.fillStyle = 'rgba(94,184,212,0.2)';
-    ctx.fillRect(px - 5, oy - fHs, 10, fHs);
-    ctx.strokeStyle = C.post; ctx.lineWidth = 1.5;
-    ctx.strokeRect(px - 5, oy - fHs, 10, fHs);
-  });
+  const postPx = 6 * s;
+  ctx.fillStyle = C.surface;
+  ctx.fillRect(padX, topY, postPx, frontHeightIn * s);
+  strokeRect(ctx, padX, topY, postPx, frontHeightIn * s, C.cyan);
+  ctx.fillStyle = C.surface;
+  ctx.fillRect(padX + bayWidthIn * s - postPx, topY, postPx, frontHeightIn * s);
+  strokeRect(ctx, padX + bayWidthIn * s - postPx, topY, postPx, frontHeightIn * s, C.cyan);
 
-  // Header beam(s)
-  if (p.centerPost) {
-    // Two separate built-up 3-ply 2×12 beams
-    [[ox, uW, `3-PLY 2×12 (${p.utvW} ft)`], [ox+uW, sW, `3-PLY 2×12 (${p.splW} ft)`]].forEach(([bx, bw, lbl]) => {
-      ctx.fillStyle = 'rgba(122,204,227,0.12)';
-      ctx.fillRect(bx, oy - fHs - 2, bw, 14);
-      ctx.strokeStyle = C.beam; ctx.lineWidth = 1.2;
-      ctx.strokeRect(bx, oy - fHs - 2, bw, 14);
-      labelText(lbl, bx + bw/2, oy - fHs - 12, C.straw, '0.48rem');
-    });
-  } else {
-    // Single LVL spanning both bays
-    ctx.fillStyle = 'rgba(122,204,227,0.15)';
-    ctx.fillRect(ox, oy - fHs - 2, uW + sW, 14);
-    ctx.strokeStyle = C.beam; ctx.lineWidth = 1.2;
-    ctx.strokeRect(ox, oy - fHs - 2, uW + sW, 14);
-    ctx.strokeStyle = 'rgba(255,201,71,0.4)'; ctx.lineWidth = 0.6; ctx.setLineDash([3,3]);
-    ctx.strokeRect(ox+2, oy - fHs, uW + sW - 4, 10);
-    ctx.setLineDash([]);
-    labelText('LVL HEADER', ox + (uW+sW)/2, oy - fHs - 12, C.straw, '0.52rem');
-  }
+  // Header beam
+  const beamH = 8 * s;
+  ctx.fillStyle = C.amber;
+  ctx.globalAlpha = 0.18;
+  ctx.fillRect(padX, topY - beamH, bayWidthIn * s, beamH);
+  ctx.globalAlpha = 1;
+  strokeRect(ctx, padX, topY - beamH, bayWidthIn * s, beamH, C.amber, 2);
+  labelText(ctx, "DBL 2×8 PT HEADER", padX + 10, topY - beamH / 2 + 4, C.amber, 10);
 
-  drawDimH(ctx, ox - 32, oy, fHs, `${p.fH} ft`, C.dim);
-  drawDimW(ctx, ox, oy + 30, W*S, `${W} ft`, C.dim);
-  labelText('FRONT VIEW — OPEN FACE', cw/2, 14, 'rgba(94,184,212,0.5)', '0.52rem');
-}
-
-function drawTop(p) {
-  const cw = cv.width, ch = cv.height;
-  const W = eW(p);
-  const margin = 60;
-  const scaleW = (cw - margin*2) / W;
-  const scaleD = (ch - margin*2 - 40) / p.D;
-  const S = Math.min(scaleW, scaleD);
-
-  const ox = margin + (cw - margin*2 - W*S)/2;
-  const oy = margin + (ch - margin*2 - 40 - p.D*S)/2 + 20;
-
-  const uW = p.utvW*S, sW = p.splW*S, wW = woodBayW(p)*S;
-  const dS = p.D*S;
-
-  ctx.fillStyle = p.gravel && p.woodBay ? C.gravel : '#0d1e2e';
-  ctx.fillRect(ox, oy, W*S, dS);
-
-  // UTV bay
-  ctx.fillStyle = 'rgba(42,154,96,0.08)';
-  ctx.fillRect(ox, oy, uW, dS);
-  ctx.fillStyle = 'rgba(42,154,96,0.35)';
-  const uvw = uW*0.8, uvd = dS*0.55;
-  ctx.fillRect(ox + (uW-uvw)/2, oy + dS*0.1, uvw, uvd);
-  ctx.strokeStyle = '#3dba7e'; ctx.lineWidth = 0.8;
-  ctx.strokeRect(ox + (uW-uvw)/2, oy + dS*0.1, uvw, uvd);
-  labelText('UTV', ox+uW/2, oy+dS*0.38, '#3dba7e', '0.65rem');
-
-  // Splitter bay
-  ctx.fillStyle = 'rgba(94,184,212,0.06)';
-  ctx.fillRect(ox+uW, oy, sW, dS);
-  ctx.fillStyle = 'rgba(94,184,212,0.25)';
-  const spw = sW*0.5, spd = dS*0.35;
-  ctx.fillRect(ox+uW+(sW-spw)/2, oy+dS*0.15, spw, spd);
-  ctx.strokeStyle = C.cyan; ctx.lineWidth = 0.8;
-  ctx.strokeRect(ox+uW+(sW-spw)/2, oy+dS*0.15, spw, spd);
-  labelText('SPLITTER', ox+uW+sW/2, oy+dS*0.33, C.muted, '0.58rem');
-
-  // Wood bay
-  if (p.woodBay && wW > 0) {
-    ctx.fillStyle = 'rgba(122,96,64,0.1)';
-    ctx.fillRect(ox+uW+sW, oy, wW, dS);
-    const rows = 3, rowH = dS*0.18;
-    for (let r = 0; r < rows; r++) {
-      ctx.fillStyle = r%2===0 ? 'rgba(122,96,64,0.45)' : 'rgba(74,56,32,0.45)';
-      ctx.fillRect(ox+uW+sW + wW*0.08, oy + dS*0.08 + r*(rowH+4), wW*0.84, rowH);
-      ctx.strokeStyle = 'rgba(122,96,64,0.3)'; ctx.lineWidth = 0.5;
-      ctx.strokeRect(ox+uW+sW + wW*0.08, oy + dS*0.08 + r*(rowH+4), wW*0.84, rowH);
-    }
-    labelText('WOOD', ox+uW+sW+wW/2, oy+dS*0.75, C.cedar, '0.65rem');
-  }
-
-  // Walls — hatch fills
-  const wt = 6;
-  if (p.backWall) {
-    ctx.fillStyle = 'rgba(26,64,96,0.8)';
-    ctx.fillRect(ox, oy+dS-wt, W*S, wt);
-    drawHatch(ox, oy+dS-wt, W*S, wt, 'rgba(94,184,212,0.3)', 4);
-    ctx.strokeStyle = C.wall; ctx.lineWidth = 1;
-    ctx.strokeRect(ox, oy+dS-wt, W*S, wt);
-  }
-  if (p.sideWalls) {
-    ctx.fillStyle = 'rgba(26,64,96,0.8)';
-    ctx.fillRect(ox, oy, wt, dS);
-    drawHatch(ox, oy, wt, dS, 'rgba(94,184,212,0.3)', 4);
-    ctx.strokeStyle = C.wall; ctx.lineWidth = 1;
-    ctx.strokeRect(ox, oy, wt, dS);
-
-    ctx.fillStyle = 'rgba(26,64,96,0.8)';
-    ctx.fillRect(ox+W*S-wt, oy, wt, dS);
-    drawHatch(ox+W*S-wt, oy, wt, dS, 'rgba(94,184,212,0.3)', 4);
-    ctx.strokeStyle = C.wall; ctx.lineWidth = 1;
-    ctx.strokeRect(ox+W*S-wt, oy, wt, dS);
-  }
-  if (p.woodBay && wW > 0) {
-    ctx.fillStyle = 'rgba(94,184,212,0.2)';
-    ctx.fillRect(ox+uW+sW-4, oy, 8, dS);
-    ctx.strokeStyle = C.post; ctx.lineWidth = 1;
-    ctx.strokeRect(ox+uW+sW-4, oy, 8, dS);
-  }
-
-  // Center post (top view)
-  if (p.centerPost) {
-    ctx.fillStyle = 'rgba(94,184,212,0.3)';
-    ctx.fillRect(ox+uW-4, oy, 8, dS);
-    ctx.strokeStyle = C.post; ctx.lineWidth = 1;
-    ctx.strokeRect(ox+uW-4, oy, 8, dS);
-  }
-
-  // Header beam(s)
-  if (p.centerPost) {
-    [[ox, uW], [ox+uW, sW]].forEach(([bx, bw]) => {
-      ctx.fillStyle = 'rgba(122,204,227,0.1)';
-      ctx.fillRect(bx, oy, bw, 7);
-      ctx.strokeStyle = C.beam; ctx.lineWidth = 1;
-      ctx.strokeRect(bx, oy, bw, 7);
-    });
-    labelText('3-PLY 2×12', ox+(uW+sW)/2, oy-6, C.straw, '0.5rem');
-  } else {
-    ctx.fillStyle = 'rgba(122,204,227,0.1)';
-    ctx.fillRect(ox, oy, uW+sW, 7);
-    ctx.strokeStyle = C.beam; ctx.lineWidth = 1;
-    ctx.strokeRect(ox, oy, uW+sW, 7);
-    ctx.strokeStyle = 'rgba(255,201,71,0.4)'; ctx.lineWidth=0.5; ctx.setLineDash([4,3]);
-    ctx.strokeRect(ox, oy, uW+sW, 7);
-    ctx.setLineDash([]);
-    labelText('LVL HEADER', ox+(uW+sW)/2, oy-6, C.straw, '0.5rem');
-  }
-
-  // Open front
-  ctx.strokeStyle = 'rgba(94,184,212,0.5)'; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
-  ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox+W*S, oy); ctx.stroke();
-  ctx.setLineDash([]);
-  labelText('← OPEN FRONT →', ox+W*S/2, oy-14, 'rgba(94,184,212,0.6)', '0.58rem');
-
-  drawDimW(ctx, ox, oy+dS+30, W*S, `${W} ft`, C.dim);
-  drawDimH(ctx, ox-32, oy, dS, `${p.D} ft`, C.dim);
-  labelText('TOP VIEW — FLOOR PLAN', cw/2, 14, 'rgba(94,184,212,0.5)', '0.52rem');
-}
-
-function drawSide(p) {
-  const cw = cv.width, ch = cv.height;
-  const margin = 60;
-  const rH = rearH(p);
-  const scaleD = (cw - margin*2) / p.D;
-  const scaleH = (ch - margin*2 - 40) / (rH + 2);
-  const S = Math.min(scaleD, scaleH);
-
-  const ox = margin + (cw - margin*2 - p.D*S)/2;
-  const oy = ch - margin - 20;
-
-  const fHs = p.fH*S;
-  const rHs = rH*S;
-  const dS = p.D*S;
-
-  // Ground
-  ctx.fillStyle = C.ground;
-  ctx.fillRect(ox-10, oy, p.D*S+20, 20);
-  drawHatch(ox-10, oy, p.D*S+20, 20, 'rgba(94,184,212,0.15)', 5);
-
-  ctx.fillStyle = C.sky;
-  ctx.fillRect(ox, oy-rHs-20, dS, rHs+20);
-
-  if (p.sideWalls) {
-    ctx.fillStyle = 'rgba(26,64,96,0.6)';
-    ctx.beginPath();
-    ctx.moveTo(ox, oy); ctx.lineTo(ox, oy-fHs);
-    ctx.lineTo(ox+dS, oy-rHs); ctx.lineTo(ox+dS, oy);
-    ctx.closePath(); ctx.fill();
-    drawHatch(ox, oy-rHs, dS, rHs, 'rgba(94,184,212,0.06)', 12);
-
-    ctx.fillStyle = 'rgba(94,184,212,0.3)';
-    ctx.fillRect(ox-6, oy-fHs, 10, fHs);
-    ctx.fillRect(ox+dS-6, oy-rHs, 10, rHs);
-    ctx.strokeStyle = C.post; ctx.lineWidth = 1;
-    ctx.strokeRect(ox-6, oy-fHs, 10, fHs);
-    ctx.strokeRect(ox+dS-6, oy-rHs, 10, rHs);
-  }
-
-  // Roof
+  // Eave line
+  const eaveOverhangPx = SHELTER.eaveOverhangIn * s;
+  const roofTopY = topY - beamH - 6;
+  ctx.strokeStyle = C.cyan;
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(ox-14, oy-fHs);
-  ctx.lineTo(ox+dS+14, oy-rHs);
-  ctx.lineTo(ox+dS+14, oy-rHs-12);
-  ctx.lineTo(ox-14, oy-fHs-12);
-  ctx.closePath();
-  ctx.fillStyle = C.roofDark; ctx.fill();
-  drawHatch(ox-14, oy-rHs-12, dS+28, rHs+12, 'rgba(94,184,212,0.08)', 10);
-  ctx.beginPath();
-  ctx.moveTo(ox, oy-fHs); ctx.lineTo(ox+dS, oy-rHs);
-  ctx.strokeStyle = C.roof; ctx.lineWidth = 2; ctx.stroke();
-  ctx.strokeStyle = 'rgba(94,184,212,0.15)'; ctx.lineWidth = 0.8;
-  const nRafters = 5;
-  for (let i = 0; i <= nRafters; i++) {
-    const rx = ox + dS*i/nRafters;
-    const ry = oy - fHs - (rHs-fHs)*i/nRafters;
-    ctx.beginPath(); ctx.moveTo(rx, oy); ctx.lineTo(rx, ry); ctx.stroke();
-  }
+  ctx.moveTo(padX - eaveOverhangPx, roofTopY);
+  ctx.lineTo(padX + bayWidthIn * s + eaveOverhangPx, roofTopY);
+  ctx.stroke();
 
-  if (p.woodBay) {
-    const woodX = ox + dS*0.55;
-    const stackW = dS*0.4;
-    const stackH = fHs*0.55;
-    for (let r = 0; r < 4; r++) {
-      ctx.fillStyle = r%2===0 ? C.wood : C.woodDark;
-      ctx.fillRect(woodX, oy - stackH + r*(stackH/4), stackW, stackH/4 - 2);
-      ctx.strokeStyle = 'rgba(122,96,64,0.4)'; ctx.lineWidth=0.5;
-      for (let l = 0; l < 6; l++) {
-        ctx.strokeRect(woodX + l*(stackW/6)+1, oy - stackH + r*(stackH/4)+1, stackW/6-2, stackH/4-4);
-      }
-    }
-    labelText('WOOD', woodX+stackW/2, oy-stackH-8, C.cedar, '0.58rem');
-  }
+  drawDefenderFront(ctx, padX + (bayWidthIn * s) / 2, baseY, s);
 
-  drawDimW(ctx, ox, oy+30, dS, `${p.D} ft`, C.dim);
-  drawDimH(ctx, ox-32, oy, fHs, `${p.fH} ft`, C.dim);
-  drawDimH(ctx, ox+dS+28, oy, rHs, `${rH.toFixed(1)} ft`, C.dim);
+  drawDimWidth(ctx, padX, padX + bayWidthIn * s, baseY + 28,
+    `BAY WIDTH ${SHELTER.bayWidthFt}'-0"`);
+  drawDimHeight(ctx, padX - 28, topY, baseY,
+    `FRONT ${SHELTER.frontWallHeightFt}'-0"`);
 
-  const midX = ox + dS*0.3;
-  const midY = oy - fHs - (rHs-fHs)*0.3;
-  ctx.strokeStyle = 'rgba(255,201,71,0.5)'; ctx.lineWidth=0.8; ctx.setLineDash([3,3]);
-  ctx.beginPath(); ctx.moveTo(midX, midY); ctx.lineTo(midX+30, midY); ctx.lineTo(midX+30, midY - (rHs-fHs)*0.3); ctx.stroke();
-  ctx.setLineDash([]);
-  labelText(`${p.pitch}/12`, midX+36, midY - (rHs-fHs)*0.15, C.straw, '0.58rem');
-  labelText('SIDE VIEW — CROSS-SECTION', cw/2, 14, 'rgba(94,184,212,0.5)', '0.52rem');
+  labelText(ctx, "FRONT VIEW", 16, 24, C.amber, 12);
 }
 
-function drawUTV(ctx, cx, groundY, w, S) {
-  const h = w*0.55, bh = h*0.45;
-  const x = cx - w/2, y = groundY - bh;
-  ctx.strokeStyle = '#2a9a60'; ctx.lineWidth = 1;
-  ctx.strokeRect(x, y - h*0.5, w, h*0.5);
-  ctx.fillStyle = 'rgba(42,154,96,0.15)';
-  ctx.fillRect(x, y - h*0.5, w, h*0.5);
-  ctx.strokeRect(x, y - bh, w, bh);
-  ctx.fillStyle = 'rgba(42,154,96,0.2)';
-  ctx.fillRect(x, y - bh, w, bh);
-  ctx.strokeStyle = '#1a1208'; ctx.fillStyle = 'rgba(10,21,37,0.9)';
-  [[x+w*0.18, groundY],[x+w*0.82, groundY]].forEach(([wx,wy]) => {
-    ctx.beginPath(); ctx.arc(wx, wy-6, 10, 0, Math.PI*2); ctx.fill();
-    ctx.strokeStyle = 'rgba(94,184,212,0.3)'; ctx.lineWidth=1; ctx.stroke();
-  });
-}
+// ─── TOP VIEW ─────────────────────────────────────────────────────────────────
 
-function drawSplitter(ctx, cx, groundY, w, S) {
-  const h = w*0.5;
-  ctx.strokeStyle = C.splitter; ctx.lineWidth = 0.8;
-  ctx.strokeRect(cx-w/2, groundY-h, w, h*0.25);
-  ctx.fillStyle = 'rgba(90,138,170,0.2)';
-  ctx.fillRect(cx-w/2, groundY-h, w, h*0.25);
-  ctx.strokeRect(cx-w*0.1, groundY-h*0.9, w*0.2, h*0.8);
-  ctx.fillRect(cx-w*0.1, groundY-h*0.9, w*0.2, h*0.8);
-  ctx.fillStyle = 'rgba(224,82,82,0.5)';
-  ctx.strokeStyle = '#e05252'; ctx.lineWidth = 0.8;
-  ctx.beginPath();
-  ctx.moveTo(cx, groundY-h*1.1);
-  ctx.lineTo(cx-w*0.15, groundY-h*0.85);
-  ctx.lineTo(cx+w*0.15, groundY-h*0.85);
-  ctx.closePath(); ctx.fill(); ctx.stroke();
-}
-
-function drawWoodStack(ctx, x, groundY, w, h, S) {
-  const stackH = h * 0.65;
-  const rows = 4;
-  for (let r = 0; r < rows; r++) {
-    ctx.fillStyle = r%2===0 ? C.wood : C.woodDark;
-    const rh = stackH/rows;
-    ctx.fillRect(x + w*0.06, groundY - rh*(r+1), w*0.88, rh - 2);
-    const logW = (w*0.88)/7;
-    for (let l = 0; l < 7; l++) {
-      ctx.strokeStyle = 'rgba(196,160,100,0.3)'; ctx.lineWidth=0.5;
-      ctx.beginPath();
-      ctx.arc(x+w*0.06+logW*(l+0.5), groundY - rh*(r+0.5), logW*0.4, 0, Math.PI*2);
-      ctx.stroke();
-    }
-  }
-}
-
-function drawDimW(ctx, x, y, w, label, color) {
-  ctx.strokeStyle = color; ctx.lineWidth = 0.8;
-  // Extension lines
-  ctx.strokeStyle = color + '60'; ctx.setLineDash([2,2]);
-  ctx.beginPath(); ctx.moveTo(x, y-24); ctx.lineTo(x, y+5); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x+w, y-24); ctx.lineTo(x+w, y+5); ctx.stroke();
-  ctx.setLineDash([]);
-  // Dimension line
-  ctx.strokeStyle = color; ctx.lineWidth = 0.8;
-  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x+w, y); ctx.stroke();
-  // 45° ticks
-  ctx.beginPath(); ctx.moveTo(x-4, y-4); ctx.lineTo(x+4, y+4); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x+w-4, y-4); ctx.lineTo(x+w+4, y+4); ctx.stroke();
-  labelText(label, x+w/2, y+13, color, '0.62rem');
-}
-
-function drawDimH(ctx, x, y, h, label, color) {
-  ctx.strokeStyle = color; ctx.lineWidth = 0.8;
-  // Extension lines
-  ctx.strokeStyle = color + '60'; ctx.setLineDash([2,2]);
-  ctx.beginPath(); ctx.moveTo(x-5, y); ctx.lineTo(x+20, y); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x-5, y-h); ctx.lineTo(x+20, y-h); ctx.stroke();
-  ctx.setLineDash([]);
-  // Dimension line
-  ctx.strokeStyle = color; ctx.lineWidth = 0.8;
-  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y-h); ctx.stroke();
-  // 45° ticks
-  ctx.beginPath(); ctx.moveTo(x-4, y-4); ctx.lineTo(x+4, y+4); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x-4, y-h-4); ctx.lineTo(x+4, y-h+4); ctx.stroke();
+function drawDefenderTop(ctx, cx, cy, s) {
+  const wIn = SHELTER.vehicle.widthIn;
+  const lIn = SHELTER.vehicle.lengthIn;
+  const w = wIn * s;
+  const l = lIn * s;
   ctx.save();
-  ctx.translate(x-14, y-h/2);
-  ctx.rotate(-Math.PI/2);
-  ctx.font = '600 0.62rem JetBrains Mono, monospace';
-  ctx.fillStyle = color;
-  ctx.textAlign = 'center';
-  ctx.fillText(label, 0, 0);
+  ctx.fillStyle = C.moss;
+  ctx.globalAlpha = 0.12;
+  ctx.fillRect(cx - w / 2, cy - l / 2, w, l);
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = C.moss;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(cx - w / 2, cy - l / 2, w, l);
+  ctx.beginPath();
+  ctx.moveTo(cx - w / 4, cy + l / 2 - 12);
+  ctx.lineTo(cx, cy + l / 2 - 2);
+  ctx.lineTo(cx + w / 4, cy + l / 2 - 12);
+  ctx.stroke();
   ctx.restore();
+  labelText(ctx, "DEFENDER HD11", cx - 38, cy - l / 2 - 6, C.moss, 9);
 }
 
-function labelText(text, x, y, color, size) {
-  ctx.font = `600 ${size} JetBrains Mono, monospace`;
-  ctx.fillStyle = color;
-  ctx.textAlign = 'center';
-  ctx.fillText(text, x, y);
+function drawTop(ctx, canvas) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const bayWidthIn = ftToIn(SHELTER.bayWidthFt);
+  const bayDepthIn = ftToIn(SHELTER.bayDepthFt);
+  const sH = (canvas.height - 100) / bayDepthIn;
+  const sW = (canvas.width - 120) / bayWidthIn;
+  const s = Math.min(sH, sW);
+  const padX = (canvas.width - bayWidthIn * s) / 2;
+  const padY = 50;
+
+  // Back wall (solid)
+  ctx.strokeStyle = C.cyan;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(padX, padY);
+  ctx.lineTo(padX + bayWidthIn * s, padY);
+  ctx.stroke();
+  // Side walls (dashed)
+  dashedLine(ctx, padX, padY, padX, padY + bayDepthIn * s, C.cyan);
+  dashedLine(ctx, padX + bayWidthIn * s, padY, padX + bayWidthIn * s, padY + bayDepthIn * s, C.cyan);
+  // Open front (dashed amber)
+  dashedLine(ctx, padX, padY + bayDepthIn * s, padX + bayWidthIn * s, padY + bayDepthIn * s, C.amber);
+  labelText(ctx, "OPEN FRONT", padX + bayWidthIn * s / 2 - 30, padY + bayDepthIn * s + 16, C.amber, 10);
+
+  // Posts: 4 corners + 2 mid-span
+  const postPx = 6 * s;
+  const postPositions = [
+    [padX, padY],
+    [padX + bayWidthIn * s - postPx, padY],
+    [padX, padY + bayDepthIn * s / 2 - postPx / 2],
+    [padX + bayWidthIn * s - postPx, padY + bayDepthIn * s / 2 - postPx / 2],
+    [padX, padY + bayDepthIn * s - postPx],
+    [padX + bayWidthIn * s - postPx, padY + bayDepthIn * s - postPx],
+  ];
+  postPositions.forEach(([px, py]) => {
+    ctx.fillStyle = C.amber;
+    ctx.globalAlpha = 0.35;
+    ctx.fillRect(px, py, postPx, postPx);
+    ctx.globalAlpha = 1;
+    strokeRect(ctx, px, py, postPx, postPx, C.amber, 1.5);
+  });
+
+  drawDefenderTop(ctx, padX + bayWidthIn * s / 2, padY + bayDepthIn * s / 2, s);
+
+  drawDimWidth(ctx, padX, padX + bayWidthIn * s, padY - 18,
+    `${SHELTER.bayWidthFt}'-0"`);
+  drawDimHeight(ctx, padX + bayWidthIn * s + 24, padY, padY + bayDepthIn * s,
+    `${SHELTER.bayDepthFt}'-0"`);
+
+  labelText(ctx, "TOP / FLOOR PLAN", 16, 24, C.amber, 12);
 }
 
-window.addEventListener('resize', draw);
-draw();
+// ─── SIDE VIEW ────────────────────────────────────────────────────────────────
+
+function drawSide(ctx, canvas) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const depthIn = ftToIn(SHELTER.bayDepthFt);
+  const frontHIn = ftToIn(SHELTER.frontWallHeightFt);
+  const riseIn = depthIn * SHELTER.roofPitch / 12;
+  const rearHIn = frontHIn + riseIn;
+  const maxHIn = rearHIn + 24;
+
+  const sX = (canvas.width - 120) / depthIn;
+  const sY = (canvas.height - 100) / maxHIn;
+  const s = Math.min(sX, sY);
+
+  const padX = 60;
+  const baseY = canvas.height - 60;
+  const frontX = padX + depthIn * s;
+  const rearX = padX;
+  const frontTopY = baseY - frontHIn * s;
+  const rearTopY = baseY - rearHIn * s;
+
+  // Level cut line (dashed)
+  ctx.strokeStyle = C.cyan;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([2, 4]);
+  ctx.beginPath();
+  ctx.moveTo(rearX - 20, frontTopY);
+  ctx.lineTo(frontX + 20, frontTopY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  labelText(ctx, "LEVEL CUT LINE (POST TOPS)", rearX, frontTopY - 6, C.cyan, 9);
+
+  // Front wall (open, dashed)
+  dashedLine(ctx, frontX, baseY, frontX, frontTopY, C.cyan);
+  // Rear wall (solid)
+  ctx.strokeStyle = C.cyan;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(rearX, baseY);
+  ctx.lineTo(rearX, rearTopY);
+  ctx.stroke();
+
+  // Roof slope
+  ctx.strokeStyle = C.amber;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(frontX + 12, frontTopY - 4);
+  ctx.lineTo(rearX - 12, rearTopY - 4);
+  ctx.stroke();
+
+  // Pitch triangle annotation
+  const triX = rearX + depthIn * 0.3 * s;
+  const triY = baseY - (frontHIn + (depthIn * 0.3) * SHELTER.roofPitch / 12) * s;
+  const triRunPx = 40;
+  const triRisePx = triRunPx * SHELTER.roofPitch / 12;
+  ctx.strokeStyle = C.muted;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(triX, triY);
+  ctx.lineTo(triX + triRunPx, triY);
+  ctx.lineTo(triX + triRunPx, triY - triRisePx);
+  ctx.closePath();
+  ctx.stroke();
+  labelText(ctx, `${SHELTER.roofPitch}/12`, triX + triRunPx + 4, triY - 2, C.muted, 10);
+
+  // Uneven grade dashed line
+  ctx.save();
+  ctx.strokeStyle = C.rust;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  const segments = 14;
+  const xStep = (frontX - rearX + 60) / segments;
+  ctx.moveTo(rearX - 30, baseY + 4);
+  for (let i = 1; i <= segments; i++) {
+    const x = rearX - 30 + i * xStep;
+    const wobble = Math.sin(i * 1.3) * 8 + Math.cos(i * 0.7) * 5;
+    ctx.lineTo(x, baseY + 4 + wobble);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+  labelText(ctx, "UNEVEN GRADE (POSTS CUT TO LEVEL)", rearX, baseY + 36, C.rust, 9);
+
+  // Posts (3 visible from this side)
+  const postPx = 6 * s;
+  [rearX, rearX + depthIn * s / 2 - postPx / 2, frontX - postPx].forEach((px) => {
+    ctx.fillStyle = C.amber;
+    ctx.globalAlpha = 0.3;
+    const groundOffset = Math.sin((px - rearX) * 0.15) * 6 + 4;
+    ctx.fillRect(px, frontTopY, postPx, baseY - frontTopY + groundOffset);
+    ctx.globalAlpha = 1;
+    strokeRect(ctx, px, frontTopY, postPx, baseY - frontTopY + groundOffset, C.amber, 1.5);
+  });
+
+  drawDimHeight(ctx, frontX + 36, frontTopY, baseY,
+    `FRONT ${SHELTER.frontWallHeightFt}'-0"`);
+  const rearHFt = SHELTER.frontWallHeightFt + SHELTER.bayDepthFt * SHELTER.roofPitch / 12;
+  drawDimHeight(ctx, rearX - 36, rearTopY, baseY,
+    `REAR ${rearHFt.toFixed(0)}'-0"`);
+
+  labelText(ctx, "SIDE VIEW", 16, 24, C.amber, 12);
+}
+
+// ─── MATERIALS ────────────────────────────────────────────────────────────────
+
+function renderMaterials() {
+  const root = document.getElementById('materials-list');
+  if (!root) return;
+  root.innerHTML = MATERIALS.map(section => `
+    <div class="materials-section">
+      <h3 class="materials-section-title">${section.section}</h3>
+      <table class="materials-table">
+        <thead>
+          <tr><th>Qty</th><th>Item</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          ${section.items.map(it => `
+            <tr>
+              <td class="qty">${it.qty}</td>
+              <td class="item">${it.item}</td>
+              <td class="note">${it.note}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `).join('');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+function draw() {
+  const front = document.getElementById('canvasFront');
+  const top = document.getElementById('canvasTop');
+  const side = document.getElementById('canvasSide');
+  if (front) drawFront(front.getContext('2d'), front);
+  if (top) drawTop(top.getContext('2d'), top);
+  if (side) drawSide(side.getContext('2d'), side);
+}
+
+function resizeAndDraw() {
+  ['canvasFront', 'canvasTop', 'canvasSide'].forEach(id => {
+    const c = document.getElementById(id);
+    if (!c) return;
+    const rect = c.getBoundingClientRect();
+    c.width = rect.width;
+    c.height = rect.height;
+  });
+  draw();
+}
+
+renderMaterials();
+window.addEventListener('resize', resizeAndDraw);
+window.addEventListener('load', resizeAndDraw);
+resizeAndDraw();
 </script>
 </body>
 </html>
