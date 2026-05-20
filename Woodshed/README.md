@@ -1,157 +1,74 @@
-# UTV Storage Shelter Planner
+# SxS Shelter Planner
 
-An interactive, single-file browser tool for designing and planning an outdoor storage shelter covering a UTV, a log splitter, and a firewood stack. Designed around a **Yamaha Wolverine X4** but the bay dimensions are fully adjustable via sliders.
+A single-file browser tool for planning a simple single-bay equipment shelter sized for a **2026 Can-Am Defender MAX Limited HD11**. Designed to be buildable in place on uneven ground with minimal site prep.
+
+Live: https://albybarber.github.io/ai-play-projects/Woodshed/utv-storage-planner.html
 
 ---
 
 ## Files
 
 ```
-utv-storage-planner/
+Woodshed/
 ├── utv-storage-planner.html   # The entire app — no build step, open in any browser
-└── README.md
+├── README.md
+└── CLAUDE.md
 ```
 
-No dependencies to install. No server required. Open the HTML file directly.
+No dependencies. No server required. Open the HTML file directly.
+
+The filename is kept from the v1 project to preserve the public GitHub Pages URL.
 
 ---
 
-## What It Does
+## What it shows
 
-The planner lets you configure a three-bay shed structure and instantly see:
-
-- **Live architectural drawings** across three views (Front, Top/Floor Plan, Side)
-- **Auto-generated materials list** that recalculates as you adjust dimensions
-- **Quick stats** — total footprint, wood bay width, and estimated cord capacity
-- **Build notes** covering foundation approach, airflow, roof details, and UTV clearance
+- **Three architectural views** — Front, Top/Floor Plan, Side (cross-section)
+- **Materials estimate** organized by foundation, framing, roofing, back wall, and hardware
+- **Build notes** covering foundation leveling on uneven ground, roof details, and Defender HD11 clearance
 
 ---
 
-## Design Assumptions
+## Fixed design (no sliders)
 
-These are the fixed design decisions baked into the current version:
-
-| Parameter | Value / Approach |
+| Parameter | Value |
 |---|---|
-| UTV | Yamaha Wolverine X4 (~61" wide, ~75" tall) |
-| Wood storage target | 1–2 cords |
-| Primary structure | Pressure-treated lumber posts and beams |
-| Roof | Corrugated metal (26-gauge), shed slope |
-| Roof slope direction | Front low, rear high — runoff goes away from the open face |
-| Open face | All three bays open at the front |
-| UTV + splitter span | No interior post — spanned by a LVL header beam |
-| Foundation | Surface-mount post bases on concrete pads, or helical piers — minimal excavation |
-| Wood bay floor | PT 2×4 runners laid on grade — no gravel bed required |
+| Vehicle | 2026 Can-Am Defender MAX Limited HD11 (162.4 × 65 × 81.4 in) |
+| Bay width | 10 ft |
+| Bay depth | 16 ft |
+| Front wall height | 8 ft |
+| Roof pitch | 3/12 shed slope (front low, rear high) |
+| Rear wall height | ~12 ft (derived) |
+| Posts | 6× PT 6×6 ground-contact, 4 corners + 2 mid-span |
+| Foundation | Posts set in concrete to 48 in frost line, cut to level |
+| Roof | 26 ga corrugated metal, 2×6 rafters @ 24" OC, 2×4 purlins |
+| Walls | Back wall only (T1-11 or LP SmartSide). Front and sides open. |
 
 ---
 
-## Adjustable Parameters (Sidebar Sliders)
+## Foundation strategy for uneven ground
 
-### Structure Dimensions
-| Slider | Range | Default | Effect |
-|---|---|---|---|
-| Total Width | 20–40 ft | 28 ft | Overall structure width |
-| Total Depth | 14–30 ft | 20 ft | Front-to-back depth |
-| Front Wall Height | 8–12 ft | 9 ft | Height at the open (front) face |
-| Roof Pitch | 2/12–8/12 | 4/12 | Rise per 12" of run; affects rear wall height and rafter length |
+1. Lay out 6 post locations.
+2. Dig each hole to the local frost line (48 in assumed for Catskills, NY).
+3. Set a PT 6×6 ground-contact post in concrete in each hole, plumb. Each post lands at whatever ground elevation it sits at.
+4. After the concrete cures, snap a level line across all 6 post tops with a laser or water level.
+5. Cut each post to that line. The top-plate plane is now perfectly level even though the ground isn't.
+6. Set double 2×8 PT beams on top.
 
-### Bay Layout
-| Slider | Range | Default | Effect |
-|---|---|---|---|
-| UTV Bay Width | 8–14 ft | 10 ft | Dedicated bay for the Wolverine X4 |
-| Splitter Bay Width | 6–10 ft | 8 ft | Dedicated bay for the log splitter |
-
-Wood bay width is calculated automatically: `Total Width − UTV Bay − Splitter Bay`.
-
-### Toggles
-| Toggle | Default | Notes |
-|---|---|---|
-| Wood rack divider wall | ON | Partial wall between splitter and wood bays |
-| Side walls (UTV + splitter) | ON | Encloses the left and right sides of the machine bays |
-| Back wall (all bays) | ON | T1-11 or LP SmartSide on the rear |
-| Gravel (wood bay only) | OFF | Optional 4" crushed gravel layer under wood bay only |
+This avoids site grading, helical piers, and surface piers. The only excavation is the 6 post holes.
 
 ---
 
-## Views
+## Technical notes
 
-### Front View
-Shows the open face of the structure. Key elements:
-- Three labeled bays with their widths
-- UTV silhouette (green cage outline) in the UTV bay
-- Log splitter silhouette in the splitter bay
-- Wood stack with log-end detail in the wood bay
-- LVL header beam labeled across the UTV+splitter span (no interior post)
-- Shed roof with corrugated rib detail
-- Dimension callouts for front wall height and total width
-
-### Top / Floor Plan
-Birds-eye view showing:
-- Bay footprints with UTV and splitter equipment outlines
-- Wood stack rows across the wood bay
-- Wall thickness for side walls and back wall
-- LVL header shown as a beam across the front of the open-span bays
-- Open front marked with a dashed line
-- Dimension callouts for total width and depth
-
-### Side View (Cross-Section)
-Profile view showing:
-- Shed roof slope from front (low) to rear (high)
-- Front and rear wall height callouts
-- Pitch triangle annotation
-- Rafter lines
-- Wood stack log-end detail in the rear portion of the bay
-
----
-
-## Materials List
-
-The materials list is generated dynamically based on all current slider values. It is organized into these categories:
-
-1. **Foundation — Minimal Groundwork** — posts, surface-mount concrete pads, adjustable post bases, helical pier option, optional gravel
-2. **Open-Span Header (UTV + Splitter Bay)** — front and rear LVL beams sized to the combined UTV+splitter span, plus post cap hardware
-3. **Framing** — 6×6 PT beams, 2×6 rafters (24" OC), purlins, hurricane ties
-4. **Roofing** — corrugated metal panels (sq ft with 10% waste factor), ridge cap, closure strips, roofing screws
-5. **Siding / Walls** — T1-11 or LP SmartSide sq footage for back wall, side walls, and divider wall (conditional on toggles)
-6. **Wood Storage Rack** — 4×4 uprights, 2×4 horizontal rails, PT ground runners
-7. **Hardware & Fasteners** — structural screws, joist hangers, lag screws
-
-> **Note on LVL sizing:** At the default 18 ft combined span (10 ft UTV + 8 ft splitter), a 3.5"×11.25" LVL is listed. For spans over 14 ft or high snow load areas (e.g. Catskills, NY), verify sizing with your lumber yard or a structural engineer — a 3.5"×14" or doubled LVL may be required.
-
----
-
-## Build Notes (In-App)
-
-Four guidance cards are shown below the drawing canvas:
-
-- **Foundation & Footings — Minimal Groundwork**: helical piers vs. surface pads, frost line depth, ground prep approach
-- **Airflow for Wood Storage**: open front strategy, back wall ventilation gaps, stacking on runners, orientation to prevailing wind
-- **Roof Details**: rafter spacing, ridge cap and closure strip installation, eave overhang for runoff management
-- **Wolverine X4 Clearance**: bay width vs. machine width, recommended side clearance, wheel stop placement
-
----
-
-## Technical Notes
-
-- **Single HTML file** — all CSS, JS, and markup in one file. No framework, no bundler.
-- **Canvas rendering** — all three views drawn with the HTML5 Canvas 2D API. Redraws on every input change.
-- **Fonts** — loaded from Google Fonts: `Bebas Neue` (display), `IBM Plex Mono` (labels/data), `IBM Plex Sans` (body). Requires internet connection to load fonts; degrades gracefully to monospace/sans-serif fallbacks offline.
-- **Responsive** — canvas resizes to container width on window resize. Layout switches to single column below ~900px.
-- **No state persistence** — all values reset on page reload. This is intentional; it's a planning scratch pad.
-
----
-
-## Possible Extensions
-
-- Add a cost estimator (price-per-unit inputs for each material line)
-- Export the materials list to CSV or PDF
-- Add a gable roof option as an alternative to the shed slope
-- Add a concrete pad option for the UTV/splitter bay floor
-- Mobile-optimized layout with collapsible sidebar
-- Save/load configurations via URL params or localStorage
+- **Single HTML file** — all CSS, JS, and markup inline. No framework, no bundler.
+- **Canvas 2D rendering** — three views drawn with vanilla Canvas API. Redraws on window resize.
+- **Fonts** — Google Fonts: Barlow Condensed, JetBrains Mono, Barlow. Degrades to fallbacks offline.
+- **Print-friendly** — `@media print` styles invert to a black-on-white layout for the materials list and notes.
+- **No state, no persistence** — fixed dimensions, no inputs.
 
 ---
 
 ## Origin
 
-Built as a Claude AI experiment — designed interactively in a single conversation, iterating on layout, structural decisions (open-span LVL header, minimal groundwork foundation), and the materials list. Part of the `ai-play-projects` collection.
+Built as a Claude AI experiment. Part of the `ai-play-projects` collection. Originally a 3-bay UTV/splitter/wood-storage planner; rewritten in May 2026 as a single-bay shelter for a different SxS.
