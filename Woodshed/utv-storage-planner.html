@@ -415,12 +415,12 @@ function drawDimWidth(ctx, x1, x2, y, text) {
   ctx.moveTo(x2, y - 8); ctx.lineTo(x2, y + 8);
   ctx.moveTo(x1, y); ctx.lineTo(x2, y);
   ctx.stroke();
-  ctx.font = "bold 12px 'JetBrains Mono', monospace";
+  ctx.font = "700 14px 'Barlow Condensed', Arial, sans-serif";
   const tw = ctx.measureText(text).width;
   const tx = (x1 + x2) / 2 - tw / 2;
   const ty = y + 22;
   ctx.fillStyle = 'rgba(11,24,36,0.88)';
-  ctx.fillRect(tx - 5, ty - 13, tw + 10, 17);
+  ctx.fillRect(tx - 5, ty - 14, tw + 10, 18);
   ctx.fillStyle = C.white;
   ctx.fillText(text, tx, ty);
   ctx.restore();
@@ -438,10 +438,10 @@ function drawDimHeight(ctx, x, y1, y2, text) {
   ctx.save();
   ctx.translate(x - 22, (y1 + y2) / 2);
   ctx.rotate(-Math.PI / 2);
-  ctx.font = "bold 12px 'JetBrains Mono', monospace";
+  ctx.font = "700 14px 'Barlow Condensed', Arial, sans-serif";
   const tw = ctx.measureText(text).width;
   ctx.fillStyle = 'rgba(11,24,36,0.88)';
-  ctx.fillRect(-tw / 2 - 5, -13, tw + 10, 17);
+  ctx.fillRect(-tw / 2 - 5, -14, tw + 10, 18);
   ctx.fillStyle = C.white;
   ctx.fillText(text, -tw / 2, 0);
   ctx.restore();
