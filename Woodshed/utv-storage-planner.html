@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UTV Storage Shelter Planner</title>
+<title>SxS Shelter Planner — Can-Am Defender MAX HD11</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=JetBrains+Mono:wght@400;600&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -83,183 +83,13 @@
     letter-spacing: 0.5px;
   }
 
-  .header-actions {
-    border-left: 1px solid var(--border);
-    padding: 14px 0 14px 24px;
-    margin-left: 24px;
-    display: flex;
-    align-items: center;
-  }
-
-  .print-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 8px 16px;
-    background: transparent;
-    color: var(--amber);
-    border: 1px solid rgba(255,201,71,0.5);
-    cursor: pointer;
-    transition: 0.15s;
-    position: relative;
-  }
-  .print-btn::after {
-    content: '';
-    position: absolute;
-    bottom: -4px; right: -4px;
-    width: 100%; height: 100%;
-    border: 1px solid rgba(255,201,71,0.15);
-    pointer-events: none;
-  }
-  .print-btn:hover { background: var(--amber-dim); border-color: var(--amber); }
-  .print-btn.active { background: var(--amber); color: var(--ink); font-weight: 600; }
-  .print-btn.active::after { display: none; }
-
-  /* ─── LAYOUT ────────────────────────────────────────────────────────────── */
-  .layout {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    min-height: calc(100vh - 72px);
-  }
-
-  /* ─── SIDEBAR ───────────────────────────────────────────────────────────── */
-  .sidebar {
-    background: var(--panel);
-    border-right: 1px solid var(--border);
-    padding: 18px 16px;
-    overflow-y: auto;
-  }
-
-  .section-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 3px;
-    color: var(--dim);
-    text-transform: uppercase;
-    margin-bottom: 10px;
-    margin-top: 22px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .section-label::before { content: '▸'; color: var(--cyan); font-size: 0.45rem; }
-  .section-label:first-child { margin-top: 0; }
-
-  .dim-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    gap: 8px;
-    transition: opacity 0.2s;
-  }
-  .dim-row label {
-    font-size: 0.76rem;
-    font-weight: 500;
-    color: var(--muted);
-    flex: 1;
-    min-width: 0;
-  }
-  .dim-row .val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.76rem;
-    color: var(--amber);
-    width: 48px;
-    text-align: right;
-    flex-shrink: 0;
-  }
-
-  input[type=range] {
-    -webkit-appearance: none;
-    width: 78px;
-    height: 2px;
-    background: var(--line);
-    outline: none;
-    flex-shrink: 0;
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 10px; height: 16px;
-    background: var(--cyan);
-    border-radius: 1px;
-    cursor: pointer;
-  }
-  input[type=range]:focus::-webkit-slider-thumb { background: var(--cyan-hi); }
-
-  .toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    transition: opacity 0.2s;
-  }
-  .toggle-row label:first-child {
-    font-size: 0.76rem;
-    font-weight: 500;
-    color: var(--muted);
-  }
-  .toggle { position: relative; width: 36px; height: 18px; flex-shrink: 0; }
-  .toggle input { opacity: 0; width: 0; height: 0; }
-  .slider-tog {
-    position: absolute; inset: 0;
-    background: var(--line);
-    border-radius: 0;
-    cursor: pointer;
-    transition: 0.2s;
-    border: 1px solid var(--border);
-  }
-  .slider-tog:before {
-    content: ''; position: absolute;
-    width: 10px; height: 10px; left: 3px; bottom: 3px;
-    background: var(--dim);
-    border-radius: 0;
-    transition: 0.2s;
-  }
-  .toggle input:checked + .slider-tog {
-    background: rgba(94,184,212,0.12);
-    border-color: var(--cyan);
-  }
-  .toggle input:checked + .slider-tog:before { transform: translateX(18px); background: var(--cyan); }
-
-  .toggle-row.snow-toggle .slider-tog { border-color: rgba(224,82,82,0.4); }
-  .toggle-row.snow-toggle input:checked + .slider-tog { background: var(--rust-dim); border-color: var(--rust); }
-  .toggle-row.snow-toggle input:checked + .slider-tog:before { background: var(--rust); }
-
-  .dimmed { opacity: 0.2; pointer-events: none; }
-
-  /* Stat boxes */
-  .stat-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: 2px solid var(--cyan);
-    padding: 9px 12px;
-    margin-bottom: 7px;
-  }
-  .stat-box.cost-box { border-left-color: var(--moss); }
-  .stat-box .stat-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.52rem;
-    letter-spacing: 2px;
-    color: var(--dim);
-    text-transform: uppercase;
-    margin-bottom: 2px;
-  }
-  .stat-box .stat-val {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.55rem;
-    font-weight: 700;
-    color: var(--amber);
-    letter-spacing: 0.5px;
-    line-height: 1;
-  }
-  .stat-box.cost-box .stat-val { color: var(--moss); }
-  .stat-box .stat-sub { font-size: 0.66rem; color: var(--dim); margin-top: 2px; }
-
   /* ─── MAIN ──────────────────────────────────────────────────────────────── */
-  .main { padding: 22px; display: flex; flex-direction: column; gap: 22px; }
+  .main {
+    display: block;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 28px 64px;
+  }
 
   .canvas-wrap {
     background: var(--surface);
@@ -275,59 +105,6 @@
   }
 
   canvas { display: block; width: 100%; }
-
-  /* ─── TABS ──────────────────────────────────────────────────────────────── */
-  .tabs {
-    display: flex;
-    margin-bottom: 12px;
-    border-bottom: 1px solid var(--border);
-  }
-  .tab {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.58rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 7px 15px;
-    background: transparent;
-    color: var(--dim);
-    border: none;
-    border-right: 1px solid var(--border);
-    cursor: pointer;
-    transition: 0.15s;
-    position: relative;
-  }
-  .tab:last-child { border-right: none; }
-  .tab.active {
-    color: var(--cyan);
-    background: rgba(94,184,212,0.05);
-    border-bottom: 2px solid var(--cyan);
-    margin-bottom: -1px;
-  }
-  .tab:hover:not(.active) { color: var(--muted); }
-
-  /* ─── SNOW WARNING ──────────────────────────────────────────────────────── */
-  .snow-warn {
-    display: none;
-    align-items: flex-start;
-    gap: 12px;
-    background: var(--rust-dim);
-    border: 1px solid rgba(224,82,82,0.4);
-    border-left: 3px solid var(--rust);
-    padding: 12px 16px;
-    font-size: 0.78rem;
-    color: #f09090;
-    line-height: 1.6;
-  }
-  .snow-warn.visible { display: flex; }
-  .snow-warn strong {
-    display: block;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.58rem;
-    letter-spacing: 2px;
-    color: var(--rust);
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
 
   /* ─── MATERIALS ─────────────────────────────────────────────────────────── */
   .materials {
@@ -426,158 +203,8 @@
   .note-card.red { border-left-color: var(--rust); }
   .note-card.red h4 { color: #f09090; }
 
-  /* ─── PRINT PANEL ───────────────────────────────────────────────────────── */
-  .print-panel { display: none; flex-direction: column; gap: 22px; padding: 24px; }
-  .print-panel.visible { display: flex; }
-
-  .pp-header {
-    border-bottom: 2px solid var(--amber);
-    padding-bottom: 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-  .pp-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.9rem;
-    font-weight: 800;
-    color: var(--white);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  .pp-meta {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.62rem;
-    color: var(--dim);
-    text-align: right;
-    line-height: 1.8;
-  }
-
-  .pp-specs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .pp-spec {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-top: 2px solid var(--cyan);
-    padding: 9px 12px;
-  }
-  .pp-spec-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.52rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--dim);
-    margin-bottom: 4px;
-  }
-  .pp-spec-val {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--amber);
-  }
-
-  .pp-section-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.57rem;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--dim);
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 7px;
-    margin-bottom: 12px;
-  }
-
-  .pp-steps { display: flex; flex-direction: column; gap: 10px; }
-  .pp-step {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: 2px solid var(--cyan);
-    padding: 13px 17px;
-    display: grid;
-    grid-template-columns: 42px 1fr;
-    gap: 12px;
-    align-items: start;
-  }
-  .pp-step-num {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 2.1rem;
-    font-weight: 700;
-    color: var(--line);
-    line-height: 1;
-  }
-  .pp-step-body h3 {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--cyan);
-    margin-bottom: 8px;
-  }
-  .pp-step-body ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 3px; }
-  .pp-step-body ul li {
-    font-size: 0.78rem;
-    color: var(--muted);
-    padding-left: 14px;
-    position: relative;
-    line-height: 1.6;
-  }
-  .pp-step-body ul li:before { content: '—'; position: absolute; left: 0; color: var(--dim); }
-  .pp-step-body ul li strong { color: var(--white); }
-
-  .pp-warn {
-    background: var(--rust-dim);
-    border-left: 2px solid var(--rust);
-    padding: 8px 12px;
-    margin-top: 10px;
-    font-size: 0.73rem;
-    color: #f09090;
-    line-height: 1.5;
-  }
-
   @media (max-width: 900px) {
-    .layout { grid-template-columns: 1fr; }
     .notes-grid { grid-template-columns: 1fr; }
-    .pp-specs { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  @media print {
-    body { background: white; color: black; background-image: none; }
-    header { background: white; border-bottom: 2px solid #1a3a5a; }
-    header::before { background: #b8860b; }
-    header h1 { color: #0b1824; }
-    .header-sub { color: #555; }
-    .header-tag { color: #888; }
-    .print-btn { display: none; }
-    .layout { display: none; }
-    .print-panel { display: flex !important; padding: 0; }
-    .pp-title { color: #0b1824; }
-    .pp-meta { color: #555; }
-    .pp-header { border-color: #b8860b; }
-    .pp-spec { background: #f5f7fa; border-color: #ccc; border-top-color: #1a6a8a; }
-    .pp-spec-label { color: #555; }
-    .pp-spec-val { color: #b8860b; }
-    .pp-section-title { color: #555; border-color: #ccc; }
-    .pp-step { background: white; border-color: #ccc; border-left-color: #1a6a8a; break-inside: avoid; }
-    .pp-step-num { color: #ccc; }
-    .pp-step-body h3 { color: #1a4a6a; }
-    .pp-step-body ul li { color: #333; }
-    .pp-step-body ul li:before { color: #999; }
-    .pp-step-body ul li strong { color: black; }
-    .pp-warn { background: #fff3f0; border-color: #c00; color: #c00; }
-    table { font-size: 0.76rem; }
-    td, th { color: black; border-color: #ccc; }
-    td.cost { color: #1a6e3a; }
-    td.mono { color: #1a4a6a; }
-    td.note { color: #555; }
-    .cat-row td { background: #eef4ff; color: #1a4a6a; }
-    .total-row td { color: black; }
-    .total-row .cost { color: #1a6e3a; }
-    .materials { background: white; border-color: #ccc; }
-    .mat-title { color: #555; }
-    .note-card { background: white; border-color: #ccc; border-left-color: #1a6a8a; }
-    .note-card h4 { color: #1a4a6a; }
-    .note-card ul li { color: #333; }
-    .note-card.green h4 { color: #1a6e3a; }
-    .note-card.red h4 { color: #c00; }
   }
 </style>
 </head>
@@ -585,189 +212,62 @@
 
 <header>
   <div class="header-main">
-    <div class="header-tag">Mountain Build · Open-Span · PT Lumber + Metal Roof</div>
-    <h1>UTV Storage Shelter Planner</h1>
-    <div class="header-sub">Yamaha Wolverine X4 · LVL Header · Corrugated Metal · Helical Pier Foundation</div>
-  </div>
-  <div class="header-actions">
-    <button class="print-btn" id="print-btn" onclick="togglePrintMode()">Print Plan</button>
+    <div class="header-tag">PROJECT // 2026-05-19</div>
+    <h1>SxS Shelter Planner</h1>
+    <div class="header-sub">Single-bay equipment shelter — Can-Am Defender MAX HD11</div>
   </div>
 </header>
 
-<!-- PRINT PANEL -->
-<div class="print-panel" id="print-panel"></div>
-
-<div class="layout">
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="section-label">Structure Dimensions</div>
-
-    <div class="dim-row" id="totalW-row">
-      <label>Total Width</label>
-      <input type="range" id="totalW" min="20" max="40" value="28" step="1">
-      <span class="val" id="totalW_v">28 ft</span>
-    </div>
-    <div class="dim-row">
-      <label>Total Depth</label>
-      <input type="range" id="totalD" min="14" max="30" value="20" step="1">
-      <span class="val" id="totalD_v">20 ft</span>
-    </div>
-    <div class="dim-row">
-      <label>Front Wall Height</label>
-      <input type="range" id="frontH" min="8" max="12" value="9" step="1">
-      <span class="val" id="frontH_v">9 ft</span>
-    </div>
-    <div class="dim-row">
-      <label>Roof Pitch (rise/run)</label>
-      <input type="range" id="pitch" min="2" max="8" value="6" step="1">
-      <span class="val" id="pitch_v">6/12</span>
-    </div>
-
-    <div class="section-label">Bay Layout</div>
-    <div class="dim-row">
-      <label>UTV Bay Width</label>
-      <input type="range" id="utvW" min="8" max="14" value="10" step="1">
-      <span class="val" id="utvW_v">10 ft</span>
-    </div>
-    <div class="dim-row">
-      <label>Splitter Bay Width</label>
-      <input type="range" id="splW" min="6" max="10" value="8" step="1">
-      <span class="val" id="splW_v">8 ft</span>
-    </div>
-
-    <div class="section-label">Options</div>
-    <div class="toggle-row" id="divWall-row">
-      <label>Wood rack divider wall</label>
-      <label class="toggle"><input type="checkbox" id="divWall" checked><span class="slider-tog"></span></label>
-    </div>
-    <div class="toggle-row">
-      <label>Side walls (UTV + splitter)</label>
-      <label class="toggle"><input type="checkbox" id="sideWalls" checked><span class="slider-tog"></span></label>
-    </div>
-    <div class="toggle-row">
-      <label>Back wall (all bays)</label>
-      <label class="toggle"><input type="checkbox" id="backWall" checked><span class="slider-tog"></span></label>
-    </div>
-    <div class="toggle-row" id="gravel-row">
-      <label>Gravel (wood bay only)</label>
-      <label class="toggle"><input type="checkbox" id="gravel"><span class="slider-tog"></span></label>
-    </div>
-    <div class="toggle-row">
-      <label>Include wood bay</label>
-      <label class="toggle"><input type="checkbox" id="woodBay" checked><span class="slider-tog"></span></label>
-    </div>
-    <div class="toggle-row snow-toggle">
-      <label>Heavy snow load</label>
-      <label class="toggle"><input type="checkbox" id="snowLoad" checked><span class="slider-tog"></span></label>
-    </div>
-    <div class="toggle-row">
-      <label>Center post (no LVL)</label>
-      <label class="toggle"><input type="checkbox" id="centerPost"><span class="slider-tog"></span></label>
-    </div>
-
-    <div class="section-label">Quick Stats</div>
-    <div class="stat-box">
-      <div class="stat-label">Footprint</div>
-      <div class="stat-val" id="stat-fp">560 sq ft</div>
-      <div class="stat-sub" id="stat-fp-sub">28 × 20 ft</div>
-    </div>
-    <div class="stat-box" id="wood-stat-box">
-      <div class="stat-label">Wood Bay Width</div>
-      <div class="stat-val" id="stat-wood">10 ft</div>
-      <div class="stat-sub">remainder after UTV + splitter bays</div>
-    </div>
-    <div class="stat-box" id="cord-stat-box">
-      <div class="stat-label">Est. Cord Capacity</div>
-      <div class="stat-val" id="stat-cord">2.1 cords</div>
-      <div class="stat-sub">stacked 4 ft high × bay width × depth</div>
-    </div>
-    <div class="stat-box cost-box">
-      <div class="stat-label">Est. Materials Cost</div>
-      <div class="stat-val" id="stat-cost">—</div>
-      <div class="stat-sub">materials only · excl. delivery &amp; tax</div>
-    </div>
+<div class="main">
+  <div class="canvas-wrap">
+    <canvas id="cv" height="420"></canvas>
   </div>
 
-  <!-- MAIN CONTENT -->
-  <div class="main">
-    <div class="canvas-wrap">
-      <div class="tabs">
-        <button class="tab active" onclick="setView('front')">Front View</button>
-        <button class="tab" onclick="setView('top')">Top / Floor Plan</button>
-        <button class="tab" onclick="setView('side')">Side View</button>
-      </div>
-      <canvas id="cv" height="420"></canvas>
-    </div>
+  <div class="materials">
+    <div class="mat-title">Materials List</div>
+    <table id="mat-table">
+      <thead>
+        <tr>
+          <th>Item</th><th>Qty</th><th>Notes</th>
+        </tr>
+      </thead>
+      <tbody id="mat-body"></tbody>
+    </table>
+  </div>
 
-    <div class="snow-warn" id="snow-warn">
-      <div>
-        <strong>⚠ Pitch too low for heavy snow</strong>
-        With heavy snow load enabled, use at least 6/12 pitch. Shallow roofs let snow accumulate — the weight adds up fast at mountain elevations and can collapse rafters. Increase pitch or switch to 2×8 rafters at minimum.
-      </div>
-    </div>
-
-    <div class="materials">
-      <div class="mat-title">Materials List &amp; Cost Estimate</div>
-      <table id="mat-table">
-        <thead>
-          <tr>
-            <th>Item</th><th>Size / Spec</th><th>Qty</th><th>Est. Cost</th><th>Notes</th>
-          </tr>
-        </thead>
-        <tbody id="mat-body"></tbody>
-      </table>
-    </div>
-
-    <div class="notes-grid">
-      <div class="note-card red">
-        <h4>Foundation — Dug Tube Footings on a Sloped Site</h4>
-        <ul>
-          <li>Your site is sloped — posts will be different heights. That's normal. <strong style="color:var(--white)">Level the top of the frame, not the ground.</strong></li>
-          <li>Dig one hole per post, 10"–12" diameter, at least 42–48" deep (mountain frost line). A manual clamshell post hole digger works fine — have a digging bar handy to break up rocks and loosen compacted soil as you go.</li>
-          <li>Set a sonotube/tube form in each hole. Cut tube tops to the same height using a laser level — this makes setting post bases much easier.</li>
-          <li>Pour concrete in lifts (12"–18" at a time), rodding out air bubbles. Set a Simpson ABA66 post base anchor bolt in the top while wet. Double-check level and position before it sets.</li>
-          <li>Let concrete cure 48–72 hours before loading posts. Don't rush — a shifted anchor bolt is a pain to fix.</li>
-          <li>Uphill posts will be short, downhill posts will be tall. Cut all posts to height <em>after</em> the frame is level — don't pre-cut.</li>
-          <li>Start with the 4 corner posts. Use a laser level to establish the frame plane before cutting anything.</li>
-        </ul>
-      </div>
-      <div class="note-card green">
-        <h4>Airflow for Wood Storage</h4>
-        <ul>
-          <li>Open front on wood bay is key — never close it in</li>
-          <li>Gaps in back wall siding (1–2" spacing) or hardware cloth panels improve cross-ventilation</li>
-          <li>Stack wood on a raised pallet or 2×4 runners to keep off ground</li>
-          <li>Orient wood bay to prevailing wind if possible</li>
-        </ul>
-      </div>
-      <div class="note-card">
-        <h4>Roof — Snow Load &amp; Pitch</h4>
-        <ul>
-          <li>Mountain snow is heavy — wet spring snow can exceed 20 lb/sq ft. A 6/12 pitch sheds it; a 4/12 or lower holds it.</li>
-          <li>Use 2×8 rafters at 16" OC in heavy snow areas (selected above). Do not use 2×6 at 24" OC — undersized for mountain snowpack.</li>
-          <li>Metal roofing is ideal — snow slides off rather than piling up. Use corrugated or standing seam 26-ga steel.</li>
-          <li>Slope roof away from the open front. Snow sliding off the rear is safer than dumping on the UTV or your head.</li>
-          <li>Extend eaves 18–24" on front and sides — keeps melt and rain away from the open bays.</li>
-          <li>Closure strips at eave and ridge — seals against wind-driven snow getting under the metal.</li>
-        </ul>
-      </div>
-      <div class="note-card">
-        <h4>Wolverine X4 Clearance</h4>
-        <ul>
-          <li>X4 is ~61" wide, ~75" tall (cab) — 10 ft bay gives comfortable clearance</li>
-          <li>Allow at least 18" on each side for doors and access</li>
-          <li>9 ft front wall height clears the machine with ~12" to spare</li>
-          <li>Consider a wheel stop (4×4 treated) near the back wall</li>
-          <li>If you add a winch or roof rack, re-check height clearance</li>
-        </ul>
-      </div>
-    </div>
+  <div class="notes-grid" id="notes-grid">
+    <!-- Build notes — populated in Task 4 -->
   </div>
 </div>
 
 <script>
-const cv = document.getElementById('cv');
-const ctx = cv.getContext('2d');
+const SHELTER = {
+  // Vehicle: 2026 Can-Am Defender MAX Limited HD11
+  vehicle: {
+    name: "Can-Am Defender MAX HD11",
+    lengthIn: 162.4,
+    widthIn: 65.0,
+    heightIn: 81.4,
+    wheelbaseIn: 117.5,
+  },
+  // Structure (all inches internally, ft used for display)
+  bayWidthFt: 10,
+  bayDepthFt: 16,
+  frontWallHeightFt: 8,
+  roofPitch: 3,          // 3/12
+  eaveOverhangIn: 12,
+  postSpacingFt: 8,      // mid-span post on each 16 ft side
+  postCount: 6,          // 4 corners + 2 mid-span
+  frostLineIn: 48,       // assumed Catskills NY
+  rafterSpacingIn: 24,
+  snowLoadPsf: 50,
+};
+
+// Derived:
+//   rearWallHeightFt = 8 + (16 * 3/12) = 12 ft
+//   rafterRunFt = bayWidthFt = 10 ft  (rafters span the 10 ft width)
+//   roofLengthAlongSlopeFt = sqrt(10^2 + ((10*3/12))^2) ≈ 10.31 ft  (small extra for slope)
+
 let view = 'front';
 
 // Blueprint color palette
@@ -797,7 +297,7 @@ const C = {
   cedar: '#4a9ab8',
 };
 
-// Rough 2025 unit prices
+// PRICES placeholder — will be replaced in Task 3
 const PRICES = {
   post6x6: 45,
   concrete: 7,
@@ -823,40 +323,6 @@ const PRICES = {
   lumber2x12PerFt: 2.2,  // 2×12 #2 PT per linear foot
   tubeForm: 9,           // 10" dia sonotube/tube form ~4 ft length
 };
-
-function getParams() {
-  return {
-    W: +document.getElementById('totalW').value,
-    D: +document.getElementById('totalD').value,
-    fH: +document.getElementById('frontH').value,
-    pitch: +document.getElementById('pitch').value,
-    utvW: +document.getElementById('utvW').value,
-    splW: +document.getElementById('splW').value,
-    divWall: document.getElementById('divWall').checked,
-    sideWalls: document.getElementById('sideWalls').checked,
-    backWall: document.getElementById('backWall').checked,
-    gravel: document.getElementById('gravel').checked,
-    woodBay: document.getElementById('woodBay').checked,
-    snowLoad: document.getElementById('snowLoad').checked,
-    centerPost: document.getElementById('centerPost').checked,
-  };
-}
-
-function eW(p) { return p.woodBay ? p.W : p.utvW + p.splW; }
-function woodBayW(p) { return p.woodBay ? Math.max(0, p.W - p.utvW - p.splW) : 0; }
-function rearH(p) { return p.fH + (p.pitch / 12) * p.D; }
-
-function setView(v) {
-  view = v;
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['front','top','side'][i] === v));
-  draw();
-}
-
-function resizeCanvas() {
-  const wrap = cv.parentElement;
-  cv.width = wrap.clientWidth - 32;
-  draw();
-}
 
 // Blueprint dot grid in canvas
 function drawCanvasBg() {
@@ -890,11 +356,7 @@ function drawHatch(x, y, w, h, color, spacing) {
 }
 
 function draw() {
-  drawCanvasBg();
-  const p = getParams();
-  if (view === 'front') drawFront(p);
-  else if (view === 'top') drawTop(p);
-  else drawSide(p);
+  // Canvas drawings re-implemented in Task 2
 }
 
 function drawFront(p) {
@@ -1365,362 +827,8 @@ function labelText(text, x, y, color, size) {
   ctx.fillText(text, x, y);
 }
 
-function updateMaterials() {
-  const p = getParams();
-  const W = eW(p);
-  const rH = rearH(p);
-  const avgH = (p.fH + rH) / 2;
-  const wbW = woodBayW(p);
-
-  const rafterOC = p.snowLoad ? 4/3 : 2;
-  const rafterSize = p.snowLoad ? '2×8' : '2×6';
-  const rafterPricePerFt = p.snowLoad ? PRICES.rafter28PerFt : PRICES.rafter26PerFt;
-
-  const basePosts = p.woodBay ? 6 : 4;
-  const nPosts = p.centerPost ? basePosts + 2 : basePosts;
-  const headerSpan = p.utvW + p.splW;
-  const nRafters = Math.ceil(W / rafterOC) + 1;
-  const rafterL = Math.ceil(Math.sqrt(p.D*p.D + Math.pow((rH-p.fH),2)) + 2);
-  const roofSqft = Math.ceil(rafterL * W * 1.1);
-  const backSqft = p.backWall ? W * avgH : 0;
-  const sideSqft = p.sideWalls ? p.D * avgH * 2 : 0;
-  const divSqft = (p.divWall && p.woodBay) ? p.D * p.fH : 0;
-  const gravelTons = (p.gravel && p.woodBay) ? Math.ceil((wbW * p.D * (4/12)) / 27 * 1.5) : 0;
-  const beamLF = Math.ceil(W*2 + p.D*2);
-
-  let totalCost = 0;
-  function matRow(item, spec, qty, unitCost, note) {
-    const cost = Math.round(qty * unitCost);
-    totalCost += cost;
-    return { item, spec, qty: Math.round(qty * 10) / 10, cost, note };
-  }
-
-  const postNote = p.centerPost
-    ? (p.woodBay ? `${nPosts} posts — corners + center (UTV/splitter divider) + splitter/wood divider, front & rear` : `${nPosts} posts — corners + center post front & rear`)
-    : (p.woodBay ? '6 posts — corners + splitter/wood divider front & rear' : '4 corner posts (no post between UTV/splitter)');
-
-  const rows = [
-    { cat: 'Foundation' },
-    matRow('6×6 PT Post', '12 ft length', nPosts, PRICES.post6x6, postNote),
-    matRow('Tube Form (Sonotube)', '10" dia × 48"', nPosts, PRICES.tubeForm, 'One per post — dig below frost line (42–48" min in mountain areas)'),
-    matRow('Concrete', '80 lb bag', nPosts * 4, PRICES.concrete, '~4 bags per 10"×48" footing (≈2.2 cu ft); mix in batches and pour in lifts'),
-    matRow('Adjustable Post Base', 'Simpson ABA66', nPosts, PRICES.postBase, 'Set anchor bolt in wet concrete; keeps post end grain above grade'),
-    ...(p.gravel && p.woodBay ? [matRow('Crushed Gravel (3/4")', 'ton', gravelTons, PRICES.gravel, 'Wood bay only — 4" compacted for drainage')] : []),
-
-    ...(p.centerPost ? [
-      { cat: `Split Header — ${p.utvW} ft UTV span + ${p.splW} ft Splitter span (center post)` },
-      matRow('3-ply 2×12 Header (UTV bay)', `3×2×12, ${p.utvW} ft`, 2, p.utvW * 3 * PRICES.lumber2x12PerFt, 'Front + rear — nail 3 layers of 2×12 together; no LVL needed for this span'),
-      matRow('3-ply 2×12 Header (Splitter bay)', `3×2×12, ${p.splW} ft`, 2, p.splW * 3 * PRICES.lumber2x12PerFt, 'Front + rear — 3-ply 2×12 is adequate for this shorter span'),
-      matRow('Post Cap Hardware', 'Simpson BC6', 6, PRICES.postCap, 'Beam-to-post: 3 posts × 2 sides (front beam + rear beam)'),
-    ] : [
-      { cat: `Open-Span Header — ${headerSpan} ft span (UTV + Splitter)` },
-      matRow('LVL Beam (front header)', `3.5"×11.25", ${headerSpan} ft`, 1, headerSpan * PRICES.lvlPerFt,
-        p.snowLoad && headerSpan > 14 ? 'Verify LVL sizing with lumber yard for your snow load — may need 3.5"×14"' : 'No interior post needed'),
-      matRow('LVL Beam (rear header)', `3.5"×11.25", ${headerSpan} ft`, 1, headerSpan * PRICES.lvlPerFt, 'Matching rear beam'),
-      matRow('Post Cap Hardware', 'Simpson BC6', 4, PRICES.postCap, 'Beam-to-post at 4 bearing points'),
-    ]),
-
-    { cat: 'Framing' },
-    matRow('6×6 PT Beam', `Top plate, ${beamLF} LF`, beamLF, PRICES.beamPerFt, 'Front/rear/side top plates'),
-    matRow(`${rafterSize} Rafters`, `${rafterL} ft ea`, nRafters, rafterL * rafterPricePerFt,
-      p.snowLoad ? `16" OC — heavy snow spec. Standard is 24" OC but undersized for mountain snowpack.` : '24" OC'),
-    matRow('2×6 Purlin', `${W} ft run`, 3, W * PRICES.rafter26PerFt, 'Ridge + mid + eave purlins'),
-    matRow('Hurricane Ties', 'H2.5A', nRafters*2, PRICES.hurricaneTie, 'Each rafter, both ends — essential in mountain wind'),
-
-    { cat: 'Roofing' },
-    matRow('Corrugated Metal Panel', `26-ga, ${roofSqft} sq ft`, roofSqft, PRICES.metalPerSqft, '10% waste factor; order full sheet lengths'),
-    matRow('Ridge Cap', `${W} ft`, 1, W * PRICES.ridgePerFt, ''),
-    matRow('Closure Strips', 'Foam, eave + ridge', 2, PRICES.closure, 'Seals against wind-driven snow and pests'),
-    matRow('Metal Roofing Screws', '1.5" w/ washer', Math.ceil(roofSqft/3), PRICES.roofScrew, '~1 per 3 sq ft'),
-
-    { cat: 'Siding / Walls' },
-    ...(p.backWall ? [matRow('T1-11 or LP SmartSide', `${Math.ceil(backSqft)} sq ft`, Math.ceil(backSqft), PRICES.sidingPerSqft, 'Back wall — all bays')] : []),
-    ...(p.sideWalls ? [matRow('T1-11 or LP SmartSide', `${Math.ceil(sideSqft)} sq ft`, Math.ceil(sideSqft), PRICES.sidingPerSqft, 'Side walls')] : []),
-    ...(p.divWall && p.woodBay ? [matRow('2×6 + Siding — Divider', `${Math.ceil(divSqft)} sq ft`, Math.ceil(divSqft), PRICES.sidingPerSqft, 'Between splitter + wood bay')] : []),
-
-    ...(p.woodBay ? [
-      { cat: 'Wood Storage Rack' },
-      matRow('4×4 PT Upright', '6 ft', 4, PRICES.post4x4, 'Wood bay corners + mid supports'),
-      matRow('2×4 Horizontal Rail', `${p.D} ft ea`, 6, p.D * PRICES.rail2x4PerFt, '3 tiers × 2 rails'),
-      matRow('PT 2×4 Ground Runners', `${p.D} ft ea`, Math.ceil(wbW/2), p.D * PRICES.rail2x4PerFt, 'Keeps wood off soil — no groundwork'),
-    ] : []),
-
-    { cat: 'Hardware & Fasteners' },
-    matRow('Structural Screws 3"', '5 lb box', 5, PRICES.screwBox, 'General framing'),
-    matRow('Joist Hanger', 'LUS26', nRafters*2, PRICES.joistHanger, ''),
-    matRow('Galv. Lag Screw 1/2×5"', 'box/50', 3, PRICES.lagBox, 'Beam-to-post + LVL connections'),
-  ];
-
-  const tbody = document.getElementById('mat-body');
-  tbody.innerHTML = rows.map(r => {
-    if (r.cat) return `<tr class="cat-row"><td colspan="5">${r.cat}</td></tr>`;
-    const costStr = r.cost > 0 ? `$${r.cost.toLocaleString()}` : '—';
-    return `<tr>
-      <td>${r.item}</td>
-      <td class="mono">${r.spec}</td>
-      <td class="mono">${r.qty}</td>
-      <td class="cost">${costStr}</td>
-      <td class="note">${r.note}</td>
-    </tr>`;
-  }).join('') + `<tr class="total-row">
-    <td colspan="3" style="color:var(--dim)">Estimated Total</td>
-    <td class="cost">$${totalCost.toLocaleString()}</td>
-    <td class="note" style="font-size:0.68rem">materials only · excludes tools, delivery, and tax</td>
-  </tr>`;
-
-  return totalCost;
-}
-
-function updateStats() {
-  const p = getParams();
-  const W = eW(p);
-  document.getElementById('stat-fp').textContent = `${W * p.D} sq ft`;
-  document.getElementById('stat-fp-sub').textContent = `${W} × ${p.D} ft`;
-  if (p.woodBay) {
-    const wbw = woodBayW(p);
-    document.getElementById('stat-wood').textContent = `${wbw} ft`;
-    const cords = (wbw * p.D * 4) / 128;
-    document.getElementById('stat-cord').textContent = `${cords.toFixed(1)} cords`;
-  }
-}
-
-function update() {
-  const p = getParams();
-
-  const fields = ['totalW','totalD','frontH','pitch','utvW','splW'];
-  const suffixes = [' ft',' ft',' ft','/12',' ft',' ft'];
-  fields.forEach((f,i) => {
-    document.getElementById(f+'_v').textContent = document.getElementById(f).value + suffixes[i];
-  });
-
-  const hasBay = p.woodBay;
-  document.getElementById('totalW-row').classList.toggle('dimmed', !hasBay);
-  document.getElementById('divWall-row').classList.toggle('dimmed', !hasBay);
-  document.getElementById('gravel-row').classList.toggle('dimmed', !hasBay);
-  document.getElementById('wood-stat-box').style.display = hasBay ? '' : 'none';
-  document.getElementById('cord-stat-box').style.display = hasBay ? '' : 'none';
-
-  document.getElementById('snow-warn').classList.toggle('visible', p.snowLoad && p.pitch < 6);
-
-  updateStats();
-  const totalCost = updateMaterials();
-  document.getElementById('stat-cost').textContent = `$${totalCost.toLocaleString()}`;
-
-  draw();
-}
-
-// ─── PRINT MODE ──────────────────────────────────────────────────────────────
-
-let printModeActive = false;
-
-function togglePrintMode() {
-  printModeActive = !printModeActive;
-  document.getElementById('print-btn').classList.toggle('active', printModeActive);
-  document.getElementById('print-btn').textContent = printModeActive ? 'Close Plan' : 'Print Plan';
-  document.querySelector('.layout').style.display = printModeActive ? 'none' : '';
-
-  const panel = document.getElementById('print-panel');
-  if (printModeActive) {
-    generatePrintPanel();
-    panel.classList.add('visible');
-    window.scrollTo(0, 0);
-  } else {
-    panel.classList.remove('visible');
-  }
-}
-
-function generatePrintPanel() {
-  const p = getParams();
-  const W = eW(p);
-  const rH = rearH(p);
-  const rafterSize = p.snowLoad ? '2×8' : '2×6';
-  const rafterOC = p.snowLoad ? '16" OC' : '24" OC';
-  const basePosts2 = p.woodBay ? 6 : 4;
-  const nPosts = p.centerPost ? basePosts2 + 2 : basePosts2;
-  const headerSpan = p.utvW + p.splW;
-  const nBays = p.woodBay ? 3 : 2;
-  const bayDesc = p.woodBay
-    ? `UTV (${p.utvW} ft) · Splitter (${p.splW} ft) · Wood (${woodBayW(p)} ft)`
-    : `UTV (${p.utvW} ft) · Splitter (${p.splW} ft)`;
-
-  const specItems = [
-    { label: 'Footprint', val: `${W} × ${p.D} ft` },
-    { label: 'Bays', val: `${nBays}-Bay` },
-    { label: 'Front Height', val: `${p.fH} ft` },
-    { label: 'Rear Height', val: `${rH.toFixed(1)} ft` },
-    { label: 'Roof Pitch', val: `${p.pitch}/12` },
-    { label: 'Rafter Spec', val: rafterSize },
-    { label: p.centerPost ? 'Header Type' : 'LVL Span', val: p.centerPost ? `3-ply 2×12` : `${headerSpan} ft` },
-    { label: 'Snow Load', val: p.snowLoad ? 'Heavy' : 'Standard' },
-  ];
-
-  const pitchWarn = p.snowLoad && p.pitch < 6
-    ? `<div class="pp-warn">⚠ Pitch is ${p.pitch}/12 — below recommended 6/12 for heavy snow. Consider increasing pitch before building.</div>`
-    : '';
-
-  const steps = [
-    {
-      title: 'Site Prep & Layout',
-      items: [
-        `Clear the area: ${W} ft wide × ${p.D} ft deep — add 2–3 ft buffer on all sides for working room`,
-        'Mark the 4 corner post positions with stakes and string lines',
-        'Use a tape measure to check diagonals — they should be equal if the layout is square',
-        'Your site is sloped: <strong>do not level the ground</strong> — you will level the frame instead. The post heights will vary.',
-        'Establish a level reference with a laser level or water level across the site. Mark this height on a reference stake — every post top will hit this plane.',
-        'Note which corner is lowest: that post will be longest. Measure the height difference between corners to estimate post lengths.',
-      ],
-    },
-    {
-      title: `Foundation — ${nPosts} Tube Footings (Dig + Pour)`,
-      items: [
-        `Dig ${nPosts} holes: one at each corner${p.woodBay ? ' + one front and rear at the splitter/wood bay divider' : ''}${p.centerPost ? ' + one front and rear at the center post' : ''}`,
-        'Use a manual clamshell post hole digger — works well for this many holes. Bring a digging bar (breaker bar) to bust through rocks and break up compacted layers as you go.',
-        'Minimum depth: 42–48" in most mountain areas (below frost line). If you hit bedrock before that, you may need to widen the hole and use a larger footing — consult a local engineer.',
-        'Set a 10" sonotube/tube form in each hole. Using a laser level, mark all tube tops at the same height. Cut the tubes to that line — this makes setting post bases far easier.',
-        'Pour concrete in 12–18" lifts, rodding out air pockets with a stick after each pour. About 4 bags of 80lb concrete per footing.',
-        'Set a Simpson ABA66 anchor bolt in the top of each footing while wet. Check position carefully — it must align with your post layout. Double-check before the concrete sets.',
-        'Cure time: 48–72 hours minimum before loading posts. Do not rush this step.',
-      ],
-      warn: pitchWarn,
-    },
-    {
-      title: `Posts — ${nPosts} × 6×6 PT`,
-      items: [
-        'Set all posts in their bases — do NOT cut to height yet',
-        'Plumb each post with a level and brace it temporarily with 2×4 diagonal braces screwed into the ground',
-        'Once all posts are plumbed and braced, use your level reference to mark the correct cut height on each post',
-        'Cut posts in place with a circular saw. Downhill posts will be tallest — take your time measuring, a bad cut wastes an expensive post',
-        `Post layout: far-left (UTV side), ${p.woodBay ? 'between splitter+wood bay, ' : ''}far-right${p.woodBay ? ', plus rear versions of each' : ''}. <strong>No post between UTV and splitter bays</strong> — that opening is spanned by the LVL header.`,
-      ],
-    },
-    p.centerPost ? {
-      title: `Built-Up Headers — 3-ply 2×12 (${p.utvW} ft + ${p.splW} ft spans)`,
-      items: [
-        `With a center post between the UTV and splitter bays, each span is short enough for standard lumber — no LVL needed`,
-        `UTV bay: nail three 2×12s together face-to-face (3-ply) — ${p.utvW} ft long. Make two of these: one for the front, one for the rear.`,
-        `Splitter bay: same construction — three 2×12s, ${p.splW} ft long, front and rear.`,
-        'Nail the plies together with 16d nails at 12" OC in a staggered pattern. Pre-drill near the ends to prevent splitting.',
-        'Set the center post first, then lift each header into position. These are manageable with one helper.',
-        'Connect with Simpson BC6 post caps at each bearing point — 3 posts × front and rear = 6 caps total.',
-        'Once headers are set, install 6×6 PT top plates along the sides and across the wood bay (if included).',
-      ],
-    } : {
-      title: `LVL Header Beam — ${headerSpan} ft Open Span`,
-      items: [
-        `The LVL beam spans the full ${headerSpan} ft UTV + splitter opening — this is what lets both bays stay open with no interior post`,
-        'You need two LVL beams: one at the front (open face) and one at the rear, both spanning UTV + splitter bay',
-        `Spec: 3.5"×11.25" LVL, ${headerSpan} ft length${p.snowLoad && headerSpan > 14 ? ' — <strong>verify this sizing with your lumber yard for your specific snow load</strong>, you may need 3.5"×14"' : ''}`,
-        'Lift the front LVL into position with a helper — these are heavy. Use temporary supports (a post and ledger) to hold it while you fasten it.',
-        'Connect with Simpson BC6 post caps at each bearing point (front and rear of the UTV bay, front and rear of the splitter bay end)',
-        'Once both LVL beams are set, install the 6×6 PT top plates along the sides and across the wood bay (if included)',
-      ],
-    },
-    {
-      title: `Roof Framing — ${rafterSize} Rafters at ${rafterOC}`,
-      items: [
-        `Cut all ${rafterSize} rafters to length: approximately ${Math.ceil(Math.sqrt(p.D*p.D + Math.pow((rH-p.fH),2)) + 2)} ft each (measure your actual frame — always beat the calculation)`,
-        'This is a shed roof (single slope): front is low, rear is high — all rafters are parallel and the same length',
-        `${p.snowLoad ? '<strong>Snow load spec: 2×8 at 16" OC</strong> — do not substitute 2×6 or 24" OC in a heavy snow area. The weight of wet spring snow can exceed 20 lb/sq ft.' : '2×6 rafters at 24" OC for standard load'}`,
-        'Set the ridge (rear) purlin first across the top of the rear posts. Then set the eave (front) purlin across the front LVL.',
-        'Install rafters one at a time: toenail at top into ridge purlin, use joist hangers at the bottom',
-        'Add hurricane ties at both ends of every rafter — essential in mountain wind',
-        `Extend eaves at least 18" on front and sides. Slope runs front (low, ${p.fH} ft) to rear (high, ${rH.toFixed(1)} ft) — snow and rain run off the back.`,
-      ],
-    },
-    {
-      title: 'Roofing — Corrugated Metal',
-      items: [
-        'Install foam closure strips at eave (bottom) and ridge (top) before laying panels — seals against wind-driven snow and pests',
-        'Start from one end and work across, overlapping each panel one rib',
-        'Fasten with 1.5" metal roofing screws with neoprene washers — screw into the high ribs, not the low channels',
-        'Install ridge cap last — overlap both sides by at least 6"',
-        'Metal on a steep pitch will shed snow naturally. On lower pitches, expect snow to slide off suddenly — don\'t park below the drip edge',
-      ],
-    },
-    ...(p.backWall || p.sideWalls ? [{
-      title: 'Siding & Walls',
-      items: [
-        ...(p.backWall ? [`Back wall: T1-11 or LP SmartSide across all ${nBays} bays — cut to fit between posts, fasten with galvanized nails or screws every 8" on edges`] : []),
-        ...(p.sideWalls ? ['Side walls: run siding from front post to rear post on both sides. The slope of your roof means the top cut will be angled — mark it by holding the panel in place and scribing the roof line.'] : []),
-        'Caulk all horizontal seams with paintable exterior caulk',
-        'Prime all cut edges with exterior primer before installation — T1-11 soaks up moisture at cut ends and will rot if unprimed',
-        p.snowLoad ? 'In a snow area: leave a 1" gap between the bottom of siding and grade to prevent rot from snowpack sitting against the wall' : 'Leave a 1" gap between siding bottom and grade',
-      ],
-    }] : []),
-    ...(p.woodBay ? [{
-      title: 'Wood Storage Rack',
-      items: [
-        `Install 4×4 PT uprights at wood bay corners and midpoint — lag screw to the frame above`,
-        `Run 2×4 horizontal rails at 3 heights: ground level (~6" off floor), waist height, and top`,
-        'Lay PT 2×4 ground runners across the bay floor (on grade) — keeps wood off the soil and out of moisture. No concrete or gravel needed.',
-        'Stack wood with ends facing the open front for airflow. Bark side up on top rows keeps rain off the stacked wood.',
-      ],
-    }] : []),
-  ];
-
-  const panel = document.getElementById('print-panel');
-  panel.innerHTML = `
-    <div class="pp-header">
-      <div>
-        <div class="pp-title">Build Plan: UTV Storage Shelter</div>
-        <div style="font-size:0.73rem; color:var(--dim); margin-top:6px; font-family:'JetBrains Mono',monospace">${bayDesc}</div>
-      </div>
-      <div class="pp-meta">
-        ${new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'})}<br>
-        Yamaha Wolverine X4 · PT Lumber + Metal Roof<br>
-        ${p.snowLoad ? 'Heavy Snow Load Spec' : 'Standard Load Spec'}
-      </div>
-    </div>
-
-    <div>
-      <div class="pp-section-title">Structure Specs</div>
-      <div class="pp-specs">
-        ${specItems.map(s => `
-          <div class="pp-spec">
-            <div class="pp-spec-label">${s.label}</div>
-            <div class="pp-spec-val">${s.val}</div>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-
-    <div>
-      <div class="pp-section-title">Build Steps</div>
-      <div class="pp-steps">
-        ${steps.map((s, i) => `
-          <div class="pp-step">
-            <div class="pp-step-num">${i+1}</div>
-            <div class="pp-step-body">
-              <h3>${s.title}</h3>
-              <ul>${s.items.map(item => `<li>${item}</li>`).join('')}</ul>
-              ${s.warn || ''}
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-
-    <div class="materials" style="margin:0">
-      <div class="mat-title">Materials List &amp; Cost Estimate</div>
-      <table>
-        <thead><tr><th>Item</th><th>Size / Spec</th><th>Qty</th><th>Est. Cost</th><th>Notes</th></tr></thead>
-        <tbody id="print-mat-body"></tbody>
-      </table>
-    </div>
-
-    <div style="font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--dim); text-align:center; padding-top:8px; border-top:1px solid var(--border)">
-      Generated with UTV Storage Shelter Planner · ai-play-projects · Prices are rough 2025 estimates — verify with your local lumber yard
-    </div>
-  `;
-
-  const srcBody = document.getElementById('mat-body');
-  document.getElementById('print-mat-body').innerHTML = srcBody.innerHTML;
-}
-
-document.querySelectorAll('input').forEach(el => el.addEventListener('input', update));
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-update();
+window.addEventListener('resize', draw);
+draw();
 </script>
 </body>
 </html>
