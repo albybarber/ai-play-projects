@@ -208,7 +208,7 @@
 
 <header>
   <div class="header-main">
-    <div class="header-tag">PROJECT // 2026-05-19</div>
+    <div class="header-tag">PROJECT // 2026-05-20</div>
     <h1>SxS Shelter Planner</h1>
     <div class="header-sub">Single-bay equipment shelter — Can-Am Defender MAX HD11</div>
   </div>
@@ -223,7 +223,7 @@
 
   <section class="materials" id="materials">
     <h2 class="section-title">Materials Estimate</h2>
-    <p class="section-sub">Estimated quantities for the fixed 10 × 16 ft × 8 ft front-wall shelter. Verify with your lumber yard before ordering.</p>
+    <p class="section-sub">Estimated quantities for the fixed 10 × 16 ft shelter. Low side 8 ft, high side 10'-6". Verify with your lumber yard before ordering.</p>
     <div id="materials-list"></div>
   </section>
 
@@ -234,25 +234,24 @@
       <h3>Foundation &amp; Leveling on Uneven Ground</h3>
       <ol>
         <li>Lay out 6 post locations with string lines: 4 corners + 1 mid-span on each 16 ft side (8 ft on center).</li>
-        <li>Dig each hole to <strong>frost line — 48 in for Catskills, NY</strong>. Adjust for your region: deeper in colder zones, shallower in warmer ones.</li>
-        <li>Drop 3-4 in of gravel in each hole for drainage. Set a ground-contact-rated PT 6×6 post in each hole, plumb, and pour concrete around it. Brace each post until the concrete sets.</li>
-        <li>Each post lands at whatever ground elevation it sits at — the variation between holes is absorbed by how much post sticks out above grade.</li>
-        <li>After concrete cures (24-48 hrs), use a laser level (or a water level if you don't have one) to snap a level line across all 6 post tops.</li>
-        <li><strong>Cut each post to that line.</strong> The result: a perfectly level top-plate plane, even though the ground beneath is not.</li>
-        <li>Set the double 2×8 PT beams on the cut tops and fasten with structural screws or Simpson post caps.</li>
+        <li>Dig each hole to <strong>frost line — 48 in for Catskills, NY</strong>. Adjust for your region.</li>
+        <li>Drop 3-4 in of gravel in each hole for drainage. Set a ground-contact-rated PT 6×6 post in each hole, plumb, and pour concrete. Brace until cured.</li>
+        <li>Each post lands at whatever ground elevation it sits at — uneven ground is absorbed by how much post sticks above grade.</li>
+        <li>After concrete cures (24-48 hrs), snap two level lines: one for the <strong>low side (left)</strong> at 8 ft, one for the <strong>high side (right)</strong> at 10'-6", both referenced from the same datum.</li>
+        <li><strong>Cut the three low-side posts to the 8 ft line; cut the three high-side posts to the 10'-6" line.</strong> Both rows are level within themselves; the difference between rows creates the roof pitch.</li>
+        <li>Set the double 2×8 PT beams on the cut tops on each side and fasten with structural screws or Simpson post caps.</li>
       </ol>
     </article>
 
     <article class="note-card">
       <h3>Roof Details</h3>
       <ul>
-        <li>2×6 rafters at 24 in OC across the 10 ft bay width. Adequate for ~50 psf ground snow load (typical Catskills NY); verify locally if you're in a higher snow zone.</li>
-        <li>2×4 purlins along the slope. Spacing per the metal-panel manufacturer's spec (usually 24 in).</li>
+        <li><strong>3/12 pitch runs across the 10 ft width</strong> — low side (left) 8 ft, high side (right) 10'-6". Rafters span the width; purlins run the 16 ft length.</li>
+        <li>2×6 rafters at 24 in OC along the 16 ft depth — 9 rafters total. Each spans the 10 ft width from the low-side beam to the high-side beam (~10.31 ft along the slope).</li>
+        <li>Water drains off the high side (right). Keep that edge clear; a gutter here is a good upgrade.</li>
         <li>Hurricane ties (Simpson H1 or equivalent) at every rafter-to-beam connection.</li>
-        <li>Shed slope: front low, rear high. Runoff sheds away from the open front. 3/12 pitch keeps the rear wall reasonable (~12 ft) while shedding water and snow.</li>
-        <li>12 in eave overhang at the front keeps runoff off the threshold.</li>
-        <li>High-side flashing (against the back wall) instead of a ridge cap — shed roofs have no ridge.</li>
-        <li>Foam closure strips at the high and low edges seal corrugations against wind-driven precip and pests.</li>
+        <li>Low-side eave: 12 in overhang past the left-side posts. High side: flashing or closure strip against the high-side beam.</li>
+        <li>Foam closure strips at both the low eave edge and the high-side flashing seal corrugations against pests and wind-driven precip.</li>
       </ul>
     </article>
 
@@ -261,9 +260,9 @@
       <ul>
         <li>Vehicle dimensions: 162.4 in L × 65 in W × 81.4 in H (13.5 ft × 5.4 ft × 6.8 ft). Wheelbase 117.5 in.</li>
         <li>Bay width 10 ft (120 in) gives ~27 in total side clearance — enough to open both doors and walk around.</li>
-        <li>Bay depth 16 ft (192 in) gives ~30 in of front+rear clearance combined. Park with the front bumper ~12 in inside the eave drip line; the rear has ~18 in to the back wall.</li>
-        <li>Front wall height 8 ft (96 in) clears the 81.4 in vehicle height by ~15 in — enough for a roof-mounted light bar or accessory rack.</li>
-        <li>A simple PT 2×6 wheel stop bolted to the ground or a beam at ~14 ft from the front prevents the bumper from contacting the back wall.</li>
+        <li>Bay depth 16 ft (192 in) gives ~30 in of front+rear clearance combined.</li>
+        <li>Low-side wall height 8 ft (96 in) clears the 81.4 in vehicle height by ~15 in — enough for a roof rack or light bar. High side clears by ~33 in.</li>
+        <li>A simple PT 2×6 wheel stop at ~14 ft from the front prevents the bumper from contacting the back wall.</li>
       </ul>
     </article>
   </section>
@@ -280,8 +279,8 @@ const SHELTER = {
   },
   bayWidthFt: 10,
   bayDepthFt: 16,
-  frontWallHeightFt: 8,
-  roofPitch: 3,
+  lowSideHeightFt: 8,    // left/low side wall height
+  roofPitch: 3,          // 3/12, runs ACROSS the 10 ft width (left=low, right=high)
   eaveOverhangIn: 12,
   postSpacingFt: 8,
   postCount: 6,
@@ -289,6 +288,9 @@ const SHELTER = {
   rafterSpacingIn: 24,
   snowLoadPsf: 50,
 };
+// Derived:
+//   highSideHeightFt = lowSideHeightFt + bayWidthFt * roofPitch/12 = 8 + 10*(3/12) = 10.5 ft
+//   rafters span the 10 ft width; 9 rafters at 24" OC along the 16 ft depth
 
 const C = {
   cyan: '#5eb8d4',
@@ -307,8 +309,10 @@ const MATERIALS = [
   {
     section: "Foundation",
     items: [
-      { qty: "6", item: "6×6 PT post, ground-contact rated, 12 ft length",
-        note: "Length covers 48\" embedment + ~7-8 ft above grade with extra for level cut" },
+      { qty: "3", item: "6×6 PT post, ground-contact rated, 12 ft length — LOW SIDE",
+        note: "Low side (8 ft): 48\" embedment + 8 ft above grade + margin for level cut" },
+      { qty: "3", item: "6×6 PT post, ground-contact rated, 14 ft length — HIGH SIDE",
+        note: "High side (10'-6\"): 48\" embedment + 10.5 ft above grade + margin for cut" },
       { qty: "12-16 bags", item: "60 lb concrete mix (Quikrete or equiv)",
         note: "≈2 bags per hole; round up for wet/sloppy holes" },
       { qty: "1 bag", item: "Gravel for hole bottoms (drainage)",
@@ -320,19 +324,19 @@ const MATERIALS = [
   {
     section: "Framing — Top Plates & Beams",
     items: [
-      { qty: "4", item: "2×8×16 PT (long-side top plates — doubled)",
-        note: "Two on each 16 ft side, screwed together to form a built-up beam" },
+      { qty: "4", item: "2×8×16 PT (long-side beams — doubled, one per side)",
+        note: "Two on the low side at 8 ft; two on the high side at 10'-6\" — each pair screwed together" },
       { qty: "2", item: "2×8×10 PT (front + rear cross-headers)",
-        note: "Tie front and rear posts together at the top" },
+        note: "Span the 10 ft width front and rear, angled/notched to sit on the differing post heights" },
     ],
   },
   {
     section: "Framing — Rafters & Purlins",
     items: [
       { qty: "9", item: "2×6×12 rafters",
-        note: "24\" OC across 16 ft length = 9 rafters; 12 ft length covers 10 ft span + overhang/cuts" },
+        note: "24\" OC along the 16 ft depth = 9 rafters; each spans the 10 ft width (~10.31 ft along slope)" },
       { qty: "6", item: "2×4×16 purlins",
-        note: "Verify with metal panel mfr — typical spacing 24\" along the slope" },
+        note: "Run the 16 ft length along the slope; spacing per metal panel mfr (typically 24\")" },
       { qty: "9", item: "Simpson H1 hurricane ties",
         note: "One per rafter-to-beam connection" },
     ],
@@ -341,10 +345,10 @@ const MATERIALS = [
     section: "Roofing",
     items: [
       { qty: "≈190 sq ft", item: "26 ga corrugated metal roof panels",
-        note: "16 ft length × 10.31 ft slope length ≈ 165 sq ft + 12\" eave overhang front and back + 10% waste" },
-      { qty: "16 ft", item: "Ridge cap (or closure trim at high side against back wall)",
-        note: "Shed roof has no ridge — use a high-side flashing against the back wall" },
-      { qty: "20 ft", item: "Foam closure strips (high and low edges)",
+        note: "16 ft depth × 10.31 ft slope width ≈ 165 sq ft + 12\" eave overhang + 10% waste" },
+      { qty: "16 ft", item: "High-side flashing / closure trim",
+        note: "Shed roof — no ridge. High side butts the beam; use Z-flashing or closure strip" },
+      { qty: "20 ft", item: "Foam closure strips (low eave + high-side edge)",
         note: "Seals corrugations against pests and wind-driven precip" },
       { qty: "1 box (250)", item: "Roofing screws with EPDM washers",
         note: "Color-match panels; ~1 screw per sq ft is generous" },
@@ -354,7 +358,7 @@ const MATERIALS = [
     section: "Back Wall",
     items: [
       { qty: "≈160 sq ft", item: "T1-11 or LP SmartSide sheathing (4×8 sheets)",
-        note: "10 ft wide × 12 ft rear wall height = 120 sq ft; round up to 5 sheets (160 sq ft)" },
+        note: "10 ft wide rear wall; height varies 8-10.5 ft — plan for ~5-6 sheets" },
       { qty: "1 lb", item: "Galvanized siding nails or screws",
         note: "Per manufacturer schedule" },
     ],
@@ -373,11 +377,6 @@ const MATERIALS = [
 // ─── CANVAS HELPERS ──────────────────────────────────────────────────────────
 
 function ftToIn(ft) { return ft * 12; }
-
-function scaleFor(canvas, maxRealIn, paddingPx = 60) {
-  const usable = canvas.width - paddingPx * 2;
-  return usable / maxRealIn;
-}
 
 function strokeRect(ctx, x, y, w, h, color, lineWidth = 2) {
   ctx.save();
@@ -444,6 +443,7 @@ function drawDimHeight(ctx, x, y1, y2, text) {
 }
 
 // ─── FRONT VIEW ──────────────────────────────────────────────────────────────
+// Looking at the open 10 ft face — pitch visible as left-low, right-high
 
 function drawDefenderFront(ctx, centerX, baseY, s) {
   const w = SHELTER.vehicle.widthIn * s;
@@ -465,15 +465,20 @@ function drawDefenderFront(ctx, centerX, baseY, s) {
 function drawFront(ctx, canvas) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const bayWidthIn = ftToIn(SHELTER.bayWidthFt);
-  const frontHeightIn = ftToIn(SHELTER.frontWallHeightFt);
-  const beamHIn = 8;
-  // Constrain scale by both width and height so nothing clips
+  const lowHIn = ftToIn(SHELTER.lowSideHeightFt);
+  const highHIn = lowHIn + ftToIn(SHELTER.bayWidthFt * SHELTER.roofPitch / 12);
+  const eavePxFactor = SHELTER.eaveOverhangIn;
+
+  // Scale to fit both width and the tall (high) side
   const sW = (canvas.width - 120) / bayWidthIn;
-  const sH = (canvas.height - 100) / (frontHeightIn + beamHIn + 30);
+  const sH = (canvas.height - 100) / (highHIn + 20);
   const s = Math.min(sW, sH);
+
   const padX = (canvas.width - bayWidthIn * s) / 2;
   const baseY = canvas.height - 50;
-  const topY = baseY - frontHeightIn * s;
+  const lowTopY  = baseY - lowHIn * s;
+  const highTopY = baseY - highHIn * s;
+  const eavePx   = eavePxFactor * s;
 
   // Ground line
   ctx.strokeStyle = C.dim;
@@ -483,40 +488,51 @@ function drawFront(ctx, canvas) {
   ctx.lineTo(canvas.width, baseY);
   ctx.stroke();
 
-  // Posts
+  // Low-side (left) post
   const postPx = 6 * s;
   ctx.fillStyle = C.surface;
-  ctx.fillRect(padX, topY, postPx, frontHeightIn * s);
-  strokeRect(ctx, padX, topY, postPx, frontHeightIn * s, C.cyan);
+  ctx.fillRect(padX, lowTopY, postPx, lowHIn * s);
+  strokeRect(ctx, padX, lowTopY, postPx, lowHIn * s, C.cyan);
+  // High-side (right) post
   ctx.fillStyle = C.surface;
-  ctx.fillRect(padX + bayWidthIn * s - postPx, topY, postPx, frontHeightIn * s);
-  strokeRect(ctx, padX + bayWidthIn * s - postPx, topY, postPx, frontHeightIn * s, C.cyan);
+  ctx.fillRect(padX + bayWidthIn * s - postPx, highTopY, postPx, highHIn * s);
+  strokeRect(ctx, padX + bayWidthIn * s - postPx, highTopY, postPx, highHIn * s, C.cyan);
 
-  // Header beam
-  const beamH = beamHIn * s;
+  // Roof slope with fill (low-left to high-right)
+  ctx.save();
   ctx.fillStyle = C.amber;
-  ctx.globalAlpha = 0.18;
-  ctx.fillRect(padX, topY - beamH, bayWidthIn * s, beamH);
-  ctx.globalAlpha = 1;
-  strokeRect(ctx, padX, topY - beamH, bayWidthIn * s, beamH, C.amber, 2);
-  labelText(ctx, "DBL 2×8 PT HEADER", padX + 10, topY - beamH / 2 + 4, C.amber, 10);
-
-  // Eave line
-  const eaveOverhangPx = SHELTER.eaveOverhangIn * s;
-  const roofTopY = topY - beamH - 6;
-  ctx.strokeStyle = C.cyan;
-  ctx.lineWidth = 2;
+  ctx.globalAlpha = 0.08;
   ctx.beginPath();
-  ctx.moveTo(padX - eaveOverhangPx, roofTopY);
-  ctx.lineTo(padX + bayWidthIn * s + eaveOverhangPx, roofTopY);
+  ctx.moveTo(padX - eavePx, lowTopY - 4);
+  ctx.lineTo(padX + bayWidthIn * s + eavePx, highTopY - 4);
+  ctx.lineTo(padX + bayWidthIn * s + eavePx, highTopY - 14);
+  ctx.lineTo(padX - eavePx, lowTopY - 14);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.restore();
+  ctx.strokeStyle = C.amber;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(padX - eavePx, lowTopY - 4);
+  ctx.lineTo(padX + bayWidthIn * s + eavePx, highTopY - 4);
   ctx.stroke();
+
+  // Pitch label on the slope
+  const midX = padX + bayWidthIn * s * 0.55;
+  const midY = lowTopY + (highTopY - lowTopY) * 0.55 - 20;
+  labelText(ctx, `${SHELTER.roofPitch}/12 →`, midX, midY, C.muted, 10);
 
   drawDefenderFront(ctx, padX + (bayWidthIn * s) / 2, baseY, s);
 
+  // Height dims
+  drawDimHeight(ctx, padX - 28, lowTopY, baseY,
+    `LOW ${SHELTER.lowSideHeightFt}'-0"`);
+  const highHFt = SHELTER.lowSideHeightFt + SHELTER.bayWidthFt * SHELTER.roofPitch / 12;
+  drawDimHeight(ctx, padX + bayWidthIn * s + 32, highTopY, baseY,
+    `HIGH ${highHFt.toFixed(1)}'-0"`);
   drawDimWidth(ctx, padX, padX + bayWidthIn * s, baseY + 28,
     `BAY WIDTH ${SHELTER.bayWidthFt}'-0"`);
-  drawDimHeight(ctx, padX - 28, topY, baseY,
-    `FRONT ${SHELTER.frontWallHeightFt}'-0"`);
 
   labelText(ctx, "FRONT VIEW", 16, 24, C.amber, 12);
 }
@@ -524,10 +540,8 @@ function drawFront(ctx, canvas) {
 // ─── TOP VIEW ─────────────────────────────────────────────────────────────────
 
 function drawDefenderTop(ctx, cx, cy, s) {
-  const wIn = SHELTER.vehicle.widthIn;
-  const lIn = SHELTER.vehicle.lengthIn;
-  const w = wIn * s;
-  const l = lIn * s;
+  const w = SHELTER.vehicle.widthIn * s;
+  const l = SHELTER.vehicle.lengthIn * s;
   ctx.save();
   ctx.fillStyle = C.moss;
   ctx.globalAlpha = 0.12;
@@ -569,6 +583,27 @@ function drawTop(ctx, canvas) {
   dashedLine(ctx, padX, padY + bayDepthIn * s, padX + bayWidthIn * s, padY + bayDepthIn * s, C.amber);
   labelText(ctx, "OPEN FRONT", padX + bayWidthIn * s / 2 - 30, padY + bayDepthIn * s + 16, C.amber, 10);
 
+  // Roof pitch direction arrow (left=low, right=high)
+  const arrowY = padY + 20;
+  ctx.save();
+  ctx.strokeStyle = C.amber;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(padX + 4, arrowY);
+  ctx.lineTo(padX + bayWidthIn * s - 4, arrowY);
+  ctx.stroke();
+  // Arrowhead at right (high side)
+  ctx.beginPath();
+  ctx.moveTo(padX + bayWidthIn * s - 4, arrowY);
+  ctx.lineTo(padX + bayWidthIn * s - 12, arrowY - 5);
+  ctx.moveTo(padX + bayWidthIn * s - 4, arrowY);
+  ctx.lineTo(padX + bayWidthIn * s - 12, arrowY + 5);
+  ctx.stroke();
+  ctx.restore();
+  labelText(ctx, "LOW", padX + 4, arrowY - 4, C.muted, 8);
+  labelText(ctx, "HIGH", padX + bayWidthIn * s - 28, arrowY - 4, C.amber, 8);
+  labelText(ctx, "PITCH →", padX + bayWidthIn * s / 2 - 16, arrowY - 4, C.muted, 8);
+
   // Posts: 4 corners + 2 mid-span
   const postPx = 6 * s;
   const postPositions = [
@@ -579,12 +614,14 @@ function drawTop(ctx, canvas) {
     [padX, padY + bayDepthIn * s - postPx],
     [padX + bayWidthIn * s - postPx, padY + bayDepthIn * s - postPx],
   ];
-  postPositions.forEach(([px, py]) => {
-    ctx.fillStyle = C.amber;
+  // Left col = low side (cyan), right col = high side (amber)
+  postPositions.forEach(([px, py], i) => {
+    const isHighSide = (i % 2 === 1);
+    ctx.fillStyle = isHighSide ? C.amber : C.cyan;
     ctx.globalAlpha = 0.35;
     ctx.fillRect(px, py, postPx, postPx);
     ctx.globalAlpha = 1;
-    strokeRect(ctx, px, py, postPx, postPx, C.amber, 1.5);
+    strokeRect(ctx, px, py, postPx, postPx, isHighSide ? C.amber : C.cyan, 1.5);
   });
 
   drawDefenderTop(ctx, padX + bayWidthIn * s / 2, padY + bayDepthIn * s / 2, s);
@@ -598,85 +635,62 @@ function drawTop(ctx, canvas) {
 }
 
 // ─── SIDE VIEW ────────────────────────────────────────────────────────────────
+// Looking at the long (16 ft) face from the low side — roof appears horizontal from this angle
 
 function drawSide(ctx, canvas) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const depthIn = ftToIn(SHELTER.bayDepthFt);
-  const frontHIn = ftToIn(SHELTER.frontWallHeightFt);
-  const riseIn = depthIn * SHELTER.roofPitch / 12;
-  const rearHIn = frontHIn + riseIn;
-  const maxHIn = rearHIn + 24;
+  const depthIn  = ftToIn(SHELTER.bayDepthFt);
+  const lowHIn   = ftToIn(SHELTER.lowSideHeightFt);
+  const highHFt  = SHELTER.lowSideHeightFt + SHELTER.bayWidthFt * SHELTER.roofPitch / 12;
 
   const sX = (canvas.width - 150) / depthIn;
-  const sY = (canvas.height - 100) / maxHIn;
-  const s = Math.min(sX, sY);
+  const sY = (canvas.height - 100) / (lowHIn + 24);
+  const s  = Math.min(sX, sY);
 
-  const padX = 75;
+  const padX  = 75;
   const baseY = canvas.height - 60;
-  // Front (open) on LEFT, rear (enclosed) on RIGHT — conventional side-view orientation
-  const frontX = padX;
-  const rearX = padX + depthIn * s;
-  const frontTopY = baseY - frontHIn * s;
-  const rearTopY = baseY - rearHIn * s;
-  const eavePx = SHELTER.eaveOverhangIn * s;
+  const frontX = padX;                 // open front on LEFT
+  const rearX  = padX + depthIn * s;  // rear wall on RIGHT
+  const wallTopY = baseY - lowHIn * s;
+  const eavePx   = SHELTER.eaveOverhangIn * s;
 
-  // Level cut line (horizontal dashed — all posts cut to this height)
-  ctx.strokeStyle = C.cyan;
-  ctx.lineWidth = 1;
-  ctx.setLineDash([2, 4]);
-  ctx.beginPath();
-  ctx.moveTo(frontX - 20, frontTopY);
-  ctx.lineTo(rearX + 20, frontTopY);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  labelText(ctx, "LEVEL CUT LINE (POST TOPS)", frontX, frontTopY - 6, C.cyan, 9);
-
-  // Front wall (open, dashed) on LEFT
-  dashedLine(ctx, frontX, baseY, frontX, frontTopY, C.cyan);
-  // Rear wall (solid, enclosed) on RIGHT
-  ctx.strokeStyle = C.cyan;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(rearX, baseY);
-  ctx.lineTo(rearX, rearTopY);
-  ctx.stroke();
-
-  // Roof slope: low at front-left, rising to rear-right — fill shows slope clearly
+  // Eave / roof line (horizontal from this angle — pitch runs into the page)
   ctx.save();
   ctx.fillStyle = C.amber;
   ctx.globalAlpha = 0.08;
-  ctx.beginPath();
-  ctx.moveTo(frontX - eavePx, frontTopY - 4);
-  ctx.lineTo(rearX + 12, rearTopY - 4);
-  ctx.lineTo(rearX + 12, rearTopY - 16);
-  ctx.lineTo(frontX - eavePx, frontTopY - 16);
-  ctx.closePath();
-  ctx.fill();
+  ctx.fillRect(frontX - eavePx, wallTopY - 14, rearX - frontX + eavePx * 2, 12);
   ctx.globalAlpha = 1;
   ctx.restore();
   ctx.strokeStyle = C.amber;
   ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.moveTo(frontX - eavePx, frontTopY - 4);
-  ctx.lineTo(rearX + 12, rearTopY - 4);
+  ctx.moveTo(frontX - eavePx, wallTopY - 4);
+  ctx.lineTo(rearX + eavePx, wallTopY - 4);
   ctx.stroke();
 
-  // Pitch triangle annotation
-  const triX = frontX + depthIn * 0.35 * s;
-  const triY = baseY - (frontHIn + depthIn * 0.35 * SHELTER.roofPitch / 12) * s;
-  const triRunPx = 48;
-  const triRisePx = triRunPx * SHELTER.roofPitch / 12;
-  ctx.strokeStyle = C.muted;
+  // Low-side cut line
+  ctx.strokeStyle = C.cyan;
   ctx.lineWidth = 1;
+  ctx.setLineDash([2, 4]);
   ctx.beginPath();
-  ctx.moveTo(triX, triY);
-  ctx.lineTo(triX + triRunPx, triY);
-  ctx.lineTo(triX + triRunPx, triY - triRisePx);
-  ctx.closePath();
+  ctx.moveTo(frontX - 20, wallTopY);
+  ctx.lineTo(rearX + 20, wallTopY);
   ctx.stroke();
-  labelText(ctx, `${SHELTER.roofPitch}/12`, triX + triRunPx + 4, triY - 2, C.muted, 10);
+  ctx.setLineDash([]);
+  labelText(ctx, `LOW SIDE CUT LINE  (HIGH SIDE: ${highHFt.toFixed(1)}'-0" on other face)`,
+    frontX, wallTopY - 18, C.cyan, 9);
 
-  // Uneven grade dashed line (rust)
+  // Front wall (open, dashed)
+  dashedLine(ctx, frontX, baseY, frontX, wallTopY, C.cyan);
+  // Rear wall (solid)
+  ctx.strokeStyle = C.cyan;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(rearX, baseY);
+  ctx.lineTo(rearX, wallTopY);
+  ctx.stroke();
+
+  // Uneven grade dashed line
   ctx.save();
   ctx.strokeStyle = C.rust;
   ctx.lineWidth = 1.5;
@@ -695,29 +709,23 @@ function drawSide(ctx, canvas) {
   ctx.restore();
   labelText(ctx, "UNEVEN GRADE (POSTS CUT TO LEVEL)", frontX, baseY + 36, C.rust, 9);
 
-  // Posts: front, mid, rear
+  // Posts along this (low) side: front, mid, rear
   const postPx = 6 * s;
   [frontX, frontX + depthIn * s / 2 - postPx / 2, rearX - postPx].forEach((px) => {
-    ctx.fillStyle = C.amber;
-    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = C.cyan;
+    ctx.globalAlpha = 0.25;
     const groundOffset = Math.sin((px - frontX) * 0.15) * 6 + 4;
-    ctx.fillRect(px, frontTopY, postPx, baseY - frontTopY + groundOffset);
+    ctx.fillRect(px, wallTopY, postPx, baseY - wallTopY + groundOffset);
     ctx.globalAlpha = 1;
-    strokeRect(ctx, px, frontTopY, postPx, baseY - frontTopY + groundOffset, C.amber, 1.5);
+    strokeRect(ctx, px, wallTopY, postPx, baseY - wallTopY + groundOffset, C.cyan, 1.5);
   });
 
-  // Height callouts: front on left, rear on right
-  drawDimHeight(ctx, frontX - 40, frontTopY, baseY,
-    `FRONT ${SHELTER.frontWallHeightFt}'-0"`);
-  const rearHFt = SHELTER.frontWallHeightFt + SHELTER.bayDepthFt * SHELTER.roofPitch / 12;
-  drawDimHeight(ctx, rearX + 40, rearTopY, baseY,
-    `REAR ${rearHFt.toFixed(0)}'-0"`);
+  drawDimHeight(ctx, frontX - 40, wallTopY, baseY, `${SHELTER.lowSideHeightFt}'-0"`);
+  drawDimWidth(ctx, frontX, rearX, baseY + 28, `${SHELTER.bayDepthFt}'-0" DEPTH`);
 
-  // Side labels
   labelText(ctx, "OPEN FRONT", frontX - eavePx, baseY + 16, C.amber, 9);
   labelText(ctx, "REAR WALL", rearX - 36, baseY + 16, C.cyan, 9);
-
-  labelText(ctx, "SIDE VIEW", 16, 24, C.amber, 12);
+  labelText(ctx, "SIDE VIEW — LOW SIDE", 16, 24, C.amber, 12);
 }
 
 // ─── MATERIALS ────────────────────────────────────────────────────────────────
@@ -750,11 +758,11 @@ function renderMaterials() {
 
 function draw() {
   const front = document.getElementById('canvasFront');
-  const top = document.getElementById('canvasTop');
-  const side = document.getElementById('canvasSide');
+  const top   = document.getElementById('canvasTop');
+  const side  = document.getElementById('canvasSide');
   if (front) drawFront(front.getContext('2d'), front);
-  if (top) drawTop(top.getContext('2d'), top);
-  if (side) drawSide(side.getContext('2d'), side);
+  if (top)   drawTop(top.getContext('2d'), top);
+  if (side)  drawSide(side.getContext('2d'), side);
 }
 
 function resizeAndDraw() {
