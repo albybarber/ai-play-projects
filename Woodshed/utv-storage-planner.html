@@ -446,39 +446,18 @@ function drawDimHeight(ctx, x, y1, y2, text) {
 // ─── FRONT VIEW ──────────────────────────────────────────────────────────────
 
 function drawDefenderFront(ctx, centerX, baseY, s) {
-  const wIn = SHELTER.vehicle.widthIn;
-  const hIn = SHELTER.vehicle.heightIn;
-  const w = wIn * s;
-  const h = hIn * s;
+  const w = SHELTER.vehicle.widthIn * s;
+  const h = SHELTER.vehicle.heightIn * s;
   const x = centerX - w / 2;
   const y = baseY - h;
-
   ctx.save();
   ctx.fillStyle = C.moss;
   ctx.globalAlpha = 0.12;
-  ctx.fillRect(x, y + h * 0.45, w, h * 0.55);
+  ctx.fillRect(x, y, w, h);
   ctx.globalAlpha = 1;
   ctx.strokeStyle = C.moss;
   ctx.lineWidth = 2;
-  ctx.strokeRect(x, y + h * 0.45, w, h * 0.55);
-
-  const cabInsetX = w * 0.08;
-  ctx.strokeRect(x + cabInsetX, y, w - cabInsetX * 2, h * 0.45);
-  ctx.beginPath();
-  ctx.moveTo(x + cabInsetX, y);
-  ctx.lineTo(x + w - cabInsetX, y);
-  ctx.stroke();
-
-  ctx.fillStyle = '#0b1824';
-  const wheelW = w * 0.12;
-  const wheelH = h * 0.12;
-  ctx.beginPath();
-  ctx.ellipse(x + wheelW * 0.8, baseY - wheelH / 2, wheelW / 2, wheelH / 2, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.ellipse(x + w - wheelW * 0.8, baseY - wheelH / 2, wheelW / 2, wheelH / 2, 0, 0, Math.PI * 2);
-  ctx.fill();
-
+  ctx.strokeRect(x, y, w, h);
   ctx.restore();
   labelText(ctx, "DEFENDER MAX HD11", x, y - 8, C.moss, 9);
 }
@@ -487,9 +466,13 @@ function drawFront(ctx, canvas) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const bayWidthIn = ftToIn(SHELTER.bayWidthFt);
   const frontHeightIn = ftToIn(SHELTER.frontWallHeightFt);
-  const s = scaleFor(canvas, bayWidthIn);
+  const beamHIn = 8;
+  // Constrain scale by both width and height so nothing clips
+  const sW = (canvas.width - 120) / bayWidthIn;
+  const sH = (canvas.height - 100) / (frontHeightIn + beamHIn + 30);
+  const s = Math.min(sW, sH);
   const padX = (canvas.width - bayWidthIn * s) / 2;
-  const baseY = canvas.height - 60;
+  const baseY = canvas.height - 50;
   const topY = baseY - frontHeightIn * s;
 
   // Ground line
@@ -510,7 +493,7 @@ function drawFront(ctx, canvas) {
   strokeRect(ctx, padX + bayWidthIn * s - postPx, topY, postPx, frontHeightIn * s, C.cyan);
 
   // Header beam
-  const beamH = 8 * s;
+  const beamH = beamHIn * s;
   ctx.fillStyle = C.amber;
   ctx.globalAlpha = 0.18;
   ctx.fillRect(padX, topY - beamH, bayWidthIn * s, beamH);
@@ -624,31 +607,33 @@ function drawSide(ctx, canvas) {
   const rearHIn = frontHIn + riseIn;
   const maxHIn = rearHIn + 24;
 
-  const sX = (canvas.width - 120) / depthIn;
+  const sX = (canvas.width - 150) / depthIn;
   const sY = (canvas.height - 100) / maxHIn;
   const s = Math.min(sX, sY);
 
-  const padX = 60;
+  const padX = 75;
   const baseY = canvas.height - 60;
-  const frontX = padX + depthIn * s;
-  const rearX = padX;
+  // Front (open) on LEFT, rear (enclosed) on RIGHT — conventional side-view orientation
+  const frontX = padX;
+  const rearX = padX + depthIn * s;
   const frontTopY = baseY - frontHIn * s;
   const rearTopY = baseY - rearHIn * s;
+  const eavePx = SHELTER.eaveOverhangIn * s;
 
-  // Level cut line (dashed)
+  // Level cut line (horizontal dashed — all posts cut to this height)
   ctx.strokeStyle = C.cyan;
   ctx.lineWidth = 1;
   ctx.setLineDash([2, 4]);
   ctx.beginPath();
-  ctx.moveTo(rearX - 20, frontTopY);
-  ctx.lineTo(frontX + 20, frontTopY);
+  ctx.moveTo(frontX - 20, frontTopY);
+  ctx.lineTo(rearX + 20, frontTopY);
   ctx.stroke();
   ctx.setLineDash([]);
-  labelText(ctx, "LEVEL CUT LINE (POST TOPS)", rearX, frontTopY - 6, C.cyan, 9);
+  labelText(ctx, "LEVEL CUT LINE (POST TOPS)", frontX, frontTopY - 6, C.cyan, 9);
 
-  // Front wall (open, dashed)
+  // Front wall (open, dashed) on LEFT
   dashedLine(ctx, frontX, baseY, frontX, frontTopY, C.cyan);
-  // Rear wall (solid)
+  // Rear wall (solid, enclosed) on RIGHT
   ctx.strokeStyle = C.cyan;
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -656,18 +641,30 @@ function drawSide(ctx, canvas) {
   ctx.lineTo(rearX, rearTopY);
   ctx.stroke();
 
-  // Roof slope
-  ctx.strokeStyle = C.amber;
-  ctx.lineWidth = 2;
+  // Roof slope: low at front-left, rising to rear-right — fill shows slope clearly
+  ctx.save();
+  ctx.fillStyle = C.amber;
+  ctx.globalAlpha = 0.08;
   ctx.beginPath();
-  ctx.moveTo(frontX + 12, frontTopY - 4);
-  ctx.lineTo(rearX - 12, rearTopY - 4);
+  ctx.moveTo(frontX - eavePx, frontTopY - 4);
+  ctx.lineTo(rearX + 12, rearTopY - 4);
+  ctx.lineTo(rearX + 12, rearTopY - 16);
+  ctx.lineTo(frontX - eavePx, frontTopY - 16);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.restore();
+  ctx.strokeStyle = C.amber;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(frontX - eavePx, frontTopY - 4);
+  ctx.lineTo(rearX + 12, rearTopY - 4);
   ctx.stroke();
 
   // Pitch triangle annotation
-  const triX = rearX + depthIn * 0.3 * s;
-  const triY = baseY - (frontHIn + (depthIn * 0.3) * SHELTER.roofPitch / 12) * s;
-  const triRunPx = 40;
+  const triX = frontX + depthIn * 0.35 * s;
+  const triY = baseY - (frontHIn + depthIn * 0.35 * SHELTER.roofPitch / 12) * s;
+  const triRunPx = 48;
   const triRisePx = triRunPx * SHELTER.roofPitch / 12;
   ctx.strokeStyle = C.muted;
   ctx.lineWidth = 1;
@@ -679,41 +676,46 @@ function drawSide(ctx, canvas) {
   ctx.stroke();
   labelText(ctx, `${SHELTER.roofPitch}/12`, triX + triRunPx + 4, triY - 2, C.muted, 10);
 
-  // Uneven grade dashed line
+  // Uneven grade dashed line (rust)
   ctx.save();
   ctx.strokeStyle = C.rust;
   ctx.lineWidth = 1.5;
   ctx.setLineDash([4, 4]);
   ctx.beginPath();
   const segments = 14;
-  const xStep = (frontX - rearX + 60) / segments;
-  ctx.moveTo(rearX - 30, baseY + 4);
+  const xStep = (rearX - frontX + 60) / segments;
+  ctx.moveTo(frontX - 30, baseY + 4);
   for (let i = 1; i <= segments; i++) {
-    const x = rearX - 30 + i * xStep;
+    const x = frontX - 30 + i * xStep;
     const wobble = Math.sin(i * 1.3) * 8 + Math.cos(i * 0.7) * 5;
     ctx.lineTo(x, baseY + 4 + wobble);
   }
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.restore();
-  labelText(ctx, "UNEVEN GRADE (POSTS CUT TO LEVEL)", rearX, baseY + 36, C.rust, 9);
+  labelText(ctx, "UNEVEN GRADE (POSTS CUT TO LEVEL)", frontX, baseY + 36, C.rust, 9);
 
-  // Posts (3 visible from this side)
+  // Posts: front, mid, rear
   const postPx = 6 * s;
-  [rearX, rearX + depthIn * s / 2 - postPx / 2, frontX - postPx].forEach((px) => {
+  [frontX, frontX + depthIn * s / 2 - postPx / 2, rearX - postPx].forEach((px) => {
     ctx.fillStyle = C.amber;
     ctx.globalAlpha = 0.3;
-    const groundOffset = Math.sin((px - rearX) * 0.15) * 6 + 4;
+    const groundOffset = Math.sin((px - frontX) * 0.15) * 6 + 4;
     ctx.fillRect(px, frontTopY, postPx, baseY - frontTopY + groundOffset);
     ctx.globalAlpha = 1;
     strokeRect(ctx, px, frontTopY, postPx, baseY - frontTopY + groundOffset, C.amber, 1.5);
   });
 
-  drawDimHeight(ctx, frontX + 36, frontTopY, baseY,
+  // Height callouts: front on left, rear on right
+  drawDimHeight(ctx, frontX - 40, frontTopY, baseY,
     `FRONT ${SHELTER.frontWallHeightFt}'-0"`);
   const rearHFt = SHELTER.frontWallHeightFt + SHELTER.bayDepthFt * SHELTER.roofPitch / 12;
-  drawDimHeight(ctx, rearX - 36, rearTopY, baseY,
+  drawDimHeight(ctx, rearX + 40, rearTopY, baseY,
     `REAR ${rearHFt.toFixed(0)}'-0"`);
+
+  // Side labels
+  labelText(ctx, "OPEN FRONT", frontX - eavePx, baseY + 16, C.amber, 9);
+  labelText(ctx, "REAR WALL", rearX - 36, baseY + 16, C.cyan, 9);
 
   labelText(ctx, "SIDE VIEW", 16, 24, C.amber, 12);
 }
