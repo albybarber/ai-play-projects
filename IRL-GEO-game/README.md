@@ -1,55 +1,56 @@
-# IRL GeoGuessr — Toronto Office Offsite 2026
+# 🍁 Real Life Canadian GeoGuessr
 
-A real-life GeoGuessr scoring and reveal app built for an office offsite event. Teams explore Toronto locations, photograph where they think each numbered image was taken, and score points for correct guesses. The organiser runs the reveal live at the end of the day.
+**Event window:** 3:00 PM – 6:00 PM &nbsp;|&nbsp; **Start:** office, 302 Bay St &nbsp;|&nbsp; **Prize ceremony:** bar, 6:00 PM sharp
 
-## How it works
+---
 
-**Before the event**
+## The Rules
 
-1. Run `add_labels.py` to add numbered badges to the 12 location photos (output goes in `photos/labeled/`). Print and distribute those to players — they need to identify where each numbered photo was taken.
-2. Drop the labeled prints at 12 locations around the city.
+You'll get a packet of 12 photos of famous Toronto-area spots — no names, no addresses, just the image and a location number. Figure out where each photo was taken, get your whole team there, and take a photo recreating the shot in the same spot.
 
-**During the event**
+Different spots are worth different points based on distance from the office — close ones are quick and safe, far ones are high-risk, high-reward.
 
-Teams photograph each location they visit and name their photo by the location number (e.g. `7.jpeg`). Place each team's photos in their folder:
+---
 
-```
-photos/
-  1/   ← Team 1 photos
-  2/   ← Team 2 photos
-  3/   ← Team 3 photos
-```
+## Teams
 
-**At the reveal (6PM)**
+Three teams: **Team Puce**, **Team Salmon**, and **Team Teal**. Each has a captain and a crew of hunters. Pick a team name and update it in the app before the clock starts.
 
-Open `leaderboard.html` via a local server:
-
-```bash
-python3 -m http.server 8080
-# → http://localhost:8080/leaderboard.html
-```
-
-1. Click the team name chips to set custom team names.
-2. Fill in scores: check **Matched** for each location a team got right, and **Bonus** if the whole team got it.
-3. Hit **Start Reveal** for the full dramatic reveal sequence — each location card shows on a live map background with reference photo and team submission photos, then transitions to the winner announcement with confetti.
+---
 
 ## Scoring
 
-| Distance from office | Points |
-|---|---|
-| < 1 km | 5 |
-| 1–2 km | 10 |
-| 2–5 km | 20 |
-| 5–10 km | 35 |
-| 10–20 km | 55 |
-| 130 km (Niagara) | 100 |
+You earn points for every location you successfully recreate. No penalty for a wrong guess — only lost time — so choose wisely.
 
-**+5 bonus** if all three teams correctly identified the same location.
+| Location # | Points if matched |
+|:---:|:---:|
+| 1 | 5 |
+| 2 | 20 |
+| 3 | 5 |
+| 4 | 55 |
+| 5 | 10 |
+| 6 | 100 |
+| 7 | 5 |
+| 8 | 35 |
+| 9 | 10 |
+| 10 | 20 |
+| 11 | 10 |
+| 12 | 5 |
+
+**Bonus (+5 pts):** entire team (not just 1–2 people) visible in the recreation photo.
+
+### Tie-Breakers
+
+1. Highest total points
+2. Most locations correctly matched
+3. Earliest final submission timestamp
+
+---
 
 ## Locations
 
-| # | Place | Distance |
-|---|---|---|
+| # | Place | Distance from office |
+|:---:|---|:---:|
 | 1 | CN Tower | 0.9 km |
 | 2 | Casa Loma | 3.9 km |
 | 3 | St. Lawrence Market | 0.7 km |
@@ -63,20 +64,86 @@ python3 -m http.server 8080
 | 11 | Distillery District | 1.7 km |
 | 12 | Raccoon Artwork | 0.9 km |
 
-## Files
+---
+
+## How to Submit Photos
+
+- Post to the offsite Slack channel: **#toronto-offsite-2026**
+- Caption format: `[place number] + [team name]` — nothing else, no location names!
+- **Hard cutoff: 6:00 PM.** Anything submitted after does not count.
+- The leaderboard stays hidden during the event — big reveal happens live at the bar.
+
+---
+
+## Timeline
+
+| Time | Event |
+|---|---|
+| 2:45 PM | Gather at the office — team names locked in |
+| 3:00 PM | Photo packet released — clock starts |
+| 6:00 PM | Hard submission cutoff — everyone at the bar |
+| 6:00 PM | Leaderboard reveal + prizes 🏆 |
+
+---
+
+## Fair Play & Safety
+
+- No sharing guesses or hints with other teams.
+- No hired photographers, stock photos, or drone shots.
+- Stay together as a team — no splitting up solo to cover more ground.
+- Use whatever transport you like (walk, transit, rideshare, car) — obey traffic laws, don't rush for points.
+- If a location is closed, under construction, or feels unsafe, skip it. No location is worth an injury.
+- If the photo is in a road, stand on the pavement nearby — close enough counts.
+
+---
+
+## Prizes
+
+🏆 **Grand prize:** team trophy + individual prizes
+
+---
+
+## Running the Reveal App
+
+The organiser runs `leaderboard.html` live at the bar for the 6PM reveal.
+
+**Start a local server** (required — photos won't load from `file://`):
+
+```bash
+cd IRL-GEO-game
+python3 -m http.server 8080
+# Open: http://localhost:8080/leaderboard.html
+```
+
+**Before the reveal:**
+1. Click the team name chips to set the custom team names.
+2. Fill in the score grid: check **Matched** for each location a team got right, and **Bonus** if the whole team is visible.
+
+**At 6PM:** hit **Start Reveal** for the full dramatic sequence — each location card appears over a live map showing exactly where it was, with the reference photo and each team's submission photo, then transitions to the winner announcement with confetti.
+
+**Adding team submission photos:**
+
+Place each team's photos in their folder, named by location number:
 
 ```
-IRL-GEO-game/
-  leaderboard.html   — self-contained scoring & reveal app
-  add_labels.py      — adds number badges to location photos
-  photos/
-    1.jpeg–12.jpeg   — reference location photos (unlabeled)
-    1/               — Team 1 submission photos (named by location #)
-    2/               — Team 2 submission photos
-    3/               — Team 3 submission photos
+photos/
+  1/   ← Team 1 (e.g. 7.jpeg for location 7)
+  2/   ← Team 2
+  3/   ← Team 3
 ```
 
-## Requirements
+---
 
-- Python 3 + Pillow (for `add_labels.py`)
-- Any modern browser served via local HTTP (not `file://`) — team submission photos load from the local filesystem
+## Labeling the Photo Packets
+
+To add number badges to the 12 reference photos for printing:
+
+```bash
+pip install pillow
+python3 add_labels.py
+# Output: photos/labeled/1.jpeg … 12.jpeg
+```
+
+---
+
+Good luck — and remember… have fun! 🍁
