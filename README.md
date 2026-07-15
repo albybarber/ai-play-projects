@@ -9,4 +9,5 @@ A collection of small utility scripts and experiments.
 - [beaskittengames](https://albybarber.github.io/ai-play-projects/beaskittengames/) — Bea's Kittens: 3 browser games (Memory Match, Kitten Catcher, Sliding Puzzle) featuring personal cat photos
 - [make-a-thing](https://albybarber.github.io/ai-play-projects/make-a-thing/) — LEGO building & guessing companion app: category dice, word selection, scoring & turn management for 2-8 players
 - [Woodshed](https://albybarber.github.io/ai-play-projects/Woodshed/utv-storage-planner.html) — Interactive browser tool for designing a 3-bay outdoor storage shelter (UTV, log splitter, firewood)
+- [IRL-GEO-game](./IRL-GEO-game) — Real-life GeoGuessr scoring & reveal app for a Toronto office offsite: score 3 teams across 12 locations and run a live map-backed reveal sequence
 

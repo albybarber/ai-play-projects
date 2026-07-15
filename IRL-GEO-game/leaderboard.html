@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍁 Real Life Canadian GeoGuessr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --red:     #C8102E;
+  --gold:    #E8A020;
+  --gold-hi: #FFD566;
+  --bg:      #0C0C0C;
+  --bg2:     #111;
+  --surf:    #161616;
+  --surf2:   #1c1c1c;
+  --bdr:     #242424;
+  --bdr2:    #2e2e2e;
+  --text:    #F0E8D6;
+  --text2:   #9A9080;
+  --muted:   #4A443C;
+  --puce:    #CC6E90;
+  --salmon:  #FF6060;
+  --teal:    #17C9B0;
+}
+
+/* ── BASE ─────────────────────────────────────────────── */
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* grain overlay */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 9997; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px;
+  opacity: .032;
+}
+
+.bb { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
+.mm { font-family: 'DM Mono', monospace; }
+
+/* ── HEADER ───────────────────────────────────────────── */
+header {
+  background: var(--red);
+  position: relative; overflow: hidden;
+}
+
+/* diagonal stripe texture */
+header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    -52deg, transparent, transparent 14px,
+    rgba(0,0,0,.12) 14px, rgba(0,0,0,.12) 28px
+  );
+  pointer-events: none;
+}
+
+.hdr-inner {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 18px;
+  padding: 18px 28px;
+}
+
+.hdr-flag { font-size: 44px; line-height: 1; flex-shrink: 0; }
+
+.hdr-text h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(20px, 3.8vw, 38px);
+  letter-spacing: 4px; line-height: 1;
+  color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.hdr-text p {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; letter-spacing: 1.5px;
+  color: rgba(255,255,255,.55); margin-top: 5px;
+  text-transform: uppercase;
+}
+
+.hdr-rule {
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold-hi) 0%, var(--gold) 40%, transparent 100%);
+}
+
+/* ── BUTTONS ──────────────────────────────────────────── */
+.btn {
+  font-family: 'Bebas Neue', sans-serif;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 22px; border: none; border-radius: 3px;
+  font-size: 17px; letter-spacing: 2px; cursor: pointer;
+  transition: filter .15s, transform .12s;
+}
+.btn:hover  { filter: brightness(1.12); transform: translateY(-1px); }
+.btn:active { filter: brightness(.9);  transform: translateY(0); }
+.btn-red   { background: var(--red);  color: #fff; }
+.btn-gold  { background: var(--gold); color: #0C0C0C; }
+.btn-ghost {
+  background: transparent; color: var(--text2);
+  border: 1px solid var(--bdr2); font-size: 14px;
+}
+.btn-ghost:hover { border-color: var(--text2); color: var(--text); }
+.btn-block { width: 100%; }
+
+/* ── SCREENS ──────────────────────────────────────────── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── SCORE SCREEN ─────────────────────────────────────── */
+#scores { padding: 24px 24px 80px; max-width: 980px; margin: 0 auto; }
+#scores.active { display: block; }
+
+.action-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 22px; flex-wrap: wrap; gap: 10px;
+}
+.action-bar-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px; letter-spacing: 4px; color: var(--text2);
+}
+
+/* ── LIVE TOTALS ──────────────────────────────────────── */
+.totals-strip {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 6px; margin-bottom: 24px;
+}
+
+.tsb {
+  background: var(--surf);
+  border: 1px solid var(--bdr);
+  border-radius: 4px;
+  padding: 18px 14px 14px;
+  text-align: center; position: relative; overflow: hidden;
+}
+.tsb::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.tsb[data-t="0"]::before { background: var(--puce);   }
+.tsb[data-t="1"]::before { background: var(--salmon); }
+.tsb[data-t="2"]::before { background: var(--teal);   }
+
+.tsb-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px; letter-spacing: 2px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  color: var(--text2); margin-bottom: 6px;
+}
+.tsb-score {
+  font-family: 'DM Mono', monospace;
+  font-size: 44px; font-weight: 500; line-height: 1;
+  letter-spacing: -2px;
+}
+.tsb-locs {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;
+}
+
+/* ── SCORE GRID ───────────────────────────────────────── */
+.sg-wrap { border: 1px solid var(--bdr); border-radius: 5px; overflow: hidden; }
+
+.sg-head, .sg-row {
+  display: grid;
+  grid-template-columns: 52px 68px repeat(3,1fr);
+  gap: 1px; background: var(--bdr);
+}
+.sg-head { border-bottom: 2px solid var(--bdr2); }
+.sg-head > div {
+  background: var(--surf);
+  padding: 9px 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--muted);
+  display: flex; align-items: center; gap: 5px;
+}
+
+.sg-rows { display: flex; flex-direction: column; gap: 1px; background: var(--bdr); }
+
+.sg-c {
+  background: var(--bg2);
+  padding: 10px 12px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+}
+.sg-c.team { flex-direction: column; align-items: flex-start; gap: 5px; justify-content: center; }
+.sg-c.team.hit {
+  background: color-mix(in srgb, var(--tc) 9%, var(--bg2));
+}
+
+.loc-n {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px; letter-spacing: 1px; color: var(--text2);
+}
+.pts-v {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px; color: var(--gold); white-space: nowrap;
+}
+
+.ck {
+  display: flex; align-items: center; gap: 5px; cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--muted); user-select: none; font-weight: 500;
+}
+.ck input { accent-color: var(--red); cursor: pointer; width: 13px; height: 13px; }
+.ck.on  { color: var(--text); }
+.ck.dim { opacity: .25; pointer-events: none; }
+
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+
+/* ── CTA ──────────────────────────────────────────────── */
+.cta-wrap {
+  margin-top: 36px;
+  background: var(--surf); border: 1px solid var(--bdr2); border-radius: 5px;
+  padding: 28px; text-align: center;
+}
+.cta-wrap p {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: var(--muted);
+  letter-spacing: 1px; text-transform: uppercase; margin-top: 10px;
+}
+
+/* ── MODAL ────────────────────────────────────────────── */
+.modal-bd {
+  position: fixed; inset: 0; background: rgba(0,0,0,.82);
+  z-index: 500; display: none; align-items: center; justify-content: center;
+  padding: 20px; backdrop-filter: blur(10px);
+}
+.modal-bd.open { display: flex; }
+
+.modal {
+  background: var(--surf); border: 1px solid var(--bdr2);
+  border-radius: 6px; padding: 32px 28px;
+  width: 100%; max-width: 390px;
+  animation: mIn .2s ease;
+}
+@keyframes mIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+.modal-ttl {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px; letter-spacing: 2px; margin-bottom: 3px;
+}
+.modal-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: var(--muted); letter-spacing: .5px; margin-bottom: 24px;
+}
+
+.tf { margin-bottom: 16px; }
+.tf label {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--muted); margin-bottom: 6px;
+}
+.tf input {
+  width: 100%; background: var(--bg2);
+  border: 1px solid var(--bdr2); border-radius: 3px;
+  padding: 11px 13px; color: var(--text);
+  font-size: 17px; font-weight: 600; outline: none;
+  transition: border-color .2s;
+}
+.tf input:focus { border-color: var(--red); }
+
+.modal-acts { display: flex; gap: 8px; margin-top: 22px; }
+
+/* ── REVEAL ───────────────────────────────────────────── */
+#reveal {
+  position: fixed; inset: 0; background: #000;
+  z-index: 1000; display: none; flex-direction: column;
+}
+#reveal.open { display: flex; }
+
+.rp { display: none; flex-direction: column; flex: 1; overflow: hidden; position: relative; }
+.rp.on { display: flex; }
+
+.rnav {
+  padding: 14px 22px;
+  display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+  border-top: 1px solid rgba(255,255,255,.08);
+  background: rgba(0,0,0,.88); backdrop-filter: blur(14px);
+  flex-shrink: 0; position: relative; z-index: 2;
+  width: 100%;
+}
+
+/* ─ Splash ─ */
+#rA {
+  align-items: center; justify-content: center; text-align: center;
+  padding: 40px; gap: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 65%, #200008 0%, #000 75%);
+}
+
+.sp-eye {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; letter-spacing: 5px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 28px;
+}
+
+.sp-main {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(60px, 14vw, 150px);
+  letter-spacing: 3px; line-height: .92; color: var(--text);
+}
+.sp-main .r { color: var(--red); }
+.sp-main .g { color: var(--gold); }
+
+.sp-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; color: var(--muted); letter-spacing: 3px;
+  text-transform: uppercase; margin-top: 36px;
+}
+
+/* scan-line */
+#rA::after {
+  content: ''; position: absolute; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,16,46,.5), transparent);
+  animation: scan 5s linear infinite; pointer-events: none;
+}
+@keyframes scan { from{top:0%} to{top:100%} }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+.pulse { animation: pulse 2s infinite ease-in-out; }
+
+/* ─ Locations ─ */
+#rB {
+  align-items: center; justify-content: flex-end;
+  padding: 0; gap: 0; background: #000;
+  overflow: hidden; position: relative;
+}
+
+/* Full-background map */
+#locMapEl {
+  position: absolute; inset: 0; z-index: 0;
+  pointer-events: none; /* allow card interactions through */
+}
+#locMapEl.interactive { pointer-events: auto; }
+
+/* Dark gradient fade at bottom so cards read clearly */
+#rB::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(to bottom,
+    rgba(0,0,0,.18) 0%,
+    rgba(0,0,0,.35) 50%,
+    rgba(0,0,0,.78) 72%,
+    rgba(0,0,0,.96) 100%);
+}
+
+/* Progress badge */
+.lc-prog {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  z-index: 3; white-space: nowrap;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+  color: rgba(240,232,214,.85);
+  background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+  padding: 5px 14px; border-radius: 20px;
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.lc-card {
+  width: 100%; max-width: 720px;
+  background: rgba(10,10,10,.72);
+  backdrop-filter: blur(12px) saturate(1.2);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 5px 5px 0 0; overflow: hidden; flex-shrink: 0;
+  position: relative; z-index: 2;
+  margin: 0 0 0 0;
+}
+@keyframes cIn {
+  from { opacity:0; transform: translateY(22px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.lc-card.anim { animation: cIn .42s cubic-bezier(.16,1,.3,1); }
+
+/* Reference photo header */
+.lc-ref {
+  width: 100%; overflow: hidden;
+  background: rgba(0,0,0,.3); position: relative;
+}
+.lc-ref img { width: 100%; height: auto; object-fit: contain; display: block; cursor: zoom-in; max-height: 38vh; object-fit: cover; }
+.tsub-photo img { cursor: zoom-in; }
+
+/* Lightbox */
+#lb { display:none; position:fixed; inset:0; z-index:9999;
+  background: rgba(0,0,0,.92); align-items:center; justify-content:center; }
+#lb.open { display:flex; }
+#lb img { max-width:92vw; max-height:92vh; object-fit:contain;
+  border-radius:4px; box-shadow:0 0 80px rgba(0,0,0,.8); }
+#lb-close { position:fixed; top:18px; right:22px; font-size:32px; color:#fff;
+  cursor:pointer; line-height:1; opacity:.7; transition:opacity .2s; z-index:10000; }
+#lb-close:hover { opacity:1; }
+
+/* Info section */
+.lc-body {
+  padding: 16px 24px 18px; text-align: center; position: relative;
+}
+.lc-body::before {
+  content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+  background: var(--red);
+}
+.lc-body::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, var(--red), transparent 50%);
+}
+
+.lc-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--red); margin-bottom: 6px;
+}
+.lc-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(28px, 5vw, 60px);
+  letter-spacing: 3px; line-height: .95; color: var(--text);
+  margin-bottom: 5px;
+}
+.lc-addr {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; color: var(--muted); margin-bottom: 10px;
+}
+.lc-tags { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.tag {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  background: var(--surf2); border: 1px solid var(--bdr);
+  border-radius: 2px; padding: 4px 11px; color: var(--text2);
+}
+.tag.g { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 28%, transparent); }
+
+/* Team submission photos */
+.team-subs {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 6px; width: 100%; max-width: 720px;
+  flex-shrink: 0; padding-bottom: 0;
+  position: relative; z-index: 2;
+}
+.tsub {
+  background: rgba(10,10,10,.72); border: 1px solid rgba(255,255,255,.1);
+  backdrop-filter: blur(10px);
+  border-radius: 0; overflow: hidden;
+}
+.tsub.hit { border-color: var(--tc); }
+
+.tsub-photo {
+  width: 100%; aspect-ratio: 4/3;
+  background: var(--surf); position: relative; overflow: hidden;
+}
+.tsub-photo img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: 0; transition: opacity .3s;
+}
+.tsub-photo img.loaded { opacity: 1; }
+.tsub-no-photo {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px;
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  color: var(--muted); letter-spacing: 1px; text-transform: uppercase;
+}
+.tsub-no-photo span { font-size: 16px; opacity: .25; }
+
+.tsub-info {
+  padding: 6px 9px;
+  display: flex; align-items: center; justify-content: space-between; gap: 4px;
+}
+.tsub-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px; letter-spacing: 1.5px; color: var(--text2);
+}
+.tsub.hit .tsub-name { color: var(--tc); }
+.tsub-pts { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--gold); }
+.tsub-miss { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+
+
+.leaflet-container { background: #0C0C0C !important; }
+
+/* ─ Winner ─ */
+#rD {
+  align-items: center; justify-content: center;
+  padding: 40px 20px; text-align: center; gap: 10px;
+  background: radial-gradient(ellipse 70% 50% at 50% 50%, #140e00 0%, #000 70%);
+}
+
+.w-trophy { font-size: clamp(72px, 14vw, 120px); line-height: 1; }
+@keyframes wFloat {
+  0%,100%{ transform: translateY(0) rotate(-3deg) scale(1); }
+  50%    { transform: translateY(-14px) rotate(3deg) scale(1.06); }
+}
+.w-trophy { animation: wFloat 2.4s ease-in-out infinite; }
+
+.w-eye {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: var(--muted);
+}
+
+.drum {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(26px, 6vw, 54px); letter-spacing: 8px; color: var(--muted);
+}
+@keyframes dPulse { 0%,100%{color:var(--muted);letter-spacing:8px} 50%{color:var(--red);letter-spacing:10px} }
+.drum.go { animation: dPulse .5s ease-in-out infinite; }
+.drum.off { display: none; }
+
+.w-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(54px, 14vw, 148px);
+  letter-spacing: 4px; line-height: .9;
+  background: linear-gradient(135deg, var(--gold-hi) 0%, var(--gold) 35%, #c07800 65%, var(--gold) 100%);
+  background-size: 300% 100%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+@keyframes gShimmer { from{background-position:0%} to{background-position:300%} }
+.w-name.go { animation: gShimmer 1.8s linear infinite; }
+.w-name.off { opacity:0; transform:scale(.88); transition: opacity .5s, transform .5s; }
+.w-name.on  { opacity:1; transform:scale(1); }
+
+.w-score {
+  font-family: 'DM Mono', monospace;
+  font-size: 15px; color: var(--muted); letter-spacing: 2px;
+}
+.w-score.off { opacity:0; transition: opacity .5s .25s; }
+.w-score.on  { opacity:1; }
+
+.w-flags { font-size: 22px; letter-spacing: 6px; opacity:0; transition: opacity .5s .5s; }
+.w-flags.on { opacity:1; }
+
+/* confetti */
+#confetti { position:fixed; inset:0; pointer-events:none; z-index:9999; }
+
+/* ── RESPONSIVE ───────────────────────────────────────── */
+@media (max-width:600px) {
+  .sg-head, .sg-row { grid-template-columns: 38px 54px repeat(3,1fr); }
+  #scores { padding: 16px 10px 60px; }
+  .lc-body { padding: 14px 16px 16px; }
+  .tsb-score { font-size: 34px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+
+<!-- HEADER ───────────────────────────────────────────── -->
+<header>
+  <div class="hdr-inner">
+    <div class="hdr-flag">🍁</div>
+    <div class="hdr-text">
+      <h1>Real Life Canadian GeoGuessr</h1>
+      <p>Toronto Office Offsite 2026 &nbsp;·&nbsp; 302 Bay St → The Bar &nbsp;·&nbsp; 3 PM – 6 PM</p>
+    </div>
+  </div>
+</header>
+<div class="hdr-rule"></div>
+
+<!-- SCORE ENTRY ──────────────────────────────────────── -->
+<div id="scores" class="screen active">
+
+  <div class="action-bar">
+    <div class="action-bar-title">Score Entry</div>
+    <button class="btn btn-ghost" onclick="openModal()">✏ Edit Teams</button>
+  </div>
+
+  <!-- Live totals -->
+  <div class="totals-strip" id="totalsBar"></div>
+
+  <!-- Grid -->
+  <div class="sg-wrap">
+    <div class="sg-head">
+      <div>#</div><div>Pts</div>
+      <div id="h0"></div><div id="h1"></div><div id="h2"></div>
+    </div>
+    <div class="sg-rows" id="sgRows"></div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-wrap">
+    <button class="btn btn-gold" style="font-size:20px;padding:14px 52px;letter-spacing:3px" onclick="openReveal()">
+      🎉 Start Reveal
+    </button>
+    <p>All scores must be entered before proceeding</p>
+  </div>
+
+</div>
+
+<!-- MODAL ────────────────────────────────────────────── -->
+<div class="modal-bd" id="teamModal" onclick="bdClick(event)">
+  <div class="modal">
+    <div class="modal-ttl">Edit Teams</div>
+    <div class="modal-sub">Names update instantly everywhere</div>
+
+    <div class="tf">
+      <label><span class="dot" style="background:var(--puce)"></span>Puce Team</label>
+      <input id="mP" type="text" maxlength="32" placeholder="Team name…">
+    </div>
+    <div class="tf">
+      <label><span class="dot" style="background:var(--salmon)"></span>Salmon Team</label>
+      <input id="mS" type="text" maxlength="32" placeholder="Team name…">
+    </div>
+    <div class="tf">
+      <label><span class="dot" style="background:var(--teal)"></span>Teal Team</label>
+      <input id="mT" type="text" maxlength="32" placeholder="Team name…">
+    </div>
+
+    <div class="modal-acts">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-red"   style="flex:2;font-size:18px" onclick="saveNames()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- REVEAL ───────────────────────────────────────────── -->
+<div id="reveal">
+
+  <!-- A: Splash -->
+  <div id="rA" class="rp on">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;gap:0">
+      <div class="sp-eye">Toronto Office Offsite 2026</div>
+      <div class="sp-main pulse">
+        The<br><span class="r">Moment</span><br><span class="g">Is Now</span>
+      </div>
+      <div class="sp-sub">🇨🇦 &nbsp; The answers are about to be revealed &nbsp; 🇨🇦</div>
+    </div>
+    <div class="rnav">
+      <button class="btn btn-ghost" onclick="closeReveal()">← Back</button>
+      <button class="btn btn-gold" style="font-size:19px;padding:13px 44px" onclick="startLocs()">Let's Go →</button>
+    </div>
+  </div>
+
+  <!-- B: Locations -->
+  <div id="rB" class="rp">
+    <div id="locMapEl"></div>
+    <div class="lc-prog" id="lcProg">Location 1 of 12</div>
+    <div style="flex:1"></div>
+    <div class="lc-card" id="lcCard"></div>
+    <div class="team-subs" id="lcSubs"></div>
+    <div class="rnav">
+      <button class="btn btn-ghost" id="prevBtn">← Back</button>
+      <button class="btn btn-red" id="nxtBtn" style="font-size:17px;padding:11px 36px">Next →</button>
+    </div>
+  </div>
+
+  <!-- D: Winner -->
+  <div id="rD" class="rp">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 20px;gap:10px;text-align:center">
+      <div class="w-trophy">🏆</div>
+      <div class="w-eye">🇨🇦 &nbsp; And the winner is… &nbsp; 🇨🇦</div>
+      <div class="drum off" id="wDrum">🥁 &nbsp; 🥁 &nbsp; 🥁</div>
+      <div class="w-name off" id="wName"></div>
+      <div class="w-score off" id="wScore"></div>
+      <div class="w-flags" id="wFlags">🇨🇦 🍁 🇨🇦</div>
+    </div>
+    <div class="rnav">
+      <button class="btn btn-ghost" onclick="goBackLoc()">← Locations</button>
+      <button class="btn btn-ghost" onclick="closeReveal()">✓ Done</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────
+const LOCS = [
+  {n:1,  name:"CN Tower",            addr:"290 Bremner Blvd",    dist:"0.9 km",  pts:5,   lat:43.6426, lng:-79.3871},
+  {n:2,  name:"Casa Loma",           addr:"1 Austin Terrace",    dist:"3.9 km",  pts:20,  lat:43.6780, lng:-79.4094},
+  {n:3,  name:"St. Lawrence Market", addr:"93 Front St E",       dist:"0.7 km",  pts:5,   lat:43.6487, lng:-79.3715},
+  {n:4,  name:"Scarborough Bluffs",  addr:"1 Brimley Rd S",      dist:"13.6 km", pts:55,  lat:43.7092, lng:-79.2277},
+  {n:5,  name:"Kensington Market",   addr:"Kensington Ave area", dist:"1.8 km",  pts:10,  lat:43.6543, lng:-79.4006},
+  {n:6,  name:"Niagara Falls",       addr:"Niagara Falls, ON",   dist:"~130 km", pts:100, lat:43.0896, lng:-79.0849},
+  {n:7,  name:"Nathan Phillips Sq.", addr:"100 Queen St W",      dist:"0.4 km",  pts:5,   lat:43.6529, lng:-79.3834},
+  {n:8,  name:"High Park",           addr:"1873 Bloor St W",     dist:"6.7 km",  pts:35,  lat:43.6465, lng:-79.4637},
+  {n:9,  name:"Graffiti Alley",      addr:"513 Queen St W",      dist:"1.5 km",  pts:10,  lat:43.6490, lng:-79.4009},
+  {n:10, name:"Toronto Islands",     addr:"Centre Island",       dist:"3.5 km",  pts:20,  lat:43.6234, lng:-79.3787},
+  {n:11, name:"Distillery District", addr:"55 Mill St",          dist:"1.7 km",  pts:10,  lat:43.6503, lng:-79.3594},
+  {n:12, name:"Raccoon Artwork",     addr:"290 Bremner Blvd",    dist:"0.9 km",  pts:5,   lat:43.6421, lng:-79.3855},
+];
+
+const TD = [
+  {id:0, color:'#CC6E90', def:'Team Puce'  },
+  {id:1, color:'#FF6060', def:'Team Salmon'},
+  {id:2, color:'#17C9B0', def:'Team Teal'  },
+];
+
+let names = ['Team Puce','Team Salmon','Team Teal'];
+let sc = LOCS.map(() => TD.map(() => ({m:false,b:false})));
+let cur = 0;
+
+// ── INIT ──────────────────────────────────────────────────────
+function init() { buildHdrs(); buildRows(); renderTotals(); }
+
+function buildHdrs() {
+  TD.forEach((t,i) => {
+    document.getElementById('h'+i).innerHTML =
+      `<span class="dot" style="background:${t.color}"></span>${names[i]}`;
+  });
+}
+
+function buildRows() {
+  const c = document.getElementById('sgRows');
+  c.innerHTML = '';
+  LOCS.forEach((loc,li) => {
+    const row = document.createElement('div');
+    row.className = 'sg-row';
+    row.innerHTML = `
+      <div class="sg-c"><span class="loc-n">${loc.n}</span></div>
+      <div class="sg-c"><span class="pts-v">${loc.pts}pt</span></div>
+      ${TD.map((t,ti) => {
+        const s = sc[li][ti];
+        return `<div class="sg-c team ${s.m?'hit':''}" id="tc-${li}-${ti}" style="--tc:${t.color}">
+          <label class="ck ${s.m?'on':''}" id="ml-${li}-${ti}">
+            <input type="checkbox" ${s.m?'checked':''} onchange="onM(${li},${ti},this.checked)">
+            Matched
+          </label>
+          <label class="ck ${s.b?'on':''} ${s.m?'':'dim'}" id="bl-${li}-${ti}">
+            <input type="checkbox" id="bx-${li}-${ti}" ${s.b?'checked':''} ${s.m?'':'disabled'}
+              onchange="onB(${li},${ti},this.checked)">
+            Full team +5
+          </label>
+        </div>`;
+      }).join('')}
+    `;
+    c.appendChild(row);
+  });
+}
+
+function onM(li,ti,v) {
+  sc[li][ti].m = v;
+  if (!v) {
+    sc[li][ti].b = false;
+    const bx = document.getElementById('bx-'+li+'-'+ti);
+    if (bx) { bx.checked=false; bx.disabled=true; }
+    document.getElementById('bl-'+li+'-'+ti).className = 'ck dim';
+  } else {
+    document.getElementById('bx-'+li+'-'+ti).disabled = false;
+    document.getElementById('bl-'+li+'-'+ti).className = 'ck';
+  }
+  document.getElementById('ml-'+li+'-'+ti).className = 'ck '+(v?'on':'');
+  const cell = document.getElementById('tc-'+li+'-'+ti);
+  if (cell) { cell.classList.toggle('hit', v); }
+  renderTotals();
+}
+
+function onB(li,ti,v) {
+  sc[li][ti].b = v;
+  document.getElementById('bl-'+li+'-'+ti).className = 'ck '+(v?'on':'');
+  renderTotals();
+}
+
+function pts(ti) {
+  let p=0, l=0;
+  LOCS.forEach((loc,li) => {
+    if (sc[li][ti].m) { p += loc.pts + (sc[li][ti].b?5:0); l++; }
+  });
+  return {p,l};
+}
+
+function renderTotals() {
+  document.getElementById('totalsBar').innerHTML = TD.map((t,ti) => {
+    const {p,l} = pts(ti);
+    return `<div class="tsb" data-t="${ti}">
+      <div class="tsb-name"><span class="dot" style="background:${t.color}"></span>${names[ti]}</div>
+      <div class="tsb-score">${p}</div>
+      <div class="tsb-locs">${l} loc${l!==1?'s':''}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── MODAL ─────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('mP').value = names[0];
+  document.getElementById('mS').value = names[1];
+  document.getElementById('mT').value = names[2];
+  document.getElementById('teamModal').classList.add('open');
+  document.getElementById('mP').focus();
+}
+function closeModal() { document.getElementById('teamModal').classList.remove('open'); }
+function bdClick(e) { if (e.target===document.getElementById('teamModal')) closeModal(); }
+function saveNames() {
+  const df = ['Team Puce','Team Salmon','Team Teal'];
+  names = [
+    document.getElementById('mP').value.trim() || df[0],
+    document.getElementById('mS').value.trim() || df[1],
+    document.getElementById('mT').value.trim() || df[2],
+  ];
+  closeModal(); buildHdrs(); renderTotals();
+}
+
+// ── REVEAL ────────────────────────────────────────────────────
+function openReveal() {
+  cur = 0;
+  document.getElementById('reveal').classList.add('open');
+  phase('rA'); stopConfetti();
+}
+function closeReveal() {
+  document.getElementById('reveal').classList.remove('open');
+  stopConfetti();
+}
+function phase(id) {
+  document.querySelectorAll('.rp').forEach(e => e.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+let _locMap = null, _locMarker = null;
+function initLocMap() {
+  if (_locMap) return;
+  _locMap = L.map('locMapEl', {
+    zoomControl: false, attributionControl: false,
+    dragging: false, scrollWheelZoom: false,
+    doubleClickZoom: false, boxZoom: false, keyboard: false,
+    touchZoom: false,
+  });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19
+  }).addTo(_locMap);
+}
+function flyLocMap(loc) {
+  initLocMap();
+  _locMap.invalidateSize();
+  _locMap.setView([loc.lat, loc.lng], 15, {animate: true, duration: 0.9});
+  if (_locMarker) _locMarker.remove();
+  const icon = L.divIcon({
+    className: '',
+    html: `<div style="
+      background:var(--red);width:16px;height:16px;border-radius:50%;
+      border:3px solid #fff;box-shadow:0 0 0 3px rgba(200,16,46,.45),0 2px 12px rgba(0,0,0,.8);
+    "></div>`,
+    iconAnchor: [8, 8],
+  });
+  _locMarker = L.marker([loc.lat, loc.lng], {icon}).addTo(_locMap);
+}
+function startLocs() { cur=0; phase('rB'); setTimeout(() => renderLoc(cur), 60); }
+
+const TEAM_FOLDERS = ['1','2','3'];
+const PHOTO_EXTS   = ['jpeg','jpg','png','JPG','PNG','JPEG'];
+
+function tryExt(img) {
+  const next = parseInt(img.dataset.ei) + 1;
+  if (next >= PHOTO_EXTS.length) return; // all failed, placeholder stays
+  img.dataset.ei = next;
+  img.src = `photos/${img.dataset.folder}/${img.dataset.n}.${PHOTO_EXTS[next]}`;
+}
+
+function renderLoc(idx) {
+  const loc = LOCS[idx];
+  document.getElementById('lcProg').textContent = `Location ${idx+1} of ${LOCS.length}`;
+  flyLocMap(loc);
+
+  // Location card with reference photo
+  const old = document.getElementById('lcCard');
+  const card = document.createElement('div');
+  card.id = 'lcCard'; card.className = 'lc-card anim';
+  card.innerHTML = `
+    <div class="lc-ref">
+      <img src="photos/${loc.n}.jpeg" alt="">
+    </div>
+    <div class="lc-body">
+      <div class="lc-label">📍 Location #${loc.n}</div>
+      <div class="lc-name">${loc.name}</div>
+      <div class="lc-addr">${loc.addr}</div>
+      <div class="lc-tags">
+        <span class="tag">📏 ${loc.dist} from office</span>
+        <span class="tag g">★ ${loc.pts} points</span>
+      </div>
+    </div>
+  `;
+  old.replaceWith(card);
+
+  // Team submission photos
+  document.getElementById('lcSubs').innerHTML = TD.map((t,ti) => {
+    const s = sc[idx][ti];
+    const folder = TEAM_FOLDERS[ti];
+    const earned = s.m ? loc.pts+(s.b?5:0) : 0;
+    return `
+      <div class="tsub ${s.m?'hit':''}" style="--tc:${t.color}">
+        <div class="tsub-photo">
+          <div class="tsub-no-photo"><span>📷</span>No photo yet</div>
+          <img src="photos/${folder}/${loc.n}.jpeg"
+            data-folder="${folder}" data-n="${loc.n}" data-ei="0"
+            onerror="tryExt(this)"
+            onload="this.classList.add('loaded');this.previousElementSibling.style.display='none'">
+        </div>
+        <div class="tsub-info">
+          <span class="tsub-name"><span style="opacity:.45;font-size:.85em;margin-right:3px">${ti+1}.</span>${names[ti]}</span>
+          ${s.m
+            ? `<span class="tsub-pts">+${earned}${s.b?' ⭐':''}</span>`
+            : `<span class="tsub-miss">✗</span>`}
+        </div>
+      </div>`;
+  }).join('');
+
+  const btn  = document.getElementById('nxtBtn');
+  const prev = document.getElementById('prevBtn');
+  const last = idx >= LOCS.length-1;
+  btn.textContent   = last ? 'Reveal Winner →' : 'Next →';
+  btn.className     = 'btn '+(last?'btn-gold':'btn-red');
+  btn.style.cssText = 'font-size:17px;padding:11px 36px';
+  btn.onclick  = last ? showWinner : () => { cur++; renderLoc(cur); };
+  prev.textContent = idx === 0 ? '← Splash' : '← Back';
+  prev.onclick     = idx === 0 ? () => phase('rA') : () => { cur--; renderLoc(cur); };
+}
+
+function standings() {
+  return TD.map((t,ti) => { const {p,l}=pts(ti); return {p,l,name:names[ti],color:t.color}; })
+    .sort((a,b) => b.p-a.p || b.l-a.l);
+}
+
+function goBackLoc() { cur = LOCS.length-1; phase('rB'); renderLoc(cur); }
+
+
+function showWinner() {
+  phase('rD');
+  const w = standings()[0];
+  const st = standings();
+  const tie = st.length>1 && st[1].p===w.p && st[1].l===w.l;
+
+  const nEl = document.getElementById('wName');
+  const sEl = document.getElementById('wScore');
+  const fEl = document.getElementById('wFlags');
+  const dEl = document.getElementById('wDrum');
+
+  nEl.className = 'w-name off'; sEl.className = 'w-score off';
+  fEl.className = 'w-flags';    dEl.className = 'drum';
+  nEl.textContent = w.name;
+  sEl.innerHTML = `${w.p} pts &nbsp;·&nbsp; ${w.l} location${w.l!==1?'s':''}` +
+    (tie ? '<br><small style="color:#ff6060;font-size:.8em;display:block;margin-top:4px">Tie — earliest submission wins!</small>' : '');
+
+  setTimeout(() => dEl.classList.add('go'), 80);
+  setTimeout(() => {
+    dEl.className = 'drum off';
+    void nEl.offsetWidth;
+    nEl.className = 'w-name go on';
+    sEl.className = 'w-score on';
+    fEl.className = 'w-flags on';
+    startConfetti();
+  }, 2800);
+}
+
+// ── CONFETTI ──────────────────────────────────────────────────
+let cAF=null, cTimer=null, cP=[];
+const CC=['#C8102E','#FFD700','#fff','#FF6060','#17C9B0','#CC6E90','#E8A020','#FFD566'];
+function mkP(w,h) {
+  return { x:Math.random()*w, y:-10-Math.random()*70,
+    vx:(Math.random()-.5)*5, vy:1.5+Math.random()*4.5,
+    r:4+Math.random()*7, rot:Math.random()*360, rv:(Math.random()-.5)*10,
+    c:CC[Math.floor(Math.random()*CC.length)], rect:Math.random()>.38 };
+}
+function startConfetti() {
+  const cv=document.getElementById('confetti'); const ctx=cv.getContext('2d');
+  cv.width=innerWidth; cv.height=innerHeight;
+  cP=Array.from({length:200},()=>mkP(cv.width,cv.height));
+  let sr=0;
+  cTimer=setInterval(()=>{
+    cv.width=innerWidth; cv.height=innerHeight;
+    for(let i=0;i<30;i++) cP.push(mkP(cv.width,cv.height));
+    if(++sr>9) clearInterval(cTimer);
+  },500);
+  function draw() {
+    cv.width=innerWidth; cv.height=innerHeight;
+    ctx.clearRect(0,0,cv.width,cv.height);
+    cP.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.rv; p.vy+=.06;
+      ctx.save(); ctx.globalAlpha=Math.max(0,1-p.y/cv.height*1.1);
+      ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180); ctx.fillStyle=p.c;
+      if(p.rect) ctx.fillRect(-p.r,-p.r*.3,p.r*2,p.r*.6);
+      else{ctx.beginPath();ctx.arc(0,0,p.r/2,0,Math.PI*2);ctx.fill();}
+      ctx.restore();
+    });
+    cP=cP.filter(p=>p.y<cv.height+40);
+    cAF=requestAnimationFrame(draw);
+  }
+  if(cAF) cancelAnimationFrame(cAF);
+  draw();
+}
+function stopConfetti() {
+  if(cAF){cancelAnimationFrame(cAF);cAF=null;}
+  if(cTimer){clearInterval(cTimer);cTimer=null;}
+  cP=[];
+  const cv=document.getElementById('confetti');
+  cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+}
+
+// ── KEYBOARD ──────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('reveal').classList.contains('open')) return;
+  if ((e.key==='ArrowRight'||e.key===' ') && document.getElementById('rB').classList.contains('on')) {
+    e.preventDefault();
+    document.getElementById('nxtBtn')?.click();
+  }
+});
+
+// Lightbox HTML injected
+document.body.insertAdjacentHTML('beforeend',
+  '<div id="lb"><span id="lb-close">✕</span><img id="lb-img" src="" alt=""></div>'
+);
+
+init();
+
+// Pre-warm the browser tile cache for all location coordinates so the map
+// loads instantly during the reveal instead of fetching on the fly.
+(function prefetchTiles() {
+  const zoom = 15;
+  const subs = ['a','b','c','d'];
+  const seen = new Set();
+  function tileXY(lat, lng) {
+    const x = Math.floor((lng + 180) / 360 * (1 << zoom));
+    const r = lat * Math.PI / 180;
+    const y = Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * (1 << zoom));
+    return [x, y];
+  }
+  // Stagger fetches so we don't hammer the network at startup
+  let delay = 800;
+  LOCS.forEach(loc => {
+    const [cx, cy] = tileXY(loc.lat, loc.lng);
+    for (let dx = -4; dx <= 4; dx++) {
+      for (let dy = -3; dy <= 3; dy++) {
+        const tx = cx + dx, ty = cy + dy;
+        const s = subs[Math.abs(tx + ty) % 4];
+        const url = `https://${s}.basemaps.cartocdn.com/dark_all/${zoom}/${tx}/${ty}.png`;
+        if (seen.has(url)) continue;
+        seen.add(url);
+        setTimeout(() => { new Image().src = url; }, delay);
+        delay += 18; // ~55 tiles/sec — fast but not abusive
+      }
+    }
+  });
+})();
+
+// Lightbox
+const lb = document.getElementById('lb');
+const lbImg = document.getElementById('lb-img');
+document.getElementById('lb-close').onclick = () => lb.classList.remove('open');
+lb.addEventListener('click', e => { if (e.target === lb) lb.classList.remove('open'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') lb.classList.remove('open'); });
+function openLb(src) { lbImg.src = src; lb.classList.add('open'); }
+document.addEventListener('click', e => {
+  const img = e.target.closest('.lc-ref img, .tsub-photo img.loaded');
+  if (img) openLb(img.src);
+});
+</script>
+</body>
+</html>
