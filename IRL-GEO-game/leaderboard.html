@@ -385,7 +385,7 @@ header::before {
   width: 100%; overflow: hidden;
   background: rgba(0,0,0,.3); position: relative;
 }
-.lc-ref img { width: 100%; height: auto; object-fit: contain; display: block; cursor: zoom-in; max-height: 38vh; object-fit: cover; }
+.lc-ref img { width: 100%; height: auto; display: block; cursor: zoom-in; max-height: 44vh; object-fit: contain; }
 .tsub-photo img { cursor: zoom-in; }
 
 /* Lightbox */
@@ -450,11 +450,11 @@ header::before {
 
 .tsub-photo {
   width: 100%; aspect-ratio: 4/3;
-  background: var(--surf); position: relative; overflow: hidden;
+  background: #0a0a0a; position: relative; overflow: hidden;
 }
 .tsub-photo img {
   position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; opacity: 0; transition: opacity .3s;
+  object-fit: contain; opacity: 0; transition: opacity .3s;
 }
 .tsub-photo img.loaded { opacity: 1; }
 .tsub-no-photo {
@@ -564,7 +564,10 @@ header::before {
 
   <div class="action-bar">
     <div class="action-bar-title">Score Entry</div>
-    <button class="btn btn-ghost" onclick="openModal()">✏ Edit Teams</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="openModal()">✏ Edit Teams</button>
+      <button class="btn btn-ghost" style="color:var(--salmon);border-color:color-mix(in srgb,var(--salmon) 35%,transparent)" onclick="resetState()">↺ Reset</button>
+    </div>
   </div>
 
   <!-- Live totals -->
@@ -691,8 +694,30 @@ let names = ['Team Puce','Team Salmon','Team Teal'];
 let sc = LOCS.map(() => TD.map(() => ({m:false,b:false})));
 let cur = 0;
 
+// ── STORAGE ───────────────────────────────────────────────────
+const LS_KEY = 'irl-geo-state';
+function saveState() {
+  localStorage.setItem(LS_KEY, JSON.stringify({names, sc}));
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    if (s.names && s.names.length === 3) names = s.names;
+    if (s.sc && s.sc.length === LOCS.length) sc = s.sc;
+  } catch(e) {}
+}
+function resetState() {
+  if (!confirm('Reset all scores and team names? This cannot be undone.')) return;
+  localStorage.removeItem(LS_KEY);
+  names = ['Team Puce','Team Salmon','Team Teal'];
+  sc = LOCS.map(() => TD.map(() => ({m:false,b:false})));
+  buildHdrs(); buildRows(); renderTotals();
+}
+
 // ── INIT ──────────────────────────────────────────────────────
-function init() { buildHdrs(); buildRows(); renderTotals(); }
+function init() { loadState(); buildHdrs(); buildRows(); renderTotals(); }
 
 function buildHdrs() {
   TD.forEach((t,i) => {
@@ -743,13 +768,13 @@ function onM(li,ti,v) {
   document.getElementById('ml-'+li+'-'+ti).className = 'ck '+(v?'on':'');
   const cell = document.getElementById('tc-'+li+'-'+ti);
   if (cell) { cell.classList.toggle('hit', v); }
-  renderTotals();
+  saveState(); renderTotals();
 }
 
 function onB(li,ti,v) {
   sc[li][ti].b = v;
   document.getElementById('bl-'+li+'-'+ti).className = 'ck '+(v?'on':'');
-  renderTotals();
+  saveState(); renderTotals();
 }
 
 function pts(ti) {
@@ -788,7 +813,7 @@ function saveNames() {
     document.getElementById('mS').value.trim() || df[1],
     document.getElementById('mT').value.trim() || df[2],
   ];
-  closeModal(); buildHdrs(); renderTotals();
+  saveState(); closeModal(); buildHdrs(); renderTotals();
 }
 
 // ── REVEAL ────────────────────────────────────────────────────
