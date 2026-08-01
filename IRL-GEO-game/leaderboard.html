@@ -30,12 +30,40 @@
   --teal:    #17C9B0;
 }
 
+:root[data-theme="light"] {
+  --bg:      #F5F0E8;
+  --bg2:     #EEEAE2;
+  --surf:    #FFFFFF;
+  --surf2:   #F8F5F0;
+  --bdr:     #D8D0C4;
+  --bdr2:    #C4BAB0;
+  --text:    #1A1612;
+  --text2:   #5C5248;
+  --muted:   #8A8070;
+}
+
+/* ── THEME TOGGLE ─────────────────────────────────────── */
+.theme-toggle {
+  margin-left: auto;
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 20px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: background .15s;
+  flex-shrink: 0;
+}
+.theme-toggle:hover { background: rgba(255,255,255,.25); }
+
 /* ── BASE ─────────────────────────────────────────────── */
 body {
   font-family: system-ui, -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  transition: background .2s, color .2s;
 }
 
 /* grain overlay */
@@ -555,6 +583,7 @@ header::before {
       <h1>Real Life Canadian GeoGuessr</h1>
       <p>Toronto Office Offsite 2026 &nbsp;·&nbsp; 302 Bay St → The Bar &nbsp;·&nbsp; 3 PM – 6 PM</p>
     </div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark mode">🌙</button>
   </div>
 </header>
 <div class="hdr-rule"></div>
@@ -668,6 +697,22 @@ header::before {
 </div>
 
 <script>
+// ── THEME ─────────────────────────────────────────────────────
+(function() {
+  const saved = localStorage.getItem('irl-geo-theme');
+  if (saved) applyTheme(saved);
+})();
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = t === 'light' ? '☀️' : '🌙';
+  localStorage.setItem('irl-geo-theme', t);
+}
+function toggleTheme() {
+  const current = document.documentElement.dataset.theme;
+  applyTheme(current === 'light' ? 'dark' : 'light');
+}
+
 // ── DATA ──────────────────────────────────────────────────────
 const LOCS = [
   {n:1,  name:"CN Tower",            addr:"290 Bremner Blvd",    dist:"0.9 km",  pts:5,   lat:43.6426, lng:-79.3871},
