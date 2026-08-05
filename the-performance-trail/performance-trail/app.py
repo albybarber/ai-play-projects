@@ -18,6 +18,8 @@ Rules:
 def mock_draft(notes, previous_draft, tone_instruction):
     if previous_draft and tone_instruction:
         return f"[MOCK TONE TWEAK: {tone_instruction}] {previous_draft[:300]}"
+    if previous_draft and notes:
+        return f"[MOCK REVISE] Blending new notes into draft — new notes: {notes[:150]} | original: {previous_draft[:150]}"
     return f"[MOCK DRAFT] Based on the manager's notes: {notes[:300]}"
 
 
@@ -31,12 +33,12 @@ def build_user_message(question, self_review, notes, previous_draft, tone_instru
             f"Please revise accordingly, keeping the same faithfulness rules."
         )
     elif previous_draft and notes:
-        # Revise: incorporate new notes into an existing draft
+        # Revise: blend new notes into the existing draft, preserving its structure
         parts = [f"Review question:\n{question}"]
         if self_review:
             parts.append(f"Direct report's own self-review answer (context only):\n{self_review}")
-        parts.append(f"Previous draft (for context — do not simply repeat it):\n{previous_draft}")
-        parts.append(f"Manager's additional notes (please incorporate these into a revised draft):\n{notes}")
+        parts.append(f"Existing draft (preserve as much of this as possible — keep phrasing, structure, and tone where it still holds):\n{previous_draft}")
+        parts.append(f"Manager's additional thoughts to blend in:\n{notes}\n\nPlease revise the existing draft to incorporate these new thoughts. Change only what is needed — don't rewrite from scratch.")
         return "\n\n".join(parts)
     else:
         # Fresh draft: build from notes only
