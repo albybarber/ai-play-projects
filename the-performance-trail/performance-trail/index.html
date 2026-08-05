@@ -55,15 +55,14 @@
       font-size: 20px;
       line-height: 1.5;
       min-height: 100vh;
-      padding: 24px 16px 48px;
+      padding: 16px 24px 48px;
     }
 
     /* ═══════════════════════════════════════════════════════════
        Layout wrapper
     ═══════════════════════════════════════════════════════════ */
     #app {
-      max-width: 820px;
-      margin: 0 auto;
+      width: 100%;
     }
 
     /* ═══════════════════════════════════════════════════════════
@@ -629,24 +628,30 @@
     .progress-text { font-size: 8px; color: #666; margin-bottom: 1.25rem; font-family: 'Press Start 2P', monospace; }
     .landmark-split {
       display: flex;
-      gap: 1.5rem;
-      align-items: flex-start;
+      gap: 0;
+      align-items: stretch;
+      border: 2px solid #fff;
     }
     .landmark-left {
-      flex: 1 1 45%;
+      flex: 1 1 50%;
       min-width: 0;
+      border-right: 2px solid #fff;
+      display: flex;
+      flex-direction: column;
     }
     .landmark-right {
       flex: 1 1 50%;
       min-width: 0;
+      padding: 1.25rem;
     }
     @media (max-width: 700px) {
-      .landmark-split { flex-direction: column; }
-      .landmark-left, .landmark-right { flex: unset; width: 100%; }
+      .landmark-split { flex-direction: column; border: 2px solid #fff; }
+      .landmark-left { border-right: none; border-bottom: 2px solid #fff; flex: unset; width: 100%; }
+      .landmark-right { flex: unset; width: 100%; }
     }
     .trail-sign {
-      border: 2px solid #fff; background: #000; color: #fff;
-      padding: 1rem 1.25rem; margin: 0 0 1rem; border-radius: 0;
+      border: none; border-bottom: 2px solid #fff; background: #000; color: #fff;
+      padding: 1rem 1.25rem; margin: 0; border-radius: 0;
     }
     .trail-sign-label { font-size: 8px; color: #666; font-family: 'Press Start 2P', monospace; margin-bottom: 0.75rem; letter-spacing: 0.1em; }
     .trail-sign-question {
@@ -654,8 +659,8 @@
       font-size: 1.4em; line-height: 1.5; font-weight: normal; color: #fff;
     }
     .signpost {
-      background: #000; border: 2px dashed #555; padding: 1rem 1.25rem;
-      margin: 0; border-radius: 0;
+      background: #000; border: none; border-top: 2px dashed #555; padding: 1rem 1.25rem;
+      margin: 0; border-radius: 0; flex: 1;
     }
     .signpost-label { font-size: 8px; color: #666; font-family: 'Press Start 2P', monospace; margin-bottom: 0.5rem; letter-spacing: 0.1em; }
     .signpost-text { font-size: 1em; line-height: 1.5; color: #aaa; }
@@ -860,7 +865,7 @@
               <div id="landmark-question" class="trail-sign-question"></div>
             </div>
 
-            <div id="landmark-self-review-section" class="signpost" style="margin-top:1rem">
+            <div id="landmark-self-review-section" class="signpost">
               <div class="signpost-label">WHAT THEY WROTE</div>
               <div id="landmark-self-review" class="signpost-text"></div>
             </div>
