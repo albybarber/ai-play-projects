@@ -746,9 +746,30 @@
         font-size: 8px;
       }
     }
+    /* ═══════════════════════════════════════════════════════════
+       Resume banner
+    ═══════════════════════════════════════════════════════════ */
+    .resume-banner {
+      background: #3d2b1f; color: #f5e6c8;
+      padding: 0.75rem 1.5rem; text-align: center;
+      font-family: 'Press Start 2P', monospace; font-size: 0.65em;
+      border-bottom: 3px solid #c17f2a; position: sticky; top: 0; z-index: 100;
+    }
+    .resume-banner-inner {
+      display: flex; align-items: center; justify-content: center; gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.75em; }
   </style>
 </head>
 <body>
+  <div id="resume-banner" class="resume-banner" style="display:none">
+    <div class="resume-banner-inner">
+      <span id="resume-banner-text">Previous session found.</span>
+      <button id="btn-resume" class="btn btn-primary btn-sm">&#x21BA; RESUME</button>
+      <button id="btn-start-fresh" class="btn btn-secondary btn-sm">&#x2715; START FRESH</button>
+    </div>
+  </div>
   <div id="app">
 
     <!-- ═══════════════════════════════════════════════════════
@@ -968,6 +989,36 @@
       answers:              {},   // { personName: { questionIndex: answerString } }
       rawInput:             '',   // the pasted labeled-block text (for localStorage)
     };
+
+    const STORAGE_KEY = 'performanceTrail';
+
+    function saveToStorage() {
+      try {
+        const data = {
+          rawInput: state.rawInput,
+          answers: state.answers,
+          currentPerson: state.currentPerson,
+          currentQuestionIndex: state.currentQuestionIndex,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch (e) {
+        // Silently fail — storage might be full or disabled
+      }
+    }
+
+    function loadFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function clearStorage() {
+      localStorage.removeItem(STORAGE_KEY);
+    }
 
     /* ═══════════════════════════════════════════════════════════════
        SCREEN ROUTER
@@ -1352,6 +1403,7 @@
         state.answers[personName] = {};
       }
       state.answers[personName][questionIndex] = answer;
+      saveToStorage();
     }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -1365,6 +1417,7 @@
     function startPerson(personName) {
       state.currentPerson        = personName;
       state.currentQuestionIndex = 0;
+      saveToStorage();
       showLandmarkScreen();
     }
 
@@ -1375,6 +1428,7 @@
     function advanceQuestion() {
       const questions = state.roster[state.currentPerson];
       state.currentQuestionIndex++;
+      saveToStorage();
       if (state.currentQuestionIndex >= questions.length) {
         showCompleteScreen();
       } else {
@@ -1553,6 +1607,7 @@
         state.roster     = roster;
         state.personList = personList;
         state.rawInput   = text;
+        saveToStorage();
         renderRosterList();
       } catch (e) {
         showRosterError('Parse error: ' + e.message);
@@ -1565,6 +1620,7 @@
       state.personList = [];
       state.rawInput   = '';
       state.answers    = {};
+      clearStorage();
       document.getElementById('roster-input').value = '';
       document.getElementById('roster-list-state').style.display  = 'none';
       document.getElementById('roster-input-state').style.display = 'block';
@@ -1933,12 +1989,60 @@
       });
     }
 
+    function checkAndShowResumeBanner() {
+      const saved = loadFromStorage();
+      if (!saved || !saved.rawInput) return;
+
+      const banner     = document.getElementById('resume-banner');
+      const bannerText = document.getElementById('resume-banner-text');
+
+      if (saved.currentPerson) {
+        bannerText.textContent = `Resume: ${saved.currentPerson} (Q${(saved.currentQuestionIndex || 0) + 1})`;
+      } else {
+        bannerText.textContent = 'Previous session found — resume?';
+      }
+
+      banner.style.display = '';
+
+      document.getElementById('btn-resume').addEventListener('click', () => {
+        resumeFromStorage(saved);
+        banner.style.display = 'none';
+      });
+
+      document.getElementById('btn-start-fresh').addEventListener('click', () => {
+        clearStorage();
+        banner.style.display = 'none';
+      });
+    }
+
+    function resumeFromStorage(saved) {
+      try {
+        const { roster, personList } = parseRoster(saved.rawInput);
+        state.roster     = roster;
+        state.personList = personList;
+        state.rawInput   = saved.rawInput;
+        state.answers    = saved.answers || {};
+
+        if (saved.currentPerson && state.roster[saved.currentPerson]) {
+          state.currentPerson        = saved.currentPerson;
+          state.currentQuestionIndex = saved.currentQuestionIndex || 0;
+          showLandmarkScreen();
+        } else {
+          showRosterScreen();
+        }
+      } catch (e) {
+        clearStorage();
+        showRosterScreen();
+      }
+    }
+
     (function init() {
       // Screen router is ready; state machine is initialized.
       console.log('[Performance Trail] Shell initialized. Screens: roster, landmark, campfire, complete.');
       initLandmarkScreen();
       initCampfireHandlers();
       initCompleteHandlers();
+      checkAndShowResumeBanner();
       initRosterScreen();
       initVoiceInput();
     })();
