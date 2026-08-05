@@ -23,18 +23,28 @@ def mock_draft(notes, previous_draft, tone_instruction):
 
 def build_user_message(question, self_review, notes, previous_draft, tone_instruction):
     if previous_draft and tone_instruction:
+        # Tone tweak: adjust existing draft with a specific instruction
         return (
             f"Review question:\n{question}\n\n"
             f"Previous draft:\n{previous_draft}\n\n"
             f"Tone instruction: {tone_instruction}\n"
             f"Please revise accordingly, keeping the same faithfulness rules."
         )
-    # Fresh draft
-    parts = [f"Review question:\n{question}"]
-    if self_review:
-        parts.append(f"Direct report's own self-review answer (context only):\n{self_review}")
-    parts.append(f"Manager's rambling notes:\n{notes}")
-    return "\n\n".join(parts)
+    elif previous_draft and notes:
+        # Revise: incorporate new notes into an existing draft
+        parts = [f"Review question:\n{question}"]
+        if self_review:
+            parts.append(f"Direct report's own self-review answer (context only):\n{self_review}")
+        parts.append(f"Previous draft (for context — do not simply repeat it):\n{previous_draft}")
+        parts.append(f"Manager's additional notes (please incorporate these into a revised draft):\n{notes}")
+        return "\n\n".join(parts)
+    else:
+        # Fresh draft: build from notes only
+        parts = [f"Review question:\n{question}"]
+        if self_review:
+            parts.append(f"Direct report's own self-review answer (context only):\n{self_review}")
+        parts.append(f"Manager's rambling notes:\n{notes}")
+        return "\n\n".join(parts)
 
 
 @app.route('/')

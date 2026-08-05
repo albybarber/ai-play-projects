@@ -1393,7 +1393,6 @@
 
     /**
      * Save a manager's drafted answer into state.
-     * localStorage persistence is added in Step 9.
      * @param {string} personName
      * @param {number} questionIndex
      * @param {string} answer
@@ -1461,17 +1460,6 @@
         </div>
       `;
       return wrap;
-    }
-
-    /**
-     * Show a trail event banner inside a given container element.
-     * @param {HTMLElement} container
-     */
-    function appendTrailEvent(container) {
-      const div = document.createElement('div');
-      div.className = 'trail-event';
-      div.textContent = randomTrailEvent();
-      container.appendChild(div);
     }
 
     /**
