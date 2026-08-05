@@ -354,10 +354,6 @@
       vertical-align: middle;
     }
 
-    .badge-done      { background: var(--success-lt); color: var(--success); border: 1px solid var(--success); }
-    .badge-progress  { background: var(--warn-lt);    color: var(--warn);    border: 1px solid var(--warn); }
-    .badge-drafts    { background: #e8f0fe;            color: #2d4a9e;        border: 1px solid #2d4a9e; }
-    .badge-new       { background: var(--parchment-dk); color: var(--muted);  border: 1px solid var(--muted); }
 
     /* ═══════════════════════════════════════════════════════════
        Progress bar
@@ -901,16 +897,16 @@
           el.textContent = 'DONE';
           break;
         case 'in-progress':
-          el.classList.add('badge-progress');
+          el.classList.add('badge-in-progress');
           el.textContent = 'IN PROGRESS';
           break;
         case 'has-drafts':
-          el.classList.add('badge-drafts');
+          el.classList.add('badge-has-drafts');
           el.textContent = 'HAS DRAFTS';
           break;
         default:
-          el.classList.add('badge-new');
-          el.textContent = 'NEW';
+          el.classList.add('badge-not-started');
+          el.textContent = 'NOT STARTED';
       }
       return el;
     }
