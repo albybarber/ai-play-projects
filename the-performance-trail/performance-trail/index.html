@@ -1487,12 +1487,16 @@
       const questions = state.roster[personName] || [];
       const answers   = state.answers[personName] || {};
 
-      const answeredCount        = Object.keys(answers).length;
+      // A question is "covered" if it has a session answer OR a pre-existing managerReflection
+      const coveredCount = questions.filter((q, i) =>
+        answers[i] !== undefined || q.managerReflection
+      ).length;
+      const sessionAnsweredCount = Object.keys(answers).length;
       const hasPreExistingDrafts = questions.some(q => q.managerReflection);
 
-      if (answeredCount === 0 && !hasPreExistingDrafts) return 'not-started';
-      if (answeredCount === questions.length)           return 'done';
-      if (hasPreExistingDrafts && answeredCount === 0)  return 'has-drafts';
+      if (sessionAnsweredCount === 0 && !hasPreExistingDrafts) return 'not-started';
+      if (coveredCount === questions.length)                    return 'done';
+      if (hasPreExistingDrafts && sessionAnsweredCount === 0)   return 'has-drafts';
       return 'in-progress';
     }
 
@@ -1571,10 +1575,24 @@
      * @param {string} personName
      */
     function startPerson(personName) {
-      state.currentPerson        = personName;
-      state.currentQuestionIndex = 0;
-      saveToStorage();
-      showLandmarkScreen();
+      state.currentPerson = personName;
+      const status = getPersonStatus(personName);
+      if (status === 'done') {
+        // Already completed — jump straight to results, don't reset progress
+        saveToStorage();
+        showCompleteScreen();
+      } else {
+        // Find the first unanswered question index
+        const questions = state.roster[personName] || [];
+        const answers   = state.answers[personName] || {};
+        let resumeIdx = 0;
+        for (let i = 0; i < questions.length; i++) {
+          if (answers[i] === undefined) { resumeIdx = i; break; }
+        }
+        state.currentQuestionIndex = resumeIdx;
+        saveToStorage();
+        showLandmarkScreen();
+      }
     }
 
     /**
