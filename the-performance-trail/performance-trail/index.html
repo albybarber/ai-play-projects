@@ -631,6 +631,42 @@
     .badge-done        { background: #2d6a2d; color: white; }
 
     /* ═══════════════════════════════════════════════════════════
+       Landmark screen additions
+    ═══════════════════════════════════════════════════════════ */
+    .trail-event {
+      font-style: italic; color: #8b6914; font-size: 0.85em;
+      margin-bottom: 1rem; padding: 0.5rem;
+      border-left: 3px solid #c17f2a;
+    }
+    .progress-text { font-size: 0.7em; color: #8b4513; margin-bottom: 1.5rem; font-family: 'Press Start 2P', monospace; }
+    .trail-sign {
+      border: 3px solid #8b4513; background: #3d2b1f; color: #f5e6c8;
+      padding: 1rem 1.5rem; margin: 1rem 0 1.5rem; border-radius: 4px;
+    }
+    .trail-sign-label { font-size: 0.6em; color: #c17f2a; font-family: 'Press Start 2P', monospace; margin-bottom: 0.5rem; }
+    .trail-sign-question { font-size: 1.1em; line-height: 1.5; }
+    .signpost {
+      background: #f0ddb0; border: 2px dashed #8b6914; padding: 1rem 1.5rem;
+      margin: 1rem 0 1.5rem; border-radius: 4px;
+    }
+    .signpost-label { font-size: 0.6em; color: #8b4513; font-family: 'Press Start 2P', monospace; margin-bottom: 0.5rem; }
+    .signpost-text { font-size: 0.95em; line-height: 1.6; color: #3d2b1f; }
+    .campfire-label { font-size: 0.6em; color: #8b4513; font-family: 'Press Start 2P', monospace; margin-bottom: 0.5rem; }
+    .draft-text { background: #fff9ef; border: 1px solid #c8a96e; padding: 1rem; border-radius: 4px; line-height: 1.6; margin-bottom: 1rem; }
+    .draft-dim { opacity: 0.7; font-style: italic; }
+    .loading-msg { text-align: center; padding: 1.5rem; color: #8b4513; font-family: 'Press Start 2P', monospace; font-size: 0.8em; }
+    .textarea-with-mic { position: relative; }
+    .btn-ghost { background: transparent; border: 2px solid #8b4513; color: #8b4513; }
+    .btn-ghost:hover { background: #f0ddb0; }
+    .button-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 1rem; }
+
+    @keyframes blink-cursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .blink { animation: blink-cursor 1s step-start infinite; }
+
+    /* ═══════════════════════════════════════════════════════════
        Responsive adjustments
     ═══════════════════════════════════════════════════════════ */
     @media (max-width: 600px) {
@@ -693,7 +729,70 @@
          Screen 2: Landmark (question + notes entry)
     ═══════════════════════════════════════════════════════════ -->
     <div id="screen-landmark" class="screen">
-      <p>Loading...</p>
+      <div class="panel">
+        <!-- Trail event flavor text (random each time) -->
+        <div id="landmark-event" class="trail-event"></div>
+
+        <!-- Progress indicator -->
+        <div id="landmark-progress" class="progress-text"></div>
+
+        <!-- The question (trail sign) -->
+        <div class="trail-sign">
+          <div class="trail-sign-label">TRAIL SIGN</div>
+          <div id="landmark-question" class="trail-sign-question"></div>
+        </div>
+
+        <!-- Self-review signpost (hidden if no self-review) -->
+        <div id="landmark-self-review-section" class="signpost">
+          <div class="signpost-label">WHAT THEY WROTE</div>
+          <div id="landmark-self-review" class="signpost-text"></div>
+        </div>
+
+        <!-- Flow A: Existing draft -->
+        <div id="landmark-existing-draft" style="display:none">
+          <div class="campfire-label">EXISTING DRAFT</div>
+          <div id="landmark-existing-text" class="draft-text"></div>
+          <div class="button-row">
+            <button id="btn-keep" class="btn btn-primary">&#x2713; KEEP</button>
+            <button id="btn-revise" class="btn btn-secondary">&#x21BB; REVISE</button>
+            <button id="btn-edit-existing" class="btn btn-secondary">&#x270E; EDIT</button>
+          </div>
+        </div>
+
+        <!-- Flow B: Notes input (shown when no existing draft, or when Revise chosen) -->
+        <div id="landmark-notes-section" style="display:none">
+          <!-- Reference draft shown when Revising existing -->
+          <div id="landmark-revise-reference" style="display:none">
+            <div class="campfire-label">REVISING FROM</div>
+            <div id="landmark-revise-text" class="draft-text draft-dim"></div>
+          </div>
+          <label class="field-label" for="landmark-notes">YOUR THOUGHTS</label>
+          <div class="textarea-with-mic">
+            <textarea id="landmark-notes" placeholder="Speak or type your unfiltered thoughts...&#10;&#10;Rambling is fine — Claude will clean it up."></textarea>
+            <!-- mic button will be added in Step 8 -->
+          </div>
+          <div class="button-row">
+            <button id="btn-draft-it" class="btn btn-primary">&#x26A1; DRAFT IT</button>
+            <button id="btn-skip-landmark" class="btn btn-ghost">&#x2192; SKIP</button>
+          </div>
+          <p id="landmark-error" class="error-msg" style="display:none"></p>
+        </div>
+
+        <!-- Flow C: Inline edit (shown when Edit chosen) -->
+        <div id="landmark-edit-section" style="display:none">
+          <label class="field-label" for="landmark-edit-text">WRITE YOUR FINAL ANSWER</label>
+          <textarea id="landmark-edit-text" placeholder="Type your final answer directly..."></textarea>
+          <div class="button-row">
+            <button id="btn-save-edit" class="btn btn-primary">&#x2713; SAVE</button>
+            <button id="btn-cancel-edit" class="btn btn-secondary">&#x2715; CANCEL</button>
+          </div>
+        </div>
+
+        <!-- Loading indicator -->
+        <div id="landmark-loading" class="loading-msg" style="display:none">
+          <span class="blink">&#x258C;</span> Drafting at the campfire...
+        </div>
+      </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════
@@ -739,11 +838,168 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Stubs — replaced by later steps
-    function showLandmarkScreen() { showScreen('landmark'); }
-    function showCampfireScreen(draft) { showScreen('campfire'); }
+    // Pending draft — set by landmark, consumed by campfire
+    let pendingDraft = null;
+
+    function showCampfireScreen(draft) {
+      pendingDraft = draft;
+      showScreen('campfire');
+      if (typeof initCampfireScreen === 'function') initCampfireScreen(draft);
+    }
     function showCompleteScreen() { showScreen('complete'); }
     function showRosterScreen() { showScreen('roster'); initRosterScreen(); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       LANDMARK SCREEN
+    ═══════════════════════════════════════════════════════════════ */
+
+    function showLandmarkScreen() {
+      showScreen('landmark');
+
+      const person    = state.currentPerson;
+      const idx       = state.currentQuestionIndex;
+      const questions = state.roster[person];
+      const q         = questions[idx];
+
+      // Trail event flavor text
+      document.getElementById('landmark-event').textContent = '~ ' + randomTrailEvent() + ' ~';
+
+      // Progress indicator
+      document.getElementById('landmark-progress').textContent =
+        'LANDMARK ' + (idx + 1) + ' OF ' + questions.length + ' — ' + person;
+
+      // Question
+      document.getElementById('landmark-question').textContent = q.question;
+
+      // Self-review signpost
+      const srSection = document.getElementById('landmark-self-review-section');
+      if (q.selfReview) {
+        srSection.style.display = '';
+        document.getElementById('landmark-self-review').textContent = q.selfReview;
+      } else {
+        srSection.style.display = 'none';
+      }
+
+      // Choose flow based on pre-existing manager reflection
+      if (q.managerReflection) {
+        showExistingDraftFlow(q.managerReflection);
+      } else {
+        showNotesFlow(null);
+      }
+    }
+
+    function showExistingDraftFlow(existingDraft) {
+      document.getElementById('landmark-existing-draft').style.display = '';
+      document.getElementById('landmark-notes-section').style.display  = 'none';
+      document.getElementById('landmark-edit-section').style.display   = 'none';
+      document.getElementById('landmark-error').style.display          = 'none';
+      document.getElementById('landmark-existing-text').textContent    = existingDraft;
+    }
+
+    function showNotesFlow(previousDraft) {
+      document.getElementById('landmark-existing-draft').style.display = 'none';
+      document.getElementById('landmark-notes-section').style.display  = '';
+      document.getElementById('landmark-edit-section').style.display   = 'none';
+      document.getElementById('landmark-notes').value                  = '';
+      document.getElementById('landmark-error').style.display          = 'none';
+
+      const reviseRef = document.getElementById('landmark-revise-reference');
+      if (previousDraft) {
+        reviseRef.style.display = '';
+        document.getElementById('landmark-revise-text').textContent = previousDraft;
+      } else {
+        reviseRef.style.display = 'none';
+      }
+    }
+
+    function showInlineEditFlow(prefillText) {
+      document.getElementById('landmark-existing-draft').style.display = 'none';
+      document.getElementById('landmark-notes-section').style.display  = 'none';
+      document.getElementById('landmark-edit-section').style.display   = '';
+      document.getElementById('landmark-edit-text').value              = prefillText || '';
+    }
+
+    function initLandmarkScreen() {
+      // Keep button
+      document.getElementById('btn-keep').addEventListener('click', function() {
+        const q = state.roster[state.currentPerson][state.currentQuestionIndex];
+        saveAnswer(state.currentPerson, state.currentQuestionIndex, q.managerReflection);
+        advanceQuestion();
+      });
+
+      // Revise button
+      document.getElementById('btn-revise').addEventListener('click', function() {
+        const q = state.roster[state.currentPerson][state.currentQuestionIndex];
+        showNotesFlow(q.managerReflection);
+      });
+
+      // Edit button
+      document.getElementById('btn-edit-existing').addEventListener('click', function() {
+        const q = state.roster[state.currentPerson][state.currentQuestionIndex];
+        showInlineEditFlow(q.managerReflection);
+      });
+
+      // Draft it button
+      document.getElementById('btn-draft-it').addEventListener('click', function() {
+        const notes = document.getElementById('landmark-notes').value.trim();
+        if (!notes) {
+          const errEl = document.getElementById('landmark-error');
+          errEl.textContent = 'Please add some notes first.';
+          errEl.style.display = '';
+          return;
+        }
+        const q = state.roster[state.currentPerson][state.currentQuestionIndex];
+        const reviseRef = document.getElementById('landmark-revise-reference');
+        const previousDraft = reviseRef.style.display !== 'none'
+          ? document.getElementById('landmark-revise-text').textContent
+          : null;
+
+        document.getElementById('landmark-loading').style.display = '';
+        document.getElementById('btn-draft-it').disabled = true;
+        document.getElementById('landmark-error').style.display = 'none';
+
+        callDraftAPI({
+          question:          q.question,
+          self_review:       q.selfReview,
+          notes:             notes,
+          previous_draft:    previousDraft || null,
+          tone_instruction:  null,
+        }).then(function(draft) {
+          document.getElementById('landmark-loading').style.display = 'none';
+          document.getElementById('btn-draft-it').disabled = false;
+          showCampfireScreen(draft);
+        }).catch(function(err) {
+          document.getElementById('landmark-loading').style.display = 'none';
+          document.getElementById('btn-draft-it').disabled = false;
+          const errEl = document.getElementById('landmark-error');
+          errEl.textContent = 'Draft failed: ' + err.message;
+          errEl.style.display = '';
+        });
+      });
+
+      // Skip button
+      document.getElementById('btn-skip-landmark').addEventListener('click', function() {
+        saveAnswer(state.currentPerson, state.currentQuestionIndex, '(Skipped)');
+        advanceQuestion();
+      });
+
+      // Save edit button
+      document.getElementById('btn-save-edit').addEventListener('click', function() {
+        const text = document.getElementById('landmark-edit-text').value.trim();
+        saveAnswer(state.currentPerson, state.currentQuestionIndex, text || '(No answer entered)');
+        advanceQuestion();
+      });
+
+      // Cancel edit button
+      document.getElementById('btn-cancel-edit').addEventListener('click', function() {
+        const q = state.roster[state.currentPerson][state.currentQuestionIndex];
+        if (q.managerReflection) {
+          showExistingDraftFlow(q.managerReflection);
+        } else {
+          showNotesFlow(null);
+        }
+      });
+    }
 
     /* ═══════════════════════════════════════════════════════════════
        LABELED-BLOCK PARSER
@@ -1172,8 +1428,8 @@
     ═══════════════════════════════════════════════════════════════ */
     (function init() {
       // Screen router is ready; state machine is initialized.
-      // Individual screen builders will be attached by subsequent steps.
       console.log('[Performance Trail] Shell initialized. Screens: roster, landmark, campfire, complete.');
+      initLandmarkScreen();
       initRosterScreen();
     })();
   </script>
