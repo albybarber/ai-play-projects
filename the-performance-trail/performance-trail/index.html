@@ -667,6 +667,18 @@
     .blink { animation: blink-cursor 1s step-start infinite; }
 
     /* ═══════════════════════════════════════════════════════════
+       Campfire screen additions
+    ═══════════════════════════════════════════════════════════ */
+    .tone-tweaks { margin-top: 1rem; }
+    .btn-tone {
+      font-size: 0.65em; padding: 0.4rem 0.7rem;
+      background: #e8d5a3; border: 2px solid #8b4513; color: #3d2b1f;
+      cursor: pointer; border-radius: 3px; transition: background 0.1s;
+    }
+    .btn-tone:hover { background: #c17f2a; color: #f5e6c8; }
+    .copy-feedback { margin-left: 0.75rem; color: #2d6a2d; font-size: 0.8em; font-weight: bold; }
+
+    /* ═══════════════════════════════════════════════════════════
        Responsive adjustments
     ═══════════════════════════════════════════════════════════ */
     @media (max-width: 600px) {
@@ -799,7 +811,70 @@
          Screen 3: Campfire (draft review + tone controls)
     ═══════════════════════════════════════════════════════════ -->
     <div id="screen-campfire" class="screen">
-      <p>Loading...</p>
+      <div class="panel">
+        <h2 class="panel-title">&#x2B21; THE CAMPFIRE &#x2B21;</h2>
+        <div id="campfire-progress" class="progress-text"></div>
+
+        <!-- Draft display -->
+        <div class="campfire-label">CLAUDE'S DRAFT</div>
+        <div id="campfire-draft-text" class="draft-text"></div>
+
+        <!-- Primary action buttons -->
+        <div class="button-row">
+          <button id="btn-accept" class="btn btn-primary">&#x2713; ACCEPT</button>
+          <button id="btn-revise-campfire" class="btn btn-secondary">&#x21BB; REVISE</button>
+          <button id="btn-edit-hand" class="btn btn-secondary">&#x270E; EDIT BY HAND</button>
+          <button id="btn-skip-campfire" class="btn btn-ghost">&#x2192; SKIP</button>
+        </div>
+
+        <!-- Copy button -->
+        <div style="margin-top: 0.5rem;">
+          <button id="btn-copy-draft" class="btn btn-ghost">&#x2398; COPY DRAFT</button>
+          <span id="copy-feedback" class="copy-feedback" style="display:none">Copied!</span>
+        </div>
+
+        <!-- Tone tweaks -->
+        <div class="tone-tweaks">
+          <div class="campfire-label" style="margin-top: 1.5rem;">ONE-CLICK TWEAKS</div>
+          <div class="button-row">
+            <button class="btn btn-tone" data-tone="Make this more direct and concise.">More Direct</button>
+            <button class="btn btn-tone" data-tone="Make this shorter — reduce to 2-3 sentences max.">More Concise</button>
+            <button class="btn btn-tone" data-tone="Make this more encouraging and positive in tone.">More Encouraging</button>
+            <button class="btn btn-tone" data-tone="Add more detail and specific examples based on the notes.">Add Detail</button>
+          </div>
+        </div>
+
+        <!-- Revise section (hidden by default) -->
+        <div id="campfire-revise-section" style="display:none">
+          <label class="field-label" for="campfire-revise-notes">ADD MORE NOTES</label>
+          <div class="textarea-with-mic">
+            <textarea id="campfire-revise-notes" placeholder="Add more context, corrections, or additional thoughts..."></textarea>
+            <!-- mic button added in Step 8 -->
+          </div>
+          <div class="button-row">
+            <button id="btn-redraft" class="btn btn-primary">&#x26A1; REDRAFT</button>
+            <button id="btn-cancel-revise" class="btn btn-secondary">&#x2715; CANCEL</button>
+          </div>
+        </div>
+
+        <!-- Edit by hand section (hidden by default) -->
+        <div id="campfire-edit-section" style="display:none">
+          <label class="field-label" for="campfire-edit-text">YOUR FINAL ANSWER</label>
+          <textarea id="campfire-edit-text"></textarea>
+          <div class="button-row">
+            <button id="btn-save-hand-edit" class="btn btn-primary">&#x2713; SAVE</button>
+            <button id="btn-cancel-edit-campfire" class="btn btn-secondary">&#x2715; CANCEL</button>
+          </div>
+        </div>
+
+        <!-- Loading indicator -->
+        <div id="campfire-loading" class="loading-msg" style="display:none">
+          <span class="blink">&#x258C;</span> Redrafting at the campfire...
+        </div>
+
+        <!-- Error message -->
+        <p id="campfire-error" class="error-msg" style="display:none"></p>
+      </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════
@@ -1423,6 +1498,166 @@
     });
 
     /* ═══════════════════════════════════════════════════════════════
+       CAMPFIRE SCREEN
+    ═══════════════════════════════════════════════════════════════ */
+
+    /**
+     * Reset and populate the campfire screen with a new draft.
+     * Called by showCampfireScreen(draft) each time the screen is shown.
+     * @param {string} draft
+     */
+    function initCampfireScreen(draft) {
+      // Reset all sub-sections
+      document.getElementById('campfire-revise-section').style.display = 'none';
+      document.getElementById('campfire-edit-section').style.display = 'none';
+      document.getElementById('campfire-loading').style.display = 'none';
+      document.getElementById('campfire-error').style.display = 'none';
+      document.getElementById('copy-feedback').style.display = 'none';
+
+      // Show the draft
+      document.getElementById('campfire-draft-text').textContent = draft;
+
+      // Progress text
+      const person = state.currentPerson;
+      const idx    = state.currentQuestionIndex;
+      const total  = state.roster[person].length;
+      document.getElementById('campfire-progress').textContent =
+        'Q ' + (idx + 1) + ' OF ' + total + ' — ' + person;
+    }
+
+    /** Show/hide the loading indicator and disable/enable all campfire buttons. */
+    function setLoadingCampfire(loading) {
+      document.getElementById('campfire-loading').style.display = loading ? '' : 'none';
+      document.querySelectorAll('#screen-campfire .btn').forEach(function(b) {
+        b.disabled = loading;
+      });
+    }
+
+    /** Display an error message on the campfire screen. */
+    function showCampfireError(msg) {
+      const el = document.getElementById('campfire-error');
+      el.textContent = msg;
+      el.style.display = '';
+    }
+
+    /**
+     * Wire up all button handlers for the campfire screen.
+     * Called once at page load.
+     */
+    function initCampfireHandlers() {
+      // Accept — save current draft and advance
+      document.getElementById('btn-accept').addEventListener('click', function() {
+        const draft = document.getElementById('campfire-draft-text').textContent;
+        saveAnswer(state.currentPerson, state.currentQuestionIndex, draft);
+        advanceQuestion();
+      });
+
+      // Revise — show the revise notes section
+      document.getElementById('btn-revise-campfire').addEventListener('click', function() {
+        document.getElementById('campfire-revise-section').style.display = '';
+        document.getElementById('campfire-revise-notes').value = '';
+        document.getElementById('campfire-edit-section').style.display = 'none';
+        document.getElementById('campfire-error').style.display = 'none';
+      });
+
+      // Redraft — call API with extra notes
+      document.getElementById('btn-redraft').addEventListener('click', function() {
+        const moreNotes = document.getElementById('campfire-revise-notes').value.trim();
+        if (!moreNotes) {
+          showCampfireError('Please add some notes before redrafting.');
+          return;
+        }
+        const q = state.roster[state.currentPerson][state.currentQuestionIndex];
+        const currentDraft = document.getElementById('campfire-draft-text').textContent;
+
+        setLoadingCampfire(true);
+        callDraftAPI({
+          question:         q.question,
+          self_review:      q.selfReview,
+          notes:            moreNotes,
+          previous_draft:   currentDraft,
+          tone_instruction: null,
+        }).then(function(newDraft) {
+          setLoadingCampfire(false);
+          pendingDraft = newDraft;
+          document.getElementById('campfire-draft-text').textContent = newDraft;
+          document.getElementById('campfire-revise-section').style.display = 'none';
+          document.getElementById('campfire-revise-notes').value = '';
+        }).catch(function(err) {
+          setLoadingCampfire(false);
+          showCampfireError('Redraft failed: ' + err.message);
+        });
+      });
+
+      // Cancel revise
+      document.getElementById('btn-cancel-revise').addEventListener('click', function() {
+        document.getElementById('campfire-revise-section').style.display = 'none';
+      });
+
+      // Edit by hand — show the edit textarea pre-filled with current draft
+      document.getElementById('btn-edit-hand').addEventListener('click', function() {
+        document.getElementById('campfire-edit-section').style.display = '';
+        document.getElementById('campfire-edit-text').value =
+          document.getElementById('campfire-draft-text').textContent;
+        document.getElementById('campfire-revise-section').style.display = 'none';
+        document.getElementById('campfire-error').style.display = 'none';
+      });
+
+      // Save hand edit — save whatever the user typed and advance
+      document.getElementById('btn-save-hand-edit').addEventListener('click', function() {
+        const text = document.getElementById('campfire-edit-text').value.trim();
+        saveAnswer(state.currentPerson, state.currentQuestionIndex, text || pendingDraft);
+        advanceQuestion();
+      });
+
+      // Cancel edit campfire
+      document.getElementById('btn-cancel-edit-campfire').addEventListener('click', function() {
+        document.getElementById('campfire-edit-section').style.display = 'none';
+      });
+
+      // Skip
+      document.getElementById('btn-skip-campfire').addEventListener('click', function() {
+        saveAnswer(state.currentPerson, state.currentQuestionIndex, '(Skipped)');
+        advanceQuestion();
+      });
+
+      // Copy draft to clipboard
+      document.getElementById('btn-copy-draft').addEventListener('click', function() {
+        const draft = document.getElementById('campfire-draft-text').textContent;
+        navigator.clipboard.writeText(draft).then(function() {
+          const fb = document.getElementById('copy-feedback');
+          fb.style.display = 'inline';
+          setTimeout(function() { fb.style.display = 'none'; }, 2000);
+        });
+      });
+
+      // Tone tweak buttons
+      document.querySelectorAll('.btn-tone').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          const toneInstruction = btn.dataset.tone;
+          const currentDraft = document.getElementById('campfire-draft-text').textContent;
+          const q = state.roster[state.currentPerson][state.currentQuestionIndex];
+
+          setLoadingCampfire(true);
+          callDraftAPI({
+            question:         q.question,
+            self_review:      q.selfReview,
+            notes:            null,
+            previous_draft:   currentDraft,
+            tone_instruction: toneInstruction,
+          }).then(function(newDraft) {
+            setLoadingCampfire(false);
+            pendingDraft = newDraft;
+            document.getElementById('campfire-draft-text').textContent = newDraft;
+          }).catch(function(err) {
+            setLoadingCampfire(false);
+            showCampfireError('Tone tweak failed: ' + err.message);
+          });
+        });
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
        INIT — Steps 4-9 will populate the individual screens.
        For now, the shell is in place and the router is wired.
     ═══════════════════════════════════════════════════════════════ */
@@ -1430,6 +1665,7 @@
       // Screen router is ready; state machine is initialized.
       console.log('[Performance Trail] Shell initialized. Screens: roster, landmark, campfire, complete.');
       initLandmarkScreen();
+      initCampfireHandlers();
       initRosterScreen();
     })();
   </script>
