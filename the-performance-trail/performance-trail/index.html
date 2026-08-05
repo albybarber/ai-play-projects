@@ -667,6 +667,29 @@
     .blink { animation: blink-cursor 1s step-start infinite; }
 
     /* ═══════════════════════════════════════════════════════════
+       Complete screen additions
+    ═══════════════════════════════════════════════════════════ */
+    .complete-person {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 1em; color: #8b4513; margin-bottom: 1rem;
+    }
+    .qa-list { margin: 1.5rem 0; }
+    .qa-item {
+      border-bottom: 2px solid #e0c88a; padding: 1rem 0;
+      margin-bottom: 0.5rem;
+    }
+    .qa-item:last-child { border-bottom: none; }
+    .qa-question {
+      font-family: 'Press Start 2P', monospace; font-size: 0.7em;
+      color: #8b4513; margin-bottom: 0.75rem; line-height: 1.5;
+    }
+    .qa-answer {
+      font-size: 0.95em; line-height: 1.6; color: #3d2b1f;
+      background: #fff9ef; border-left: 3px solid #c17f2a;
+      padding: 0.75rem 1rem; border-radius: 0 4px 4px 0;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
        Campfire screen additions
     ═══════════════════════════════════════════════════════════ */
     .tone-tweaks { margin-top: 1rem; }
@@ -881,7 +904,26 @@
          Screen 4: Complete (all questions answered)
     ═══════════════════════════════════════════════════════════ -->
     <div id="screen-complete" class="screen">
-      <p>Loading...</p>
+      <div class="panel">
+        <h2 class="panel-title">&#x2B21; FORT REVIEW COMPLETE &#x2B21;</h2>
+        <div id="complete-person-name" class="complete-person"></div>
+        <p class="flavor-text">The wagon has arrived. Your review is ready.</p>
+
+        <!-- Q&A list -->
+        <div id="complete-qa-list" class="qa-list"></div>
+
+        <!-- Action buttons -->
+        <div class="button-row" style="margin-top: 1.5rem;">
+          <button id="btn-copy-all" class="btn btn-primary">&#x2398; COPY ALL</button>
+          <button id="btn-download-md" class="btn btn-secondary">&#x2B07; DOWNLOAD .MD</button>
+        </div>
+        <span id="copy-all-feedback" class="copy-feedback" style="display:none">Copied!</span>
+
+        <!-- Back to roster -->
+        <div class="button-row" style="margin-top: 1rem;">
+          <button id="btn-back-roster" class="btn btn-ghost">&#x2190; BACK TO ROSTER</button>
+        </div>
+      </div>
     </div>
 
   </div><!-- /#app -->
@@ -921,7 +963,10 @@
       showScreen('campfire');
       if (typeof initCampfireScreen === 'function') initCampfireScreen(draft);
     }
-    function showCompleteScreen() { showScreen('complete'); }
+    function showCompleteScreen() {
+      showScreen('complete');
+      initCompleteScreen();
+    }
     function showRosterScreen() { showScreen('roster'); initRosterScreen(); }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -1658,6 +1703,97 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════
+       COMPLETE SCREEN
+    ═══════════════════════════════════════════════════════════════ */
+
+    /**
+     * Render Q&As for the current person into the complete screen.
+     * Called each time showCompleteScreen() fires.
+     */
+    function initCompleteScreen() {
+      const person = state.currentPerson;
+      const questions = state.roster[person];
+      const answers = state.answers[person] || {};
+
+      document.getElementById('complete-person-name').textContent = person;
+
+      const listEl = document.getElementById('complete-qa-list');
+      listEl.innerHTML = '';  // clear
+
+      questions.forEach(function(q, idx) {
+        const answer = answers[idx] || q.managerReflection || '(No answer)';
+
+        const qEl = document.createElement('div');
+        qEl.className = 'qa-item';
+
+        const questionEl = document.createElement('div');
+        questionEl.className = 'qa-question';
+        questionEl.textContent = q.question;
+
+        const answerEl = document.createElement('div');
+        answerEl.className = 'qa-answer';
+        answerEl.textContent = answer;
+
+        qEl.appendChild(questionEl);
+        qEl.appendChild(answerEl);
+        listEl.appendChild(qEl);
+      });
+    }
+
+    /**
+     * Generate a Markdown string for a person's completed review.
+     * @param {string} person
+     * @returns {string}
+     */
+    function generateMarkdown(person) {
+      const questions = state.roster[person];
+      const answers = state.answers[person] || {};
+
+      const lines = ['# Performance Review: ' + person + '\n'];
+
+      questions.forEach(function(q, idx) {
+        const answer = answers[idx] || q.managerReflection || '(No answer)';
+        lines.push('### ' + q.question + '\n');
+        lines.push(answer + '\n');
+      });
+
+      return lines.join('\n');
+    }
+
+    /**
+     * Wire up all button handlers for the complete screen.
+     * Called once at page load.
+     */
+    function initCompleteHandlers() {
+      // Copy All
+      document.getElementById('btn-copy-all').addEventListener('click', function() {
+        const md = generateMarkdown(state.currentPerson);
+        navigator.clipboard.writeText(md).then(function() {
+          const fb = document.getElementById('copy-all-feedback');
+          fb.style.display = 'inline';
+          setTimeout(function() { fb.style.display = 'none'; }, 2000);
+        });
+      });
+
+      // Download .md
+      document.getElementById('btn-download-md').addEventListener('click', function() {
+        const md = generateMarkdown(state.currentPerson);
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = state.currentPerson.replace(/\s+/g, '_') + '_review.md';
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // Back to Roster
+      document.getElementById('btn-back-roster').addEventListener('click', function() {
+        showRosterScreen();
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
        INIT — Steps 4-9 will populate the individual screens.
        For now, the shell is in place and the router is wired.
     ═══════════════════════════════════════════════════════════════ */
@@ -1666,6 +1802,7 @@
       console.log('[Performance Trail] Shell initialized. Screens: roster, landmark, campfire, complete.');
       initLandmarkScreen();
       initCampfireHandlers();
+      initCompleteHandlers();
       initRosterScreen();
     })();
   </script>
