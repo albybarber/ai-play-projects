@@ -535,6 +535,106 @@
     }
 
     /* ═══════════════════════════════════════════════════════════
+       Roster screen additions
+    ═══════════════════════════════════════════════════════════ */
+    .flavor-text {
+      font-size: 14px;
+      color: var(--ink-light);
+      font-style: italic;
+      margin-bottom: 20px;
+    }
+
+    .field-label {
+      font-family: var(--pixel);
+      font-size: 8px;
+      color: var(--ink-light);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    textarea#roster-input {
+      width: 100%;
+      min-height: 200px;
+      font-family: monospace;
+      font-size: 13px;
+      background: var(--parchment);
+      border: 2px solid var(--saddle);
+      border-radius: var(--radius);
+      color: var(--ink);
+      padding: 14px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    textarea#roster-input:focus {
+      outline: none;
+      border-color: var(--golden);
+      box-shadow: 0 0 0 2px rgba(193,127,42,0.25);
+    }
+
+    .error-msg {
+      color: var(--rust);
+      font-family: var(--pixel);
+      font-size: 8px;
+      margin-top: 12px;
+      line-height: 1.7;
+    }
+
+    .btn-secondary {
+      background: var(--parchment-dk);
+      color: var(--ink);
+      border: 2px solid var(--ink-light);
+    }
+
+    .btn-secondary:hover {
+      background: var(--parchment);
+      border-color: var(--saddle);
+    }
+
+    .roster-person-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--parchment-dk);
+      background: var(--cream);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+      transition: background 0.12s, border-color 0.12s;
+      flex-wrap: wrap;
+    }
+
+    .roster-person-row:hover {
+      background: var(--parchment);
+    }
+
+    .roster-person-row .roster-name {
+      font-family: var(--pixel);
+      font-size: 9px;
+      color: var(--ink);
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .roster-person-row .roster-meta {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .btn-row-right {
+      margin-left: auto;
+    }
+
+    /* Badge status colors for roster */
+    .badge-not-started { background: #666;    color: white; }
+    .badge-has-drafts  { background: #8b4513; color: #f5e6c8; }
+    .badge-in-progress { background: #c17f2a; color: #2c1810; }
+    .badge-done        { background: #2d6a2d; color: white; }
+
+    /* ═══════════════════════════════════════════════════════════
        Responsive adjustments
     ═══════════════════════════════════════════════════════════ */
     @media (max-width: 600px) {
@@ -569,7 +669,28 @@
          Screen 1: Roster (paste input + person list)
     ═══════════════════════════════════════════════════════════ -->
     <div id="screen-roster" class="screen active">
-      <p>Loading...</p>
+      <div class="panel">
+        <h2 class="panel-title">&#x2B21; FORT ONBOARDING &#x2B21;</h2>
+        <p class="flavor-text">The wagon train assembles. Load your roster to begin the trail.</p>
+
+        <!-- Input state (shown initially) -->
+        <div id="roster-input-state">
+          <label class="field-label" for="roster-input">PASTE YOUR ROSTER</label>
+          <textarea id="roster-input" placeholder="Person: Jane Doe&#10;Question: What were your key accomplishments?&#10;Self Review: ...&#10;Manager Reflection:&#10;---"></textarea>
+          <div class="btn-row">
+            <button id="btn-load-roster" class="btn btn-primary">&#x25B6; LOAD ROSTER</button>
+          </div>
+          <p id="roster-error" class="error-msg" style="display:none"></p>
+        </div>
+
+        <!-- List state (hidden until roster loaded) -->
+        <div id="roster-list-state" style="display:none">
+          <div id="roster-person-list"></div>
+          <div class="btn-row">
+            <button id="btn-clear-roster" class="btn btn-secondary">&#x21BA; LOAD NEW ROSTER</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════
@@ -626,7 +747,7 @@
     function showLandmarkScreen() { showScreen('landmark'); }
     function showCampfireScreen(draft) { showScreen('campfire'); }
     function showCompleteScreen() { showScreen('complete'); }
-    function showRosterScreen() { showScreen('roster'); }
+    function showRosterScreen() { showScreen('roster'); initRosterScreen(); }
 
     /* ═══════════════════════════════════════════════════════════════
        LABELED-BLOCK PARSER
@@ -924,6 +1045,132 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════
+       ROSTER SCREEN
+    ═══════════════════════════════════════════════════════════════ */
+
+    /**
+     * Show an error message below the load button.
+     * @param {string} msg
+     */
+    function showRosterError(msg) {
+      const el = document.getElementById('roster-error');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function hideRosterError() {
+      const el = document.getElementById('roster-error');
+      el.style.display = 'none';
+      el.textContent = '';
+    }
+
+    /**
+     * Rebuild the person list and switch to list state.
+     */
+    function renderRosterList() {
+      const listContainer = document.getElementById('roster-person-list');
+      listContainer.innerHTML = '';
+
+      for (const personName of state.personList) {
+        const questions  = state.roster[personName] || [];
+        const status     = getPersonStatus(personName);
+
+        const row = document.createElement('div');
+        row.className = 'roster-person-row';
+
+        // Name
+        const nameEl = document.createElement('span');
+        nameEl.className = 'roster-name';
+        nameEl.textContent = personName;
+        row.appendChild(nameEl);
+
+        // Badge
+        const badge = makeBadge(status);
+        row.appendChild(badge);
+
+        // Question count
+        const metaEl = document.createElement('span');
+        metaEl.className = 'roster-meta';
+        metaEl.textContent = questions.length + ' question' + (questions.length !== 1 ? 's' : '');
+        row.appendChild(metaEl);
+
+        // Action button — label depends on status
+        let btnLabel;
+        if (status === 'done') {
+          btnLabel = '▶ VIEW RESULTS';
+        } else if (status === 'in-progress' || status === 'has-drafts') {
+          btnLabel = '▶ CONTINUE';
+        } else {
+          btnLabel = '▶ START REVIEW';
+        }
+
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-primary btn-sm btn-row-right';
+        btn.textContent = btnLabel;
+        // Capture personName in closure
+        btn.addEventListener('click', (function(name) {
+          return function() { startPerson(name); };
+        })(personName));
+        row.appendChild(btn);
+
+        listContainer.appendChild(row);
+      }
+
+      // Switch visibility
+      document.getElementById('roster-input-state').style.display = 'none';
+      document.getElementById('roster-list-state').style.display  = 'block';
+    }
+
+    /**
+     * Wire up the roster screen. Called each time the screen becomes visible.
+     */
+    function initRosterScreen() {
+      // If roster is already loaded, show the list immediately
+      if (state.personList.length > 0) {
+        renderRosterList();
+      } else {
+        document.getElementById('roster-input-state').style.display = 'block';
+        document.getElementById('roster-list-state').style.display  = 'none';
+        hideRosterError();
+      }
+    }
+
+    // Wire up "Load Roster" button (once, at page load)
+    document.getElementById('btn-load-roster').addEventListener('click', function() {
+      const text = document.getElementById('roster-input').value.trim();
+      hideRosterError();
+      if (!text) {
+        showRosterError('Please paste your roster text above.');
+        return;
+      }
+      try {
+        const { roster, personList } = parseRoster(text);
+        if (personList.length === 0) {
+          showRosterError('No people found. Check the format: Person: / Question: / Self Review: / Manager Reflection: separated by ---');
+          return;
+        }
+        state.roster     = roster;
+        state.personList = personList;
+        state.rawInput   = text;
+        renderRosterList();
+      } catch (e) {
+        showRosterError('Parse error: ' + e.message);
+      }
+    });
+
+    // Wire up "Load New Roster" button (once, at page load)
+    document.getElementById('btn-clear-roster').addEventListener('click', function() {
+      state.roster     = {};
+      state.personList = [];
+      state.rawInput   = '';
+      state.answers    = {};
+      document.getElementById('roster-input').value = '';
+      document.getElementById('roster-list-state').style.display  = 'none';
+      document.getElementById('roster-input-state').style.display = 'block';
+      hideRosterError();
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
        INIT — Steps 4-9 will populate the individual screens.
        For now, the shell is in place and the router is wired.
     ═══════════════════════════════════════════════════════════════ */
@@ -931,6 +1178,7 @@
       // Screen router is ready; state machine is initialized.
       // Individual screen builders will be attached by subsequent steps.
       console.log('[Performance Trail] Shell initialized. Screens: roster, landmark, campfire, complete.');
+      initRosterScreen();
     })();
   </script>
 </body>
