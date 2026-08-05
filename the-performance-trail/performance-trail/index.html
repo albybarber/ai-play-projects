@@ -1089,6 +1089,7 @@
 
       // Draft it button
       document.getElementById('btn-draft-it').addEventListener('click', function() {
+        if (window._stopVoiceRecording) window._stopVoiceRecording();
         const notes = document.getElementById('landmark-notes').value.trim();
         if (!notes) {
           const errEl = document.getElementById('landmark-error');
@@ -1635,6 +1636,7 @@
 
       // Redraft — call API with extra notes
       document.getElementById('btn-redraft').addEventListener('click', function() {
+        if (window._stopVoiceRecording) window._stopVoiceRecording();
         const moreNotes = document.getElementById('campfire-revise-notes').value.trim();
         if (!moreNotes) {
           showCampfireError('Please add some notes before redrafting.');
@@ -1852,6 +1854,9 @@
         activeTarget = null;
         committedText = '';
       }
+
+      // Export stopRecording globally so it can be called from other handlers
+      window._stopVoiceRecording = stopRecording;
 
       function startRecording(btn, targetId) {
         stopRecording();
