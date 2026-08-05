@@ -656,6 +656,34 @@
     .draft-dim { opacity: 0.7; font-style: italic; }
     .loading-msg { text-align: center; padding: 1.5rem; color: #8b4513; font-family: 'Press Start 2P', monospace; font-size: 0.8em; }
     .textarea-with-mic { position: relative; }
+    .btn-mic {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: none;
+      border: 2px solid #8b4513;
+      border-radius: 50%;
+      width: 2.2rem;
+      height: 2.2rem;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-mic:hover { background: #f0ddb0; }
+    .btn-mic.recording {
+      background: #c0392b;
+      border-color: #c0392b;
+      animation: mic-pulse 1s infinite;
+    }
+    @keyframes mic-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.5); }
+      70%  { box-shadow: 0 0 0 8px rgba(192, 57, 43, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0); }
+    }
+    #landmark-notes, #campfire-revise-notes { padding-right: 3rem; }
     .btn-ghost { background: transparent; border: 2px solid #8b4513; color: #8b4513; }
     .btn-ghost:hover { background: #f0ddb0; }
     .button-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 1rem; }
@@ -804,7 +832,7 @@
           <label class="field-label" for="landmark-notes">YOUR THOUGHTS</label>
           <div class="textarea-with-mic">
             <textarea id="landmark-notes" placeholder="Speak or type your unfiltered thoughts...&#10;&#10;Rambling is fine — Claude will clean it up."></textarea>
-            <!-- mic button will be added in Step 8 -->
+            <button class="btn-mic" data-target="landmark-notes" title="Click to dictate" aria-label="Start voice input">🎤</button>
           </div>
           <div class="button-row">
             <button id="btn-draft-it" class="btn btn-primary">&#x26A1; DRAFT IT</button>
@@ -872,7 +900,7 @@
           <label class="field-label" for="campfire-revise-notes">ADD MORE NOTES</label>
           <div class="textarea-with-mic">
             <textarea id="campfire-revise-notes" placeholder="Add more context, corrections, or additional thoughts..."></textarea>
-            <!-- mic button added in Step 8 -->
+            <button class="btn-mic" data-target="campfire-revise-notes" title="Click to dictate" aria-label="Start voice input">🎤</button>
           </div>
           <div class="button-row">
             <button id="btn-redraft" class="btn btn-primary">&#x26A1; REDRAFT</button>
@@ -1797,6 +1825,109 @@
        INIT — Steps 4-9 will populate the individual screens.
        For now, the shell is in place and the router is wired.
     ═══════════════════════════════════════════════════════════════ */
+    function initVoiceInput() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        document.querySelectorAll('.btn-mic').forEach(btn => {
+          btn.style.display = 'none';
+        });
+        return;
+      }
+
+      let activeRecognition = null;
+      let activeButton = null;
+      let activeTarget = null;
+      let committedText = '';
+
+      function stopRecording() {
+        if (activeRecognition) {
+          activeRecognition.stop();
+          activeRecognition = null;
+        }
+        if (activeButton) {
+          activeButton.classList.remove('recording');
+          activeButton = null;
+        }
+        activeTarget = null;
+        committedText = '';
+      }
+
+      function startRecording(btn, targetId) {
+        stopRecording();
+
+        const textarea = document.getElementById(targetId);
+        if (!textarea) return;
+
+        const existingText = textarea.value;
+        committedText = '';
+
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+          let interimTranscript = '';
+          let finalTranscript = '';
+
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript;
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+
+          if (finalTranscript) {
+            committedText += (committedText ? ' ' : '') + finalTranscript.trim();
+          }
+
+          const display = (existingText ? existingText.trimEnd() + '\n' : '') +
+                          (committedText || '') +
+                          (interimTranscript ? ' [' + interimTranscript + ']' : '');
+          textarea.value = display;
+          textarea.scrollTop = textarea.scrollHeight;
+        };
+
+        recognition.onerror = (event) => {
+          if (event.error === 'no-speech') return;
+          stopRecording();
+        };
+
+        recognition.onend = () => {
+          if (activeTarget === targetId) {
+            const ta = document.getElementById(targetId);
+            if (ta) {
+              ta.value = ta.value.replace(/\s*\[.*?\]/g, '').trim();
+            }
+          }
+          stopRecording();
+        };
+
+        activeRecognition = recognition;
+        activeButton = btn;
+        activeTarget = targetId;
+
+        btn.classList.add('recording');
+        recognition.start();
+      }
+
+      document.querySelectorAll('.btn-mic').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const targetId = btn.dataset.target;
+
+          if (activeButton === btn) {
+            stopRecording();
+          } else {
+            startRecording(btn, targetId);
+          }
+        });
+      });
+    }
+
     (function init() {
       // Screen router is ready; state machine is initialized.
       console.log('[Performance Trail] Shell initialized. Screens: roster, landmark, campfire, complete.');
@@ -1804,6 +1935,7 @@
       initCampfireHandlers();
       initCompleteHandlers();
       initRosterScreen();
+      initVoiceInput();
     })();
   </script>
 </body>
