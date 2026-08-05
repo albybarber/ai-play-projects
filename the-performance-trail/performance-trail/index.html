@@ -792,6 +792,20 @@
       flex-wrap: wrap;
     }
     .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.75em; }
+
+    /* ═══════════════════════════════════════════════════════════
+       Home screen
+    ═══════════════════════════════════════════════════════════ */
+    .home-person-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 0; border-bottom: 1px solid #333; flex-wrap: wrap;
+    }
+    .home-person-row:last-child { border-bottom: none; }
+    .home-person-name { font-family: 'Press Start 2P', monospace; font-size: 9px; color: #fff; flex: 0 0 auto; min-width: 160px; }
+    .home-progress-wrap { flex: 1 1 120px; min-width: 80px; }
+    .home-progress-track { height: 10px; background: #111; border: 1px solid #444; width: 100%; }
+    .home-progress-fill { height: 100%; background: #fff; }
+    .home-progress-label { font-family: 'Press Start 2P', monospace; font-size: 7px; color: #666; margin-top: 3px; }
   </style>
 </head>
 <body>
@@ -814,9 +828,22 @@
     </header>
 
     <!-- ═══════════════════════════════════════════════════════
+         Screen 0: Home (person list with progress)
+    ═══════════════════════════════════════════════════════════ -->
+    <div id="screen-home" class="screen">
+      <div class="panel">
+        <h2 class="panel-title">&#x2B21; THE TRAIL &#x2B21;</h2>
+        <div id="home-person-list"></div>
+        <div class="btn-row" style="margin-top: 1.5rem;">
+          <button id="btn-load-new-roster" class="btn btn-ghost">&#x21BA; LOAD NEW ROSTER</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
          Screen 1: Roster (paste input + person list)
     ═══════════════════════════════════════════════════════════ -->
-    <div id="screen-roster" class="screen active">
+    <div id="screen-roster" class="screen">
       <div class="panel">
         <h2 class="panel-title">&#x2B21; FORT ONBOARDING &#x2B21;</h2>
         <p class="flavor-text">The wagon train assembles. Load your roster to begin the trail.</p>
@@ -1093,7 +1120,79 @@
       showScreen('complete');
       initCompleteScreen();
     }
-    function showRosterScreen() { showScreen('roster'); initRosterScreen(); }
+    function showLoadScreen() { showScreen('roster'); initRosterScreen(); }
+    function showHomeScreen() { showScreen('home'); renderHomeScreen(); }
+    function showRosterScreen() {
+      if (state.personList.length > 0) {
+        showHomeScreen();
+      } else {
+        showLoadScreen();
+      }
+    }
+
+    function renderHomeScreen() {
+      const listContainer = document.getElementById('home-person-list');
+      listContainer.innerHTML = '';
+
+      for (const personName of state.personList) {
+        const questions     = state.roster[personName] || [];
+        const answers       = state.answers[personName] || {};
+        const answeredCount = Object.keys(answers).length;
+        const totalCount    = questions.length;
+        const status        = getPersonStatus(personName);
+
+        const row = document.createElement('div');
+        row.className = 'home-person-row';
+
+        // Name
+        const nameEl = document.createElement('div');
+        nameEl.className = 'home-person-name';
+        nameEl.textContent = personName;
+        row.appendChild(nameEl);
+
+        // Progress bar
+        const progressWrap = document.createElement('div');
+        progressWrap.className = 'home-progress-wrap';
+
+        const track = document.createElement('div');
+        track.className = 'home-progress-track';
+        const fill = document.createElement('div');
+        fill.className = 'home-progress-fill';
+        fill.style.width = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) + '%' : '0%';
+        track.appendChild(fill);
+        progressWrap.appendChild(track);
+
+        const label = document.createElement('div');
+        label.className = 'home-progress-label';
+        label.textContent = answeredCount + '/' + totalCount;
+        progressWrap.appendChild(label);
+
+        row.appendChild(progressWrap);
+
+        // Badge
+        row.appendChild(makeBadge(status));
+
+        // Action button
+        let btnLabel;
+        if (status === 'done') {
+          btnLabel = '▶ VIEW RESULTS';
+        } else if (status === 'in-progress' || status === 'has-drafts') {
+          btnLabel = '▶ CONTINUE';
+        } else {
+          btnLabel = '▶ START REVIEW';
+        }
+
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-primary btn-sm btn-row-right';
+        btn.textContent = btnLabel;
+        btn.addEventListener('click', (function(name) {
+          return function() { startPerson(name); };
+        })(personName));
+        row.appendChild(btn);
+
+        listContainer.appendChild(row);
+      }
+    }
 
     /* ═══════════════════════════════════════════════════════════════
        LANDMARK SCREEN
@@ -1615,14 +1714,10 @@
      * Wire up the roster screen. Called each time the screen becomes visible.
      */
     function initRosterScreen() {
-      // If roster is already loaded, show the list immediately
-      if (state.personList.length > 0) {
-        renderRosterList();
-      } else {
-        document.getElementById('roster-input-state').style.display = 'block';
-        document.getElementById('roster-list-state').style.display  = 'none';
-        hideRosterError();
-      }
+      // Load screen is now input-only; always show the paste textarea
+      document.getElementById('roster-input-state').style.display = 'block';
+      document.getElementById('roster-list-state').style.display  = 'none';
+      hideRosterError();
     }
 
     // Wire up "Load Roster" button (once, at page load)
@@ -1643,7 +1738,7 @@
         state.personList = personList;
         state.rawInput   = text;
         saveToStorage();
-        renderRosterList();
+        showHomeScreen();
       } catch (e) {
         showRosterError('Parse error: ' + e.message);
       }
@@ -2045,8 +2140,13 @@
       });
 
       document.getElementById('btn-start-fresh').addEventListener('click', () => {
+        state.roster     = {};
+        state.personList = [];
+        state.rawInput   = '';
+        state.answers    = {};
         clearStorage();
         banner.style.display = 'none';
+        showLoadScreen();
       });
     }
 
@@ -2063,27 +2163,51 @@
           state.currentQuestionIndex = saved.currentQuestionIndex || 0;
           showLandmarkScreen();
         } else {
-          showRosterScreen();
+          showHomeScreen();
         }
       } catch (e) {
         clearStorage();
-        showRosterScreen();
+        showLoadScreen();
       }
     }
 
     (function init() {
       // Screen router is ready; state machine is initialized.
-      console.log('[Performance Trail] Shell initialized. Screens: roster, landmark, campfire, complete.');
+      console.log('[Performance Trail] Shell initialized. Screens: home, roster, landmark, campfire, complete.');
       initLandmarkScreen();
       initCampfireHandlers();
       initCompleteHandlers();
+      // Pre-load saved state so home screen can render with progress
+      const _savedForInit = loadFromStorage();
+      if (_savedForInit && _savedForInit.rawInput) {
+        try {
+          const { roster, personList } = parseRoster(_savedForInit.rawInput);
+          state.roster     = roster;
+          state.personList = personList;
+          state.rawInput   = _savedForInit.rawInput;
+          state.answers    = _savedForInit.answers || {};
+        } catch (e) {
+          // corrupt saved data — ignore, will fall through to load screen
+        }
+      }
+
       checkAndShowResumeBanner();
-      initRosterScreen();
+
+      // Show home if roster loaded, else show load screen
+      if (state.personList.length > 0) {
+        showHomeScreen();
+      } else {
+        showLoadScreen();
+      }
+
       initVoiceInput();
 
       // Persistent back-to-roster navigation
       document.getElementById('btn-nav-roster-from-landmark').addEventListener('click', showRosterScreen);
       document.getElementById('btn-nav-roster-from-campfire').addEventListener('click', showRosterScreen);
+
+      // Home screen load-new-roster button
+      document.getElementById('btn-load-new-roster').addEventListener('click', showLoadScreen);
     })();
   </script>
 </body>
