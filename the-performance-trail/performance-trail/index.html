@@ -838,6 +838,14 @@
           <button id="btn-load-new-roster" class="btn btn-ghost">&#x21BA; LOAD NEW ROSTER</button>
         </div>
       </div>
+
+      <div class="panel" style="margin-top: 1rem;">
+        <h2 class="panel-title">&#x2B21; STYLE INSTRUCTIONS &#x2B21;</h2>
+        <p class="muted" style="margin-bottom: 1rem;">Tell Claude how to write. These are added to every draft call — use them to set tense, tone, person, length, or anything else.</p>
+        <label class="field-label" for="style-instructions">YOUR INSTRUCTIONS</label>
+        <textarea id="style-instructions" style="min-height: 100px;" placeholder="e.g. Always write in second person ('you delivered', 'your work'). Keep answers to 2-3 sentences. Avoid corporate jargon."></textarea>
+        <p class="muted" style="margin-top: 0.5rem; font-size: 16px;">Changes save automatically.</p>
+      </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════
@@ -1062,6 +1070,7 @@
       currentQuestionIndex: 0,
       answers:              {},   // { personName: { questionIndex: answerString } }
       rawInput:             '',   // the pasted labeled-block text (for localStorage)
+      styleInstructions:    '',   // custom writing instructions added to every draft call
     };
 
     const STORAGE_KEY = 'performanceTrail';
@@ -1073,6 +1082,7 @@
           answers: state.answers,
           currentPerson: state.currentPerson,
           currentQuestionIndex: state.currentQuestionIndex,
+          styleInstructions: state.styleInstructions,
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       } catch (e) {
@@ -1305,11 +1315,12 @@
         document.getElementById('landmark-error').style.display = 'none';
 
         callDraftAPI({
-          question:          q.question,
-          self_review:       q.selfReview,
-          notes:             notes,
-          previous_draft:    previousDraft || null,
-          tone_instruction:  null,
+          question:           q.question,
+          self_review:        q.selfReview,
+          notes:              notes,
+          previous_draft:     previousDraft || null,
+          tone_instruction:   null,
+          style_instructions: state.styleInstructions || null,
         }).then(function(draft) {
           document.getElementById('landmark-loading').style.display = 'none';
           document.getElementById('btn-draft-it').disabled = false;
@@ -1833,11 +1844,12 @@
 
         setLoadingCampfire(true);
         callDraftAPI({
-          question:         q.question,
-          self_review:      q.selfReview,
-          notes:            moreNotes,
-          previous_draft:   currentDraft,
-          tone_instruction: null,
+          question:           q.question,
+          self_review:        q.selfReview,
+          notes:              moreNotes,
+          previous_draft:     currentDraft,
+          tone_instruction:   null,
+          style_instructions: state.styleInstructions || null,
         }).then(function(newDraft) {
           setLoadingCampfire(false);
           pendingDraft = newDraft;
@@ -1901,11 +1913,12 @@
 
           setLoadingCampfire(true);
           callDraftAPI({
-            question:         q.question,
-            self_review:      q.selfReview,
-            notes:            null,
-            previous_draft:   currentDraft,
-            tone_instruction: toneInstruction,
+            question:           q.question,
+            self_review:        q.selfReview,
+            notes:              null,
+            previous_draft:     currentDraft,
+            tone_instruction:   toneInstruction,
+            style_instructions: state.styleInstructions || null,
           }).then(function(newDraft) {
             setLoadingCampfire(false);
             pendingDraft = newDraft;
@@ -2182,10 +2195,11 @@
       if (_savedForInit && _savedForInit.rawInput) {
         try {
           const { roster, personList } = parseRoster(_savedForInit.rawInput);
-          state.roster     = roster;
-          state.personList = personList;
-          state.rawInput   = _savedForInit.rawInput;
-          state.answers    = _savedForInit.answers || {};
+          state.roster              = roster;
+          state.personList          = personList;
+          state.rawInput            = _savedForInit.rawInput;
+          state.answers             = _savedForInit.answers || {};
+          state.styleInstructions   = _savedForInit.styleInstructions || '';
         } catch (e) {
           // corrupt saved data — ignore, will fall through to load screen
         }
@@ -2208,6 +2222,14 @@
 
       // Home screen load-new-roster button
       document.getElementById('btn-load-new-roster').addEventListener('click', showLoadScreen);
+
+      // Style instructions — sync textarea ↔ state, auto-save
+      const styleTA = document.getElementById('style-instructions');
+      styleTA.value = state.styleInstructions || '';
+      styleTA.addEventListener('input', function() {
+        state.styleInstructions = styleTA.value;
+        saveToStorage();
+      });
     })();
   </script>
 </body>

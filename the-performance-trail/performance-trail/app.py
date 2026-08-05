@@ -66,6 +66,7 @@ def api_draft():
     notes = data.get('notes', '') or ''
     previous_draft = data.get('previous_draft') or None
     tone_instruction = data.get('tone_instruction') or None
+    style_instructions = data.get('style_instructions') or None
 
     use_mock = os.environ.get('MOCK', '').lower() in ('1', 'true')
 
@@ -81,10 +82,13 @@ def api_draft():
         import anthropic
         client = anthropic.Anthropic(api_key=api_key)
         user_message = build_user_message(question, self_review, notes, previous_draft, tone_instruction)
+        system = SYSTEM_PROMPT
+        if style_instructions:
+            system += f"\n\nAdditional style instructions from the manager:\n{style_instructions}"
         message = client.messages.create(
             model='claude-sonnet-4-6',
             max_tokens=1024,
-            system=SYSTEM_PROMPT,
+            system=system,
             messages=[{'role': 'user', 'content': user_message}],
         )
         draft = message.content[0].text
