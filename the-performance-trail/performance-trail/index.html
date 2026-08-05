@@ -778,19 +778,6 @@
         font-size: 8px;
       }
     }
-    /* ═══════════════════════════════════════════════════════════
-       Resume banner
-    ═══════════════════════════════════════════════════════════ */
-    .resume-banner {
-      background: #111; color: #fff;
-      padding: 0.6rem 1.5rem; text-align: center;
-      font-family: 'Press Start 2P', monospace; font-size: 0.65em;
-      border-bottom: 2px solid #fff; position: sticky; top: 0; z-index: 100;
-    }
-    .resume-banner-inner {
-      display: flex; align-items: center; justify-content: center; gap: 1rem;
-      flex-wrap: wrap;
-    }
     .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.75em; }
 
     /* ═══════════════════════════════════════════════════════════
@@ -809,13 +796,6 @@
   </style>
 </head>
 <body>
-  <div id="resume-banner" class="resume-banner" style="display:none">
-    <div class="resume-banner-inner">
-      <span id="resume-banner-text">Previous session found.</span>
-      <button id="btn-resume" class="btn btn-primary btn-sm">&#x21BA; RESUME</button>
-      <button id="btn-start-fresh" class="btn btn-secondary btn-sm">&#x2715; START FRESH</button>
-    </div>
-  </div>
   <div id="app">
 
     <!-- ═══════════════════════════════════════════════════════
@@ -2150,57 +2130,6 @@
       });
     }
 
-    function checkAndShowResumeBanner() {
-      const saved = loadFromStorage();
-      if (!saved || !saved.rawInput) return;
-
-      const banner     = document.getElementById('resume-banner');
-      const bannerText = document.getElementById('resume-banner-text');
-
-      if (saved.currentPerson) {
-        bannerText.textContent = `Resume: ${saved.currentPerson} (Q${(saved.currentQuestionIndex || 0) + 1})`;
-      } else {
-        bannerText.textContent = 'Previous session found — resume?';
-      }
-
-      banner.style.display = '';
-
-      document.getElementById('btn-resume').addEventListener('click', () => {
-        resumeFromStorage(saved);
-        banner.style.display = 'none';
-      });
-
-      document.getElementById('btn-start-fresh').addEventListener('click', () => {
-        state.roster     = {};
-        state.personList = [];
-        state.rawInput   = '';
-        state.answers    = {};
-        clearStorage();
-        banner.style.display = 'none';
-        showLoadScreen();
-      });
-    }
-
-    function resumeFromStorage(saved) {
-      try {
-        const { roster, personList } = parseRoster(saved.rawInput);
-        state.roster     = roster;
-        state.personList = personList;
-        state.rawInput   = saved.rawInput;
-        state.answers    = saved.answers || {};
-
-        if (saved.currentPerson && state.roster[saved.currentPerson]) {
-          state.currentPerson        = saved.currentPerson;
-          state.currentQuestionIndex = saved.currentQuestionIndex || 0;
-          showLandmarkScreen();
-        } else {
-          showHomeScreen();
-        }
-      } catch (e) {
-        clearStorage();
-        showLoadScreen();
-      }
-    }
 
     (function init() {
       // Screen router is ready; state machine is initialized.
@@ -2222,8 +2151,6 @@
           // corrupt saved data — ignore, will fall through to load screen
         }
       }
-
-      checkAndShowResumeBanner();
 
       // Show home if roster loaded, else show load screen
       if (state.personList.length > 0) {
