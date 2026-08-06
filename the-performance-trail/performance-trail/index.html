@@ -9,2173 +9,1539 @@
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
 
   <style>
-    /* ═══════════════════════════════════════════════════════════
-       Reset & base
-    ═══════════════════════════════════════════════════════════ */
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
-      --bg:           #000;
-      --parchment:    #000;
-      --parchment-dk: #111;
-      --ink:          #fff;
-      --ink-light:    #aaa;
-      --saddle:       #fff;
-      --golden:       #fff;
-      --golden-lt:    #ccc;
-      --rust:         #ccc;
-      --cream:        #111;
-      --muted:        #666;
-      --success:      #0f0;
-      --success-lt:   #001a00;
-      --warn:         #ff0;
-      --warn-lt:      #1a1a00;
-
-      --pixel:        'Press Start 2P', monospace;
-      --serif:        'VT323', monospace;
-      --sans:         'VT323', monospace;
-
-      --radius:       0px;
-      --shadow:       none;
-      --shadow-btn:   2px 2px 0 #fff;
-    }
-
-    html, body {
-      height: 100%;
-    }
+    html, body { height: 100%; margin: 0; padding: 0; }
 
     body {
-      background-color: #000;
+      background: #000;
       color: #fff;
       font-family: 'VT323', monospace;
-      font-size: 20px;
-      line-height: 1.5;
-      min-height: 100vh;
-      padding: 16px 24px 48px;
+      font-size: 18px;
     }
 
-    /* ═══════════════════════════════════════════════════════════
-       Layout wrapper
-    ═══════════════════════════════════════════════════════════ */
-    #app {
-      width: 100%;
-    }
+    ::selection { background: #fff; color: #000; }
 
-    /* ═══════════════════════════════════════════════════════════
-       Header / banner
-    ═══════════════════════════════════════════════════════════ */
-    header {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-
-    .banner {
-      font-family: var(--pixel);
-      font-size: clamp(8px, 2vw, 13px);
-      color: #fff;
-      letter-spacing: 0.05em;
-      line-height: 1.8;
-      white-space: pre;
-      margin: 0;
-    }
-
-    .tagline {
-      font-family: 'VT323', monospace;
-      font-size: 20px;
-      color: #666;
-      margin-top: 6px;
-      letter-spacing: 0.1em;
-    }
-
-    .header-rule {
-      border: none;
-      border-top: 1px solid #444;
-      margin: 12px 0 0;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Screen visibility
-    ═══════════════════════════════════════════════════════════ */
-    .screen {
-      display: none;
-    }
-
-    .screen.active {
-      display: block;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Card / parchment panel
-    ═══════════════════════════════════════════════════════════ */
-    .panel {
-      background: #000;
-      border: 2px solid #fff;
-      box-shadow: none;
-      border-radius: 0;
-      padding: 28px 32px;
-      margin-bottom: 20px;
-    }
-
-    .panel-title {
-      font-family: var(--pixel);
-      font-size: 11px;
-      color: #fff;
-      letter-spacing: 0.08em;
-      margin-bottom: 16px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #444;
-    }
-
-    .panel-title .rule {
-      color: #555;
-      font-size: 9px;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Typography helpers
-    ═══════════════════════════════════════════════════════════ */
-    h2 {
-      font-family: var(--pixel);
-      font-size: 13px;
-      color: var(--saddle);
-      margin-bottom: 14px;
-    }
-
-    h3 {
-      font-family: var(--pixel);
-      font-size: 9px;
-      color: var(--ink-light);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-
-    p {
-      margin-bottom: 12px;
-      line-height: 1.65;
-    }
-
-    .label-pixel {
-      font-family: var(--pixel);
-      font-size: 8px;
-      color: var(--ink-light);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    .muted {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Dividers
-    ═══════════════════════════════════════════════════════════ */
-    .divider {
-      font-family: var(--pixel);
-      font-size: 8px;
-      color: var(--muted);
-      text-align: center;
-      margin: 20px 0;
-      letter-spacing: 2px;
-    }
-
-    .hr-trail {
-      border: none;
-      border-top: 1px dashed var(--muted);
-      margin: 20px 0;
-      opacity: 0.6;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Buttons
-    ═══════════════════════════════════════════════════════════ */
-    .btn {
-      display: inline-block;
-      font-family: var(--pixel);
-      font-size: 9px;
-      padding: 10px 18px;
-      border: 2px solid #fff;
-      border-radius: 0;
-      cursor: pointer;
-      letter-spacing: 0.05em;
-      text-decoration: none;
-      background: #000;
-      color: #fff;
-      transition: background 0.07s, color 0.07s;
-      line-height: 1.4;
-    }
-
-    .btn:hover {
-      background: #fff;
-      color: #000;
-    }
-
-    .btn:active {
-      background: #ccc;
-      color: #000;
-    }
-
-    .btn-primary {
-      background: #fff;
-      color: #000;
-    }
-
-    .btn-primary:hover {
-      background: #ccc;
-      color: #000;
-    }
-
-    .btn-golden {
-      background: #fff;
-      color: #000;
-    }
-
-    .btn-secondary {
-      background: #000;
-      color: #fff;
-      border-color: #888;
-    }
-
-    .btn-secondary:hover {
-      border-color: #fff;
-      background: #fff;
-      color: #000;
-    }
-
-    .btn-ghost {
-      background: #000;
-      color: #888;
-      border-color: #444;
-    }
-
-    .btn-ghost:hover {
-      color: #fff;
-      border-color: #fff;
-    }
-
-    .btn-sm {
-      font-size: 7px;
-      padding: 7px 12px;
-    }
-
-    .btn-lg {
-      font-size: 11px;
-      padding: 14px 26px;
-    }
-
-    .btn-block {
-      display: block;
-      width: 100%;
-      text-align: center;
-    }
-
-    .btn:disabled, .btn[disabled] {
-      opacity: 0.3;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-
-    .btn-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-top: 20px;
-    }
-
-    .btn-row.right {
-      justify-content: flex-end;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Form elements
-    ═══════════════════════════════════════════════════════════ */
     textarea, input[type="text"] {
-      width: 100%;
-      background: #000;
-      border: 2px solid #555;
-      border-radius: 0;
-      color: #fff;
       font-family: 'VT323', monospace;
-      font-size: 20px;
-      line-height: 1.5;
-      padding: 10px 12px;
-      resize: vertical;
-      transition: border-color 0.15s;
     }
 
-    textarea:focus, input[type="text"]:focus {
+    textarea:focus, input:focus {
       outline: none;
-      border-color: #fff;
+      border-color: #fff !important;
     }
 
-    textarea {
-      min-height: 140px;
-    }
-
-    .field {
-      margin-bottom: 18px;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Trail event banner
-    ═══════════════════════════════════════════════════════════ */
-    .trail-event {
-      background: #000;
-      color: #888;
-      font-family: 'VT323', monospace;
-      font-size: 20px;
-      line-height: 1.4;
-      padding: 8px 0;
-      margin-bottom: 16px;
-      border-left: 3px solid #444;
-      padding-left: 12px;
-    }
-
-    .trail-event::before {
-      content: '> ';
-      color: #444;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Status badges
-    ═══════════════════════════════════════════════════════════ */
-    .badge {
-      display: inline-block;
-      font-family: var(--pixel);
-      font-size: 7px;
-      padding: 4px 8px;
-      border-radius: 2px;
-      letter-spacing: 0.05em;
-      vertical-align: middle;
-    }
-
-
-    /* ═══════════════════════════════════════════════════════════
-       Progress bar
-    ═══════════════════════════════════════════════════════════ */
-    .progress-wrap {
-      margin-bottom: 20px;
-    }
-
-    .progress-label {
-      font-family: var(--pixel);
-      font-size: 8px;
-      color: var(--ink-light);
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .progress-track {
-      height: 14px;
-      background: var(--parchment-dk);
-      border: 2px solid var(--ink);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: repeating-linear-gradient(
-        90deg,
-        var(--saddle) 0px,
-        var(--saddle) 8px,
-        var(--rust) 8px,
-        var(--rust) 16px
-      );
-      transition: width 0.4s ease;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Quote / self-review callout
-    ═══════════════════════════════════════════════════════════ */
-    .callout {
-      background: var(--parchment-dk);
-      border-left: 4px solid var(--golden);
-      padding: 14px 16px;
-      border-radius: 0 var(--radius) var(--radius) 0;
-      margin-bottom: 16px;
-      font-size: 14px;
-      font-style: italic;
-      color: var(--ink-light);
-    }
-
-    .callout-label {
-      font-family: var(--pixel);
-      font-size: 7px;
-      color: var(--muted);
-      font-style: normal;
-      display: block;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Roster list items
-    ═══════════════════════════════════════════════════════════ */
-    .roster-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .roster-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      background: var(--cream);
-      border: 2px solid var(--parchment-dk);
-      border-radius: var(--radius);
-      padding: 14px 18px;
-      cursor: pointer;
-      transition: border-color 0.12s, background 0.12s;
-    }
-
-    .roster-item:hover {
-      border-color: var(--golden);
-      background: var(--parchment);
-    }
-
-    .roster-item:active {
-      transform: translateY(1px);
-    }
-
-    .roster-name {
-      font-family: var(--pixel);
-      font-size: 9px;
-      color: var(--ink);
-      flex: 1;
-    }
-
-    .roster-meta {
-      font-size: 12px;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Loading spinner (pixel-art style)
-    ═══════════════════════════════════════════════════════════ */
-    .loading-wrap {
-      text-align: center;
-      padding: 40px 20px;
-    }
-
-    .loading-pixel {
-      font-family: var(--pixel);
-      font-size: 10px;
-      color: var(--golden);
-      animation: blink 1s step-start infinite;
-    }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #000; }
+    ::-webkit-scrollbar-thumb { background: #444; }
 
     @keyframes blink {
       0%, 100% { opacity: 1; }
       50%       { opacity: 0; }
     }
 
-    /* ═══════════════════════════════════════════════════════════
-       Complete / celebration
-    ═══════════════════════════════════════════════════════════ */
-    .complete-icon {
-      font-family: var(--pixel);
-      font-size: 14px;
-      color: var(--golden);
-      text-align: center;
-      margin-bottom: 16px;
-      text-shadow: 2px 2px 0 #000;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Scrollable draft preview
-    ═══════════════════════════════════════════════════════════ */
-    .draft-preview {
-      background: var(--cream);
-      border: 2px solid var(--ink-light);
-      border-radius: var(--radius);
-      padding: 16px;
-      font-family: var(--serif);
-      font-size: 15px;
-      line-height: 1.7;
-      color: var(--ink);
-      min-height: 80px;
-      white-space: pre-wrap;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Error state
-    ═══════════════════════════════════════════════════════════ */
-    .error-box {
-      background: #fdf0ef;
-      border: 2px solid var(--rust);
-      border-radius: var(--radius);
-      padding: 12px 16px;
-      color: var(--rust);
-      font-size: 13px;
-      margin-bottom: 16px;
-    }
-
-    .error-box .error-label {
-      font-family: var(--pixel);
-      font-size: 7px;
-      display: block;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Roster screen additions
-    ═══════════════════════════════════════════════════════════ */
-    .flavor-text {
-      font-size: 14px;
-      color: var(--ink-light);
-      font-style: italic;
-      margin-bottom: 20px;
-    }
-
-    .field-label {
-      font-family: var(--pixel);
-      font-size: 8px;
-      color: var(--ink-light);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      display: block;
-      margin-bottom: 8px;
-    }
-
-    textarea#roster-input {
-      width: 100%;
-      min-height: 200px;
-      font-family: 'VT323', monospace;
-      font-size: 20px;
-      background: #000;
-      border: 2px solid #555;
-      border-radius: 0;
-      color: #fff;
-      padding: 10px 12px;
-      resize: vertical;
-      line-height: 1.5;
-    }
-
-    textarea#roster-input:focus {
-      outline: none;
-      border-color: #fff;
-    }
-
-    .error-msg {
-      color: #f88;
-      font-family: var(--pixel);
-      font-size: 8px;
-      margin-top: 12px;
-      line-height: 1.7;
-    }
-
-    .roster-person-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid #333;
-      background: #000;
-      border-radius: 0;
-      margin-bottom: 0;
-      transition: background 0.1s;
-      flex-wrap: wrap;
-    }
-
-    .roster-person-row:hover {
-      background: #111;
-    }
-
-    .roster-person-row .roster-name {
-      font-family: var(--pixel);
-      font-size: 9px;
-      color: #fff;
-      flex: 1;
-      min-width: 120px;
-    }
-
-    .roster-person-row .roster-meta {
-      font-size: 18px;
-      color: #666;
-      white-space: nowrap;
-      font-family: 'VT323', monospace;
-    }
-
-    .btn-row-right {
-      margin-left: auto;
-    }
-
-    /* Badge status colors — terminal style */
-    .badge-not-started { background: #333; color: #888; border: 1px solid #555; }
-    .badge-has-drafts  { background: #000; color: #fff; border: 1px solid #fff; }
-    .badge-in-progress { background: #fff; color: #000; border: 1px solid #fff; }
-    .badge-done        { background: #000; color: #0f0; border: 1px solid #0f0; }
-
-    /* ═══════════════════════════════════════════════════════════
-       Landmark screen additions
-    ═══════════════════════════════════════════════════════════ */
-    .progress-text { font-size: 8px; color: #666; margin-bottom: 1.25rem; font-family: 'Press Start 2P', monospace; }
-    .landmark-split {
-      display: flex;
-      gap: 0;
-      align-items: stretch;
-      border: 2px solid #fff;
-    }
-    .landmark-left {
-      flex: 1 1 50%;
-      min-width: 0;
-      border-right: 2px solid #fff;
-      display: flex;
-      flex-direction: column;
-    }
-    .landmark-right {
-      flex: 1 1 50%;
-      min-width: 0;
-      padding: 1.25rem;
-    }
-    @media (max-width: 700px) {
-      .landmark-split { flex-direction: column; border: 2px solid #fff; }
-      .landmark-left { border-right: none; border-bottom: 2px solid #fff; flex: unset; width: 100%; }
-      .landmark-right { flex: unset; width: 100%; }
-    }
-    .trail-sign {
-      border: none; border-bottom: 2px solid #fff; background: #000; color: #fff;
-      padding: 1rem 1.25rem; margin: 0; border-radius: 0;
-    }
-    .trail-sign-label { font-size: 8px; color: #666; font-family: 'Press Start 2P', monospace; margin-bottom: 0.75rem; letter-spacing: 0.1em; }
-    .trail-sign-question {
-      font-family: 'VT323', monospace;
-      font-size: 1.4em; line-height: 1.5; font-weight: normal; color: #fff;
-    }
-    .signpost {
-      background: #000; border: none; border-top: 2px dashed #555; padding: 1rem 1.25rem;
-      margin: 0; border-radius: 0; flex: 1;
-    }
-    .signpost-label { font-size: 8px; color: #666; font-family: 'Press Start 2P', monospace; margin-bottom: 0.5rem; letter-spacing: 0.1em; }
-    .signpost-text { font-size: 1em; line-height: 1.5; color: #aaa; }
-    .campfire-label { font-size: 8px; color: #666; font-family: 'Press Start 2P', monospace; margin-bottom: 0.5rem; letter-spacing: 0.1em; }
-    .draft-text { background: #000; border: 1px solid #555; padding: 1rem; border-radius: 0; line-height: 1.5; margin-bottom: 1rem; color: #fff; font-family: 'VT323', monospace; font-size: 1.05em; }
-    .draft-dim { opacity: 0.5; color: #888; }
-    .loading-msg { text-align: center; padding: 1.5rem; color: #888; font-family: 'Press Start 2P', monospace; font-size: 0.7em; }
-    .textarea-with-mic { position: relative; }
-    .btn-mic {
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
-      background: #000;
-      border: 2px solid #555;
-      border-radius: 0;
-      width: 2.2rem;
-      height: 2.2rem;
-      font-size: 1rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.15s, border-color 0.15s;
-    }
-    .btn-mic:hover { border-color: #fff; background: #111; }
-    .btn-mic.recording {
-      background: #c0392b;
-      border-color: #ff0000;
-      animation: mic-pulse 1s infinite;
-    }
-    @keyframes mic-pulse {
-      0%   { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.5); }
-      70%  { box-shadow: 0 0 0 8px rgba(255, 0, 0, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
-    }
-    #landmark-notes { padding-right: 3rem; min-height: 180px; }
-    #campfire-revise-notes { padding-right: 3rem; }
-    .btn-ghost { background: #000; border: 2px solid #444; color: #888; }
-    .btn-ghost:hover { border-color: #fff; color: #fff; background: #000; }
-
-    /* Back-to-roster nav link shown on landmark + campfire screens */
-    .nav-back-roster {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 8px;
-      color: #555;
-      cursor: pointer;
-      border: none;
-      background: none;
-      padding: 0;
-      margin-bottom: 14px;
-      display: inline-block;
-      letter-spacing: 0.05em;
-      transition: color 0.1s;
-    }
-    .nav-back-roster:hover { color: #fff; }
-    .button-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 1rem; }
-
-    @keyframes blink-cursor {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
-    .blink { animation: blink-cursor 1s step-start infinite; }
-
-    /* ═══════════════════════════════════════════════════════════
-       Complete screen additions
-    ═══════════════════════════════════════════════════════════ */
-    .complete-person {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 0.9em; color: #fff; margin-bottom: 1rem;
-    }
-    .qa-list { margin: 1.5rem 0; }
-    .qa-item {
-      border-bottom: 1px solid #333; padding: 1rem 0;
-      margin-bottom: 0;
-    }
-    .qa-item:last-child { border-bottom: none; }
-    .qa-question {
-      font-family: 'Press Start 2P', monospace; font-size: 0.65em;
-      color: #aaa; margin-bottom: 0.75rem; line-height: 1.6;
-    }
-    .qa-answer {
-      font-family: 'VT323', monospace;
-      font-size: 1.1em; line-height: 1.5; color: #fff;
-      background: #000; border-left: 3px solid #555;
-      padding: 0.75rem 1rem;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       Campfire screen additions
-    ═══════════════════════════════════════════════════════════ */
-    .tone-tweaks { margin-top: 1rem; }
-    .btn-tone {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 7px; padding: 7px 10px;
-      background: #000; border: 1px solid #555; color: #aaa;
-      cursor: pointer; border-radius: 0; transition: all 0.1s;
-    }
-    .btn-tone:hover { border-color: #fff; color: #fff; background: #000; }
-    .copy-feedback { margin-left: 0.75rem; color: #0f0; font-size: 18px; font-family: 'VT323', monospace; }
-
-    /* ═══════════════════════════════════════════════════════════
-       Responsive adjustments
-    ═══════════════════════════════════════════════════════════ */
-    @media (max-width: 600px) {
-      .panel {
-        padding: 18px 16px;
-      }
-
-      .btn {
-        font-size: 7px;
-        padding: 10px 14px;
-      }
-
-      .banner {
-        font-size: 8px;
-      }
-    }
-    .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.75em; }
-
-    /* ═══════════════════════════════════════════════════════════
-       Home screen
-    ═══════════════════════════════════════════════════════════ */
-    .home-person-row {
-      display: flex; align-items: center; gap: 14px;
-      padding: 14px 0; border-bottom: 1px solid #333; flex-wrap: wrap;
-    }
-    .home-person-row:last-child { border-bottom: none; }
-    .home-person-name { font-family: 'Press Start 2P', monospace; font-size: 9px; color: #fff; flex: 0 0 auto; min-width: 160px; }
-    .home-progress-wrap { flex: 1 1 120px; min-width: 80px; }
-    .home-progress-track { height: 10px; background: #111; border: 1px solid #444; width: 100%; }
-    .home-progress-fill { height: 100%; background: #fff; }
-    .home-progress-label { font-family: 'Press Start 2P', monospace; font-size: 7px; color: #666; margin-top: 3px; }
+    .screen { display: none; }
+    .screen.active { display: block; }
   </style>
 </head>
 <body>
-  <div id="app">
 
-    <!-- ═══════════════════════════════════════════════════════
-         Persistent header
-    ═══════════════════════════════════════════════════════════ -->
-    <header>
-      <pre class="banner">THE PERFORMANCE TRAIL</pre>
-      <p class="tagline">~ a frontier for honest feedback ~</p>
-      <hr class="header-rule" />
-    </header>
+<div style="display:flex; min-height:100vh; background:#000; color:#fff; font-family:'VT323', monospace; position:relative;">
 
-    <!-- ═══════════════════════════════════════════════════════
-         Screen 0: Home (person list with progress)
-    ═══════════════════════════════════════════════════════════ -->
+  <!-- Scanline overlay -->
+  <div style="position:fixed; inset:0; pointer-events:none; background:repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 3px); z-index:50;"></div>
+
+  <!-- Sidebar -->
+  <div id="sidebar" style="width:300px; min-width:300px; border-right:2px solid #fff; padding:28px 22px; display:flex; flex-direction:column; gap:26px; height:100vh; position:sticky; top:0; overflow-y:auto;">
+
+    <!-- Header -->
+    <div>
+      <div style="font-family:'Press Start 2P'; font-size:13px; line-height:1.7; letter-spacing:1px;">REVIEW<br>TERMINAL</div>
+      <div style="font-size:16px; color:#888; margin-top:6px; font-family:'VT323', monospace;">v1.0 // manager console</div>
+    </div>
+
+    <!-- Nav buttons -->
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <button id="nav-btn-home"
+        style="font-family:'Press Start 2P'; font-size:11px; border:1px solid #fff; padding:12px 14px; cursor:pointer; text-align:left; width:100%; display:block; background:#000; color:#fff;"
+        onmouseenter="if(!this.classList.contains('nav-active'))this.style.background='#fff',this.style.color='#000';"
+        onmouseleave="if(!this.classList.contains('nav-active'))this.style.background='#000',this.style.color='#fff';">
+        ► HOME
+      </button>
+      <button id="nav-btn-load"
+        style="font-family:'Press Start 2P'; font-size:11px; border:1px solid #fff; padding:12px 14px; cursor:pointer; text-align:left; width:100%; display:block; background:#000; color:#fff;"
+        onmouseenter="if(!this.classList.contains('nav-active'))this.style.background='#fff',this.style.color='#000';"
+        onmouseleave="if(!this.classList.contains('nav-active'))this.style.background='#000',this.style.color='#fff';">
+        ► LOAD ROSTER
+      </button>
+    </div>
+
+    <!-- Person section (shown when a person is selected) -->
+    <div id="sidebar-person-section" style="display:none; border-top:1px solid #444; padding-top:20px; flex-direction:column; gap:16px;">
+      <div>
+        <div id="sidebar-person-name" style="font-family:'Press Start 2P'; font-size:11px; line-height:1.6;"></div>
+        <div id="sidebar-progress-label" style="font-size:16px; color:#aaa; margin-top:8px; font-family:'VT323', monospace;"></div>
+        <div id="sidebar-progress-bar" style="font-size:20px; letter-spacing:-1px; margin-top:4px; font-family:'VT323', monospace;"></div>
+      </div>
+      <!-- Question list -->
+      <div id="sidebar-question-list" style="display:flex; flex-direction:column; gap:2px; max-height:340px; overflow-y:auto;"></div>
+      <!-- View summary button -->
+      <button id="sidebar-view-summary"
+        style="display:none; font-family:'Press Start 2P'; font-size:11px; border:1px solid #fff; padding:12px 14px; cursor:pointer; text-align:left; width:100%; background:#000; color:#fff;"
+        onmouseenter="this.style.background='#fff'; this.style.color='#000';"
+        onmouseleave="this.style.background='#000'; this.style.color='#fff';">
+        ► VIEW SUMMARY
+      </button>
+    </div>
+
+    <!-- Footer hint -->
+    <div style="margin-top:auto; font-size:14px; color:#666; border-top:1px solid #333; padding-top:14px; font-family:'VT323', monospace;">
+      Click any question above<br>to jump to it directly.
+    </div>
+
+  </div><!-- /sidebar -->
+
+  <!-- Main content -->
+  <div id="main-content" style="flex:1; padding:48px 56px; max-width:1180px; overflow-y:auto; height:100vh;">
+
+    <!-- ══════════════════════════════════════════════
+         SCREEN: Home
+    ══════════════════════════════════════════════ -->
     <div id="screen-home" class="screen">
-      <div class="panel">
-        <h2 class="panel-title">&#x2B21; THE TRAIL &#x2B21;</h2>
-        <div id="home-person-list"></div>
-        <div class="btn-row" style="margin-top: 1.5rem;">
-          <button id="btn-load-new-roster" class="btn btn-ghost">&#x21BA; LOAD NEW ROSTER</button>
+      <!-- Header row -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:36px;">
+        <div>
+          <div style="font-family:'Press Start 2P'; font-size:22px; line-height:1.5;">DIRECT REPORTS</div>
+          <div id="home-subtitle" style="font-size:18px; color:#999; margin-top:10px; font-family:'VT323', monospace;"></div>
         </div>
+        <button id="btn-load-new-roster"
+          style="font-family:'Press Start 2P'; font-size:10px; background:#000; color:#ccc; border:1px solid #666; padding:10px 14px; cursor:pointer; letter-spacing:0.05em; flex-shrink:0;"
+          onmouseenter="this.style.background='#fff'; this.style.color='#000'; this.style.borderColor='#fff';"
+          onmouseleave="this.style.background='#000'; this.style.color='#ccc'; this.style.borderColor='#666';">
+          + LOAD NEW ROSTER
+        </button>
       </div>
 
-      <div class="panel" style="margin-top: 1rem;">
-        <h2 class="panel-title">&#x2B21; STYLE INSTRUCTIONS &#x2B21;</h2>
-        <p class="muted" style="margin-bottom: 1rem;">Tell Claude how to write. These are added to every draft call — use them to set tense, tone, person, length, or anything else.</p>
-        <label class="field-label" for="style-instructions">YOUR INSTRUCTIONS</label>
-        <textarea id="style-instructions" style="min-height: 100px;" placeholder="e.g. Always write in second person ('you delivered', 'your work'). Keep answers to 2-3 sentences. Avoid corporate jargon."></textarea>
-        <p class="muted" style="margin-top: 0.5rem; font-size: 16px;">Changes save automatically.</p>
+      <!-- Style preferences -->
+      <div style="border:1px solid #555; padding:20px 24px; margin-bottom:32px;">
+        <div style="font-family:'Press Start 2P'; font-size:11px; margin-bottom:12px;">WRITING STYLE PREFERENCES</div>
+        <textarea id="style-instructions"
+          placeholder="e.g. write in second person, be concise, use a warm but direct tone"
+          style="width:100%; box-sizing:border-box; background:#000; color:#fff; border:1px solid #666; padding:12px; font-size:18px; resize:vertical; min-height:60px; font-family:'VT323', monospace;"></textarea>
       </div>
+
+      <!-- Person list -->
+      <div id="home-person-list" style="display:flex; flex-direction:column; gap:2px;"></div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════
-         Screen 1: Roster (paste input + person list)
-    ═══════════════════════════════════════════════════════════ -->
+    <!-- ══════════════════════════════════════════════
+         SCREEN: Load Roster
+    ══════════════════════════════════════════════ -->
     <div id="screen-roster" class="screen">
-      <div class="panel">
-        <h2 class="panel-title">&#x2B21; FORT ONBOARDING &#x2B21;</h2>
-        <p class="flavor-text">The wagon train assembles. Load your roster to begin the trail.</p>
-
-        <!-- Input state (shown initially) -->
-        <div id="roster-input-state">
-          <label class="field-label" for="roster-input">PASTE YOUR ROSTER</label>
-          <textarea id="roster-input" placeholder="Person: Jane Doe&#10;Question: What were your key accomplishments?&#10;Self Review: ...&#10;Manager Reflection:&#10;---"></textarea>
-          <div class="btn-row">
-            <button id="btn-load-roster" class="btn btn-primary">&#x25B6; LOAD ROSTER</button>
-          </div>
-          <p id="roster-error" class="error-msg" style="display:none"></p>
-        </div>
-
-        <!-- List state (hidden until roster loaded) -->
-        <div id="roster-list-state" style="display:none">
-          <div id="roster-person-list"></div>
-          <div class="btn-row">
-            <button id="btn-clear-roster" class="btn btn-secondary">&#x21BA; LOAD NEW ROSTER</button>
-          </div>
-        </div>
+      <div style="font-family:'Press Start 2P'; font-size:22px; margin-bottom:10px;">LOAD ROSTER</div>
+      <div style="font-size:18px; color:#999; margin-bottom:24px; max-width:760px; line-height:1.5; font-family:'VT323', monospace;">
+        Paste a structured roster below. Format: <span style="color:#fff;">Person: Name</span>, then for each review question <span style="color:#fff;">Question: ... Self Review: ... Manager Reflection: ...</span>, separated by <span style="color:#fff;">---</span>.
       </div>
+      <textarea id="roster-input"
+        style="width:100%; box-sizing:border-box; background:#000; color:#fff; border:1px solid #666; padding:16px; font-size:16px; min-height:420px; line-height:1.5; font-family:'VT323', monospace; resize:vertical;"
+        placeholder="Person: Jane Doe&#10;Question: What were your key accomplishments?&#10;Self Review: ...&#10;Manager Reflection:&#10;---"></textarea>
+      <div style="display:flex; gap:14px; margin-top:20px;">
+        <button id="btn-load-roster"
+          style="font-family:'Press Start 2P'; font-size:11px; background:#000; color:#fff; border:1px solid #fff; padding:12px 16px; cursor:pointer; letter-spacing:0.05em;"
+          onmouseenter="this.style.background='#fff'; this.style.color='#000';"
+          onmouseleave="this.style.background='#000'; this.style.color='#fff';">
+          PARSE &amp; LOAD ROSTER
+        </button>
+        <button id="btn-cancel-load"
+          style="display:none; font-family:'Press Start 2P'; font-size:10px; background:#000; color:#ccc; border:1px solid #666; padding:10px 14px; cursor:pointer; letter-spacing:0.05em;"
+          onmouseenter="this.style.background='#fff'; this.style.color='#000'; this.style.borderColor='#fff';"
+          onmouseleave="this.style.background='#000'; this.style.color='#ccc'; this.style.borderColor='#666';">
+          CANCEL
+        </button>
+      </div>
+      <div id="roster-error" style="display:none; margin-top:16px; color:#fff; border:1px solid #fff; padding:10px 14px; font-size:16px; font-family:'VT323', monospace;"></div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════
-         Screen 2: Landmark (question + notes entry)
-    ═══════════════════════════════════════════════════════════ -->
-    <div id="screen-landmark" class="screen">
-      <div class="panel">
-        <!-- Back to roster nav -->
-        <button class="nav-back-roster" id="btn-nav-roster-from-landmark">&#x2190; ROSTER</button>
-
-        <!-- Trail event flavor text (random each time) -->
-        <div id="landmark-event" class="trail-event"></div>
-
-        <!-- Progress indicator -->
-        <div id="landmark-progress" class="progress-text"></div>
-
-        <!-- Two-column: left = question + self-review, right = active flow -->
-        <div class="landmark-split">
-
-          <!-- LEFT: trail sign + self-review (always visible) -->
-          <div class="landmark-left">
-            <div class="trail-sign">
-              <div class="trail-sign-label">TRAIL SIGN</div>
-              <div id="landmark-question" class="trail-sign-question"></div>
-            </div>
-
-            <div id="landmark-self-review-section" class="signpost">
-              <div class="signpost-label">WHAT THEY WROTE</div>
-              <div id="landmark-self-review" class="signpost-text"></div>
-            </div>
-          </div>
-
-          <!-- RIGHT: whichever flow is active -->
-          <div class="landmark-right">
-
-            <!-- Flow A: Existing draft -->
-            <div id="landmark-existing-draft" style="display:none">
-              <div class="campfire-label">EXISTING DRAFT</div>
-              <div id="landmark-existing-text" class="draft-text"></div>
-              <div class="button-row">
-                <button id="btn-keep" class="btn btn-primary">&#x2713; KEEP</button>
-                <button id="btn-revise" class="btn btn-secondary">&#x21BB; REVISE</button>
-                <button id="btn-edit-existing" class="btn btn-secondary">&#x270E; EDIT</button>
-              </div>
-            </div>
-
-            <!-- Flow B: Notes input -->
-            <div id="landmark-notes-section" style="display:none">
-              <div id="landmark-revise-reference" style="display:none">
-                <div class="campfire-label">REVISING FROM</div>
-                <div id="landmark-revise-text" class="draft-text draft-dim"></div>
-              </div>
-              <label class="field-label" for="landmark-notes">YOUR THOUGHTS</label>
-              <div class="textarea-with-mic">
-                <textarea id="landmark-notes" placeholder="Speak or type your unfiltered thoughts...&#10;&#10;Rambling is fine — Claude will clean it up."></textarea>
-                <button class="btn-mic" data-target="landmark-notes" title="Click to dictate" aria-label="Start voice input">🎤</button>
-              </div>
-              <div class="button-row">
-                <button id="btn-draft-it" class="btn btn-primary">&#x26A1; DRAFT IT</button>
-                <button id="btn-skip-landmark" class="btn btn-ghost">&#x2192; SKIP</button>
-              </div>
-              <p id="landmark-error" class="error-msg" style="display:none"></p>
-            </div>
-
-            <!-- Flow C: Inline edit -->
-            <div id="landmark-edit-section" style="display:none">
-              <label class="field-label" for="landmark-edit-text">WRITE YOUR FINAL ANSWER</label>
-              <textarea id="landmark-edit-text" placeholder="Type your final answer directly..."></textarea>
-              <div class="button-row">
-                <button id="btn-save-edit" class="btn btn-primary">&#x2713; SAVE</button>
-                <button id="btn-cancel-edit" class="btn btn-secondary">&#x2715; CANCEL</button>
-              </div>
-            </div>
-
-            <!-- Loading indicator -->
-            <div id="landmark-loading" class="loading-msg" style="display:none">
-              <span class="blink">&#x258C;</span> Drafting at the campfire...
-            </div>
-
-          </div><!-- .landmark-right -->
-        </div><!-- .landmark-split -->
-      </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════
-         Screen 3: Campfire (draft review + tone controls)
-    ═══════════════════════════════════════════════════════════ -->
-    <div id="screen-campfire" class="screen">
-      <div class="panel">
-        <!-- Back to roster nav -->
-        <button class="nav-back-roster" id="btn-nav-roster-from-campfire">&#x2190; ROSTER</button>
-
-        <h2 class="panel-title">&#x2B21; THE CAMPFIRE &#x2B21;</h2>
-        <div id="campfire-progress" class="progress-text"></div>
-
-        <!-- Draft display -->
-        <div class="campfire-label">CLAUDE'S DRAFT</div>
-        <div id="campfire-draft-text" class="draft-text"></div>
-
-        <!-- Primary action buttons -->
-        <div class="button-row">
-          <button id="btn-accept" class="btn btn-primary">&#x2713; ACCEPT</button>
-          <button id="btn-revise-campfire" class="btn btn-secondary">&#x21BB; REVISE</button>
-          <button id="btn-edit-hand" class="btn btn-secondary">&#x270E; EDIT BY HAND</button>
-          <button id="btn-skip-campfire" class="btn btn-ghost">&#x2192; SKIP</button>
-        </div>
-
-        <!-- Copy button -->
-        <div style="margin-top: 0.5rem;">
-          <button id="btn-copy-draft" class="btn btn-ghost">&#x2398; COPY DRAFT</button>
-          <span id="copy-feedback" class="copy-feedback" style="display:none">Copied!</span>
-        </div>
-
-        <!-- Tone tweaks -->
-        <div class="tone-tweaks">
-          <div class="campfire-label" style="margin-top: 1.5rem;">ONE-CLICK TWEAKS</div>
-          <div class="button-row">
-            <button class="btn btn-tone" data-tone="Make this more direct and concise.">More Direct</button>
-            <button class="btn btn-tone" data-tone="Make this shorter — reduce to 2-3 sentences max.">More Concise</button>
-            <button class="btn btn-tone" data-tone="Make this more encouraging and positive in tone.">More Encouraging</button>
-            <button class="btn btn-tone" data-tone="Add more detail and specific examples based on the notes.">Add Detail</button>
-          </div>
-        </div>
-
-        <!-- Revise section (hidden by default) -->
-        <div id="campfire-revise-section" style="display:none">
-          <label class="field-label" for="campfire-revise-notes">ADD MORE NOTES</label>
-          <div class="textarea-with-mic">
-            <textarea id="campfire-revise-notes" placeholder="Add more context, corrections, or additional thoughts..."></textarea>
-            <button class="btn-mic" data-target="campfire-revise-notes" title="Click to dictate" aria-label="Start voice input">🎤</button>
-          </div>
-          <div class="button-row">
-            <button id="btn-redraft" class="btn btn-primary">&#x26A1; REDRAFT</button>
-            <button id="btn-cancel-revise" class="btn btn-secondary">&#x2715; CANCEL</button>
-          </div>
-        </div>
-
-        <!-- Edit by hand section (hidden by default) -->
-        <div id="campfire-edit-section" style="display:none">
-          <label class="field-label" for="campfire-edit-text">YOUR FINAL ANSWER</label>
-          <textarea id="campfire-edit-text"></textarea>
-          <div class="button-row">
-            <button id="btn-save-hand-edit" class="btn btn-primary">&#x2713; SAVE</button>
-            <button id="btn-cancel-edit-campfire" class="btn btn-secondary">&#x2715; CANCEL</button>
-          </div>
-        </div>
-
-        <!-- Loading indicator -->
-        <div id="campfire-loading" class="loading-msg" style="display:none">
-          <span class="blink">&#x258C;</span> Redrafting at the campfire...
-        </div>
-
-        <!-- Error message -->
-        <p id="campfire-error" class="error-msg" style="display:none"></p>
-      </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════
-         Screen 4: Complete (all questions answered)
-    ═══════════════════════════════════════════════════════════ -->
-    <div id="screen-complete" class="screen">
-      <div class="panel">
-        <h2 class="panel-title">&#x2B21; FORT REVIEW COMPLETE &#x2B21;</h2>
-        <div id="complete-person-name" class="complete-person"></div>
-        <p class="flavor-text">The wagon has arrived. Your review is ready.</p>
-
-        <!-- Q&A list -->
-        <div id="complete-qa-list" class="qa-list"></div>
-
-        <!-- Action buttons -->
-        <div class="button-row" style="margin-top: 1.5rem;">
-          <button id="btn-copy-all" class="btn btn-primary">&#x2398; COPY ALL</button>
-          <button id="btn-download-md" class="btn btn-secondary">&#x2B07; DOWNLOAD .MD</button>
-        </div>
-        <span id="copy-all-feedback" class="copy-feedback" style="display:none">Copied!</span>
-
-        <!-- Back to roster -->
-        <div class="button-row" style="margin-top: 1rem;">
-          <button id="btn-back-roster" class="btn btn-ghost">&#x2190; BACK TO ROSTER</button>
+    <!-- ══════════════════════════════════════════════
+         SCREEN: Question (combined Landmark + Campfire)
+    ══════════════════════════════════════════════ -->
+    <div id="screen-question" class="screen">
+      <!-- Top bar -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; flex-wrap:wrap; gap:12px;">
+        <div id="question-header" style="font-family:'Press Start 2P'; font-size:14px; line-height:1.6;"></div>
+        <div style="display:flex; gap:10px;">
+          <button id="btn-view-summary-top"
+            style="display:none; font-family:'Press Start 2P'; font-size:10px; background:#000; color:#ccc; border:1px solid #666; padding:10px 14px; cursor:pointer; letter-spacing:0.05em;"
+            onmouseenter="this.style.background='#fff'; this.style.color='#000'; this.style.borderColor='#fff';"
+            onmouseleave="this.style.background='#000'; this.style.color='#ccc'; this.style.borderColor='#666';">
+            VIEW SUMMARY
+          </button>
+          <button id="btn-go-home-from-question"
+            style="font-family:'Press Start 2P'; font-size:10px; background:#000; color:#ccc; border:1px solid #666; padding:10px 14px; cursor:pointer; letter-spacing:0.05em;"
+            onmouseenter="this.style.background='#fff'; this.style.color='#000'; this.style.borderColor='#fff';"
+            onmouseleave="this.style.background='#000'; this.style.color='#ccc'; this.style.borderColor='#666';">
+            ← HOME
+          </button>
         </div>
       </div>
+
+      <!-- Two-column grid -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:start;">
+
+        <!-- LEFT: context + notes -->
+        <div style="display:flex; flex-direction:column; gap:22px; min-width:0;">
+
+          <!-- Review question -->
+          <div style="border:1px solid #666; padding:18px 20px;">
+            <div style="font-family:'Press Start 2P'; font-size:10px; color:#aaa; margin-bottom:10px;">REVIEW QUESTION</div>
+            <div id="question-text" style="font-size:22px; line-height:1.5; font-family:'VT323', monospace;"></div>
+          </div>
+
+          <!-- Employee self-review -->
+          <div id="question-self-review-box" style="border:1px solid #444; padding:18px 20px; max-height:220px; overflow-y:auto;">
+            <div style="font-family:'Press Start 2P'; font-size:10px; color:#aaa; margin-bottom:10px;">EMPLOYEE SELF-REVIEW</div>
+            <div id="question-self-review-text" style="font-size:17px; line-height:1.5; white-space:pre-wrap; color:#ddd; font-family:'VT323', monospace;"></div>
+          </div>
+
+          <!-- Prior manager reflection (shown only if present) -->
+          <div id="question-prior-reflection-box" style="display:none; border:1px solid #444; padding:18px 20px; max-height:180px; overflow-y:auto;">
+            <div style="font-family:'Press Start 2P'; font-size:10px; color:#aaa; margin-bottom:10px;">PRIOR MANAGER REFLECTION</div>
+            <div id="question-prior-reflection-text" style="font-size:17px; line-height:1.5; white-space:pre-wrap; color:#ddd; font-family:'VT323', monospace;"></div>
+          </div>
+
+          <!-- Notes section -->
+          <div style="border-top:2px solid #fff; padding-top:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <div style="font-family:'Press Start 2P'; font-size:11px;">YOUR NOTES</div>
+              <button id="btn-mic" data-target="question-notes"
+                style="font-family:'Press Start 2P'; font-size:9px; background:#000; color:#fff; border:1px solid #fff; padding:8px 12px; cursor:pointer;">
+                ● REC
+              </button>
+            </div>
+            <div style="position:relative;">
+              <textarea id="question-notes"
+                placeholder="Type or dictate rough notes here..."
+                style="width:100%; box-sizing:border-box; background:#000; color:#fff; border:1px solid #666; padding:12px; font-size:18px; min-height:130px; resize:vertical; font-family:'VT323', monospace;"></textarea>
+            </div>
+            <div id="question-style-hint" style="display:none; font-size:15px; color:#888; margin-top:8px; font-family:'VT323', monospace;"></div>
+            <div style="display:flex; gap:12px; margin-top:16px;">
+              <button id="btn-draft-answer"
+                style="font-family:'Press Start 2P'; font-size:11px; background:#000; color:#fff; border:1px solid #fff; padding:12px 16px; cursor:pointer; letter-spacing:0.05em;"
+                onmouseenter="this.style.background='#fff'; this.style.color='#000';"
+                onmouseleave="this.style.background='#000'; this.style.color='#fff';">
+                DRAFT ANSWER →
+              </button>
+              <button id="btn-skip-question"
+                style="font-family:'Press Start 2P'; font-size:10px; background:#000; color:#ccc; border:1px solid #666; padding:10px 14px; cursor:pointer; letter-spacing:0.05em;"
+                onmouseenter="this.style.background='#fff'; this.style.color='#000'; this.style.borderColor='#fff';"
+                onmouseleave="this.style.background='#000'; this.style.color='#ccc'; this.style.borderColor='#666';">
+                SKIP
+              </button>
+            </div>
+            <div id="question-error" style="display:none; font-size:16px; color:#f88; margin-top:10px; font-family:'VT323', monospace;"></div>
+          </div>
+
+        </div><!-- /LEFT -->
+
+        <!-- RIGHT: draft panel -->
+        <div id="question-draft-panel" style="min-width:0;">
+
+          <!-- Empty state -->
+          <div id="draft-empty-state" style="border:1px dashed #555; padding:40px 24px; text-align:center; color:#777; font-size:18px; min-height:200px; display:flex; align-items:center; justify-content:center; font-family:'VT323', monospace;">
+            NO DRAFT YET.<br>ADD NOTES ON THE LEFT AND CLICK "DRAFT ANSWER".
+          </div>
+
+          <!-- Loading state -->
+          <div id="draft-loading-state" style="display:none; border:1px dashed #555; padding:40px 24px; text-align:center; color:#888; font-size:16px; font-family:'Press Start 2P'; min-height:200px; align-items:center; justify-content:center;">
+            <span style="animation: blink 1s step-start infinite;">█ DRAFTING...</span>
+          </div>
+
+          <!-- Draft content state -->
+          <div id="draft-content-state" style="display:none; border:1px solid #fff; padding:18px 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <div style="font-family:'Press Start 2P'; font-size:10px; color:#aaa;">DRAFT ANSWER</div>
+              <span id="draft-status-tag" style="font-family:'Press Start 2P'; font-size:9px;"></span>
+            </div>
+            <div id="draft-text" style="font-size:20px; line-height:1.55; font-family:'VT323', monospace;"></div>
+
+            <!-- Accepted state actions -->
+            <div id="draft-accepted-actions" style="display:none; margin-top:18px;">
+              <button id="btn-edit-draft"
+                style="font-family:'Press Start 2P'; font-size:10px; background:#000; color:#ccc; border:1px solid #666; padding:10px 14px; cursor:pointer; letter-spacing:0.05em;"
+                onmouseenter="this.style.background='#fff'; this.style.color='#000'; this.style.borderColor='#fff';"
+                onmouseleave="this.style.background='#000'; this.style.color='#ccc'; this.style.borderColor='#666';">
+                EDIT
+              </button>
+            </div>
+
+            <!-- Unaccepted state actions -->
+            <div id="draft-unaccepted-actions" style="display:none;">
+              <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
+                <button id="btn-accept-draft"
+                  style="font-family:'Press Start 2P'; font-size:11px; background:#000; color:#fff; border:1px solid #fff; padding:12px 16px; cursor:pointer; letter-spacing:0.05em;"
+                  onmouseenter="this.style.background='#fff'; this.style.color='#000';"
+                  onmouseleave="this.style.background='#000'; this.style.color='#fff';">
+                  ACCEPT
+                </button>
+                <button id="btn-revise-draft"
+                  style="font-family:'Press Start 2P'; font-size:10px; background:#000; color:#ccc; border:1px solid #666; padding:10px 14px; cursor:pointer; letter-spacing:0.05em;"
+                  onmouseenter="this.style.background='#fff'; this.style.color='#000'; this.style.borderColor='#fff';"
+                  onmouseleave="this.style.background='#000'; this.style.color='#ccc'; this.style.borderColor='#666';">
+                  REVISE
+                </button>
+                <button id="btn-edit-by-hand"
+                  style="font-family:'Press Start 2P'; font-size:10px; background:#000; color:#ccc; border:1px solid #666; padding:10px 14px; cursor:pointer; letter-spacing:0.05em;"
+                  onmouseenter="this.style.background='#fff'; this.style.color='#000'; this.style.borderColor='#fff';"
+                  onmouseleave="this.style.background='#000'; this.style.color='#ccc'; this.style.borderColor='#666';">
+                  EDIT BY HAND
+                </button>
+                <button id="btn-skip-from-draft"
+                  style="font-family:'Press Start 2P'; font-size:10px; background:#000; color:#ccc; border:1px solid #666; padding:10px 14px; cursor:pointer; letter-spacing:0.05em;"
+                  onmouseenter="this.style.background='#fff'; this.style.color='#000'; this.style.borderColor='#fff';"
+                  onmouseleave="this.style.background='#000'; this.style.color='#ccc'; this.style.borderColor='#666';">
+                  SKIP
+                </button>
+              </div>
+              <!-- Tone tweaks -->
+              <div style="margin-top:22px; border-top:1px solid #444; padding-top:16px;">
+                <div style="font-family:'Press Start 2P'; font-size:9px; color:#888; margin-bottom:10px;">ONE-CLICK TONE TWEAKS</div>
+                <div id="tone-chips" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Edit by hand state -->
+          <div id="draft-edit-state" style="display:none; border:1px solid #fff; padding:18px 20px;">
+            <div style="font-family:'Press Start 2P'; font-size:10px; color:#aaa; margin-bottom:10px;">EDIT BY HAND</div>
+            <textarea id="edit-by-hand-text"
+              style="width:100%; box-sizing:border-box; background:#000; color:#fff; border:1px solid #666; padding:12px; font-size:18px; min-height:180px; resize:vertical; font-family:'VT323', monospace;"></textarea>
+            <div style="display:flex; gap:12px; margin-top:16px;">
+              <button id="btn-save-hand-edit"
+                style="font-family:'Press Start 2P'; font-size:11px; background:#000; color:#fff; border:1px solid #fff; padding:12px 16px; cursor:pointer; letter-spacing:0.05em;"
+                onmouseenter="this.style.background='#fff'; this.style.color='#000';"
+                onmouseleave="this.style.background='#000'; this.style.color='#fff';">
+                SAVE &amp; ACCEPT
+              </button>
+              <button id="btn-cancel-edit"
+                style="font-family:'Press Start 2P'; font-size:10px; background:#000; color:#ccc; border:1px solid #666; padding:10px 14px; cursor:pointer; letter-spacing:0.05em;"
+                onmouseenter="this.style.background='#fff'; this.style.color='#000'; this.style.borderColor='#fff';"
+                onmouseleave="this.style.background='#000'; this.style.color='#ccc'; this.style.borderColor='#666';">
+                CANCEL
+              </button>
+            </div>
+          </div>
+
+        </div><!-- /RIGHT draft panel -->
+      </div><!-- /two-column grid -->
+    </div><!-- /screen-question -->
+
+    <!-- ══════════════════════════════════════════════
+         SCREEN: Summary
+    ══════════════════════════════════════════════ -->
+    <div id="screen-summary" class="screen">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:12px;">
+        <div style="font-family:'Press Start 2P'; font-size:20px;">REVIEW SUMMARY</div>
+        <div style="display:flex; gap:12px;">
+          <button id="btn-copy-all"
+            style="font-family:'Press Start 2P'; font-size:11px; background:#000; color:#fff; border:1px solid #fff; padding:12px 16px; cursor:pointer; letter-spacing:0.05em;"
+            onmouseenter="this.style.background='#fff'; this.style.color='#000';"
+            onmouseleave="this.style.background='#000'; this.style.color='#fff';">
+            COPY ALL
+          </button>
+          <button id="btn-download-md"
+            style="font-family:'Press Start 2P'; font-size:10px; background:#000; color:#ccc; border:1px solid #666; padding:10px 14px; cursor:pointer; letter-spacing:0.05em;"
+            onmouseenter="this.style.background='#fff'; this.style.color='#000'; this.style.borderColor='#fff';"
+            onmouseleave="this.style.background='#000'; this.style.color='#ccc'; this.style.borderColor='#666';">
+            ↓ DOWNLOAD .MD
+          </button>
+          <button id="btn-back-to-questions"
+            style="font-family:'Press Start 2P'; font-size:10px; background:#000; color:#ccc; border:1px solid #666; padding:10px 14px; cursor:pointer; letter-spacing:0.05em;"
+            onmouseenter="this.style.background='#fff'; this.style.color='#000'; this.style.borderColor='#fff';"
+            onmouseleave="this.style.background='#000'; this.style.color='#ccc'; this.style.borderColor='#666';">
+            ← BACK
+          </button>
+        </div>
+      </div>
+      <div id="summary-person-name" style="font-size:18px; color:#999; margin-bottom:32px; font-family:'VT323', monospace;"></div>
+      <div id="summary-qa-list" style="display:flex; flex-direction:column; gap:24px;"></div>
+      <span id="copy-all-feedback" style="display:none; font-size:18px; color:#0f0; margin-top:8px; font-family:'VT323', monospace; display:block;">COPIED!</span>
     </div>
 
-  </div><!-- /#app -->
+  </div><!-- /main-content -->
+</div><!-- /root flex -->
 
-  <script>
-    /* ═══════════════════════════════════════════════════════════════
-       APP STATE
-    ═══════════════════════════════════════════════════════════════ */
-    const state = {
-      roster:               {},   // { personName: [{ question, selfReview, managerReflection }] }
-      personList:           [],   // ordered list of person names
-      currentPerson:        null,
-      currentQuestionIndex: 0,
-      answers:              {},   // { personName: { questionIndex: answerString } }
-      rawInput:             '',   // the pasted labeled-block text (for localStorage)
-      styleInstructions:    '',   // custom writing instructions added to every draft call
+<script>
+  /* ═══════════════════════════════════════════════════════════════
+     APP STATE
+  ═══════════════════════════════════════════════════════════════ */
+  const state = {
+    roster:               {},   // { personName: [{ question, selfReview, managerReflection }] }
+    personList:           [],   // ordered list of person names
+    currentPerson:        null,
+    currentQuestionIndex: 0,
+    answers:              {},   // { personName: { questionIndex: answerString } }
+    rawInput:             '',
+    styleInstructions:    '',
+    // Ephemeral per-session data (not critical to persist, but we do persist notes)
+    questionDrafts:       {},   // { personName: { idx: draftText } }
+    questionNotes:        {},   // { personName: { idx: notesText } }
+    questionStatus:       {},   // { personName: { idx: 'pending'|'noted'|'drafted'|'accepted'|'skipped' } }
+  };
+
+  const STORAGE_KEY = 'performanceTrail';
+
+  /* ═══════════════════════════════════════════════════════════════
+     STORAGE
+  ═══════════════════════════════════════════════════════════════ */
+  function saveToStorage() {
+    try {
+      const data = {
+        rawInput:             state.rawInput,
+        answers:              state.answers,
+        currentPerson:        state.currentPerson,
+        currentQuestionIndex: state.currentQuestionIndex,
+        styleInstructions:    state.styleInstructions,
+        questionNotes:        state.questionNotes,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) { /* storage full or disabled */ }
+  }
+
+  function loadFromStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) { return null; }
+  }
+
+  function clearStorage() {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     LABELED-BLOCK PARSER  (preserved verbatim)
+  ═══════════════════════════════════════════════════════════════ */
+  function extractFields(block) {
+    const LABELS = ['Person', 'Question', 'Self Review', 'Manager Reflection'];
+    const labelPattern = new RegExp(`^(${LABELS.join('|')}):(.*)$`, 'i');
+
+    const keyMap = {
+      person:             'person',
+      question:           'question',
+      selfreview:         'selfReview',
+      managerreflection:  'managerReflection',
     };
 
-    const STORAGE_KEY = 'performanceTrail';
+    const lines = block.split('\n');
+    const fields = {};
+    let currentKey = null;
+    let currentValue = [];
 
-    function saveToStorage() {
-      try {
-        const data = {
-          rawInput: state.rawInput,
-          answers: state.answers,
-          currentPerson: state.currentPerson,
-          currentQuestionIndex: state.currentQuestionIndex,
-          styleInstructions: state.styleInstructions,
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      } catch (e) {
-        // Silently fail — storage might be full or disabled
+    function saveField() {
+      if (currentKey === null) return;
+      const normalized = currentKey.toLowerCase().replace(/ /g, '');
+      const mappedKey = keyMap[normalized];
+      if (mappedKey) {
+        fields[mappedKey] = currentValue.join('\n').trim();
       }
     }
 
-    function loadFromStorage() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return null;
-        return JSON.parse(raw);
-      } catch (e) {
-        return null;
+    for (const line of lines) {
+      const match = line.match(labelPattern);
+      if (match) {
+        saveField();
+        currentKey   = match[1];
+        currentValue = [match[2]];
+      } else if (currentKey !== null) {
+        currentValue.push(line);
       }
     }
+    saveField();
 
-    function clearStorage() {
-      localStorage.removeItem(STORAGE_KEY);
-    }
+    return fields;
+  }
 
-    /* ═══════════════════════════════════════════════════════════════
-       SCREEN ROUTER
-    ═══════════════════════════════════════════════════════════════ */
-    function showScreen(name) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      const el = document.getElementById('screen-' + name);
-      if (!el) {
-        console.error('Unknown screen:', name);
-        return;
+  function parseRoster(text) {
+    const blocks = text.split(/^---\s*$/m).map(b => b.trim()).filter(b => b);
+    const roster = {};
+    const personList = [];
+    let currentPerson = null;
+
+    for (const block of blocks) {
+      const fields = extractFields(block);
+
+      if (fields.person) {
+        currentPerson = fields.person.trim();
+        if (!roster[currentPerson]) {
+          roster[currentPerson] = [];
+          personList.push(currentPerson);
+        }
       }
-      el.classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (!currentPerson || !fields.question) continue;
+
+      roster[currentPerson].push({
+        question:           fields.question.trim(),
+        selfReview:         (fields.selfReview         || '').trim(),
+        managerReflection:  (fields.managerReflection  || '').trim(),
+      });
     }
 
-    // Pending draft — set by landmark, consumed by campfire
-    let pendingDraft = null;
+    return { roster, personList };
+  }
 
-    function showCampfireScreen(draft) {
-      pendingDraft = draft;
-      showScreen('campfire');
-      if (typeof initCampfireScreen === 'function') initCampfireScreen(draft);
+  /* ═══════════════════════════════════════════════════════════════
+     API HELPER  (preserved verbatim)
+  ═══════════════════════════════════════════════════════════════ */
+  async function callDraftAPI(payload) {
+    const resp = await fetch('/api/draft', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'API error');
+    return data.draft;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     PROGRESS BAR  (block characters)
+  ═══════════════════════════════════════════════════════════════ */
+  function makeBlockProgressBar(answered, total, width) {
+    width = width || 20;
+    const filled = total === 0 ? 0 : Math.round((answered / total) * width);
+    return '█'.repeat(filled) + '░'.repeat(width - filled);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     STATUS HELPERS
+  ═══════════════════════════════════════════════════════════════ */
+  function getPersonStatus(personName) {
+    const questions = state.roster[personName] || [];
+    const answers   = state.answers[personName] || {};
+    const coveredCount = questions.filter((q, i) =>
+      answers[i] !== undefined || q.managerReflection
+    ).length;
+    const sessionAnsweredCount = Object.keys(answers).length;
+    const hasPreExistingDrafts = questions.some(q => q.managerReflection);
+
+    if (sessionAnsweredCount === 0 && !hasPreExistingDrafts) return 'not-started';
+    if (coveredCount === questions.length)                    return 'done';
+    if (hasPreExistingDrafts && sessionAnsweredCount === 0)   return 'has-drafts';
+    return 'in-progress';
+  }
+
+  function getQuestionStatus(personName, idx) {
+    if (!state.questionStatus[personName]) return deriveInitialStatus(personName, idx);
+    if (state.questionStatus[personName][idx] === undefined) return deriveInitialStatus(personName, idx);
+    return state.questionStatus[personName][idx];
+  }
+
+  function deriveInitialStatus(personName, idx) {
+    const answers = state.answers[personName] || {};
+    const q = (state.roster[personName] || [])[idx];
+    if (!q) return 'pending';
+    if (answers[idx] !== undefined) {
+      return answers[idx] === '(Skipped)' ? 'skipped' : 'accepted';
     }
-    function showCompleteScreen() {
-      showScreen('complete');
-      initCompleteScreen();
-    }
-    function showLoadScreen() { showScreen('roster'); initRosterScreen(); }
-    function showHomeScreen() { showScreen('home'); renderHomeScreen(); }
-    function showRosterScreen() {
-      if (state.personList.length > 0) {
-        showHomeScreen();
-      } else {
-        showLoadScreen();
-      }
+    if (q.managerReflection) return 'drafted';
+    return 'pending';
+  }
+
+  function setQuestionStatus(personName, idx, status) {
+    if (!state.questionStatus[personName]) state.questionStatus[personName] = {};
+    state.questionStatus[personName][idx] = status;
+  }
+
+  function getQuestionDraft(personName, idx) {
+    return (state.questionDrafts[personName] || {})[idx] || '';
+  }
+
+  function setQuestionDraft(personName, idx, text) {
+    if (!state.questionDrafts[personName]) state.questionDrafts[personName] = {};
+    state.questionDrafts[personName][idx] = text;
+  }
+
+  function getQuestionNotes(personName, idx) {
+    return (state.questionNotes[personName] || {})[idx] || '';
+  }
+
+  function setQuestionNotes(personName, idx, text) {
+    if (!state.questionNotes[personName]) state.questionNotes[personName] = {};
+    state.questionNotes[personName][idx] = text;
+  }
+
+  function saveAnswer(personName, questionIndex, answer) {
+    if (!state.answers[personName]) state.answers[personName] = {};
+    state.answers[personName][questionIndex] = answer;
+    saveToStorage();
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     UTILS
+  ═══════════════════════════════════════════════════════════════ */
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function personHasAnyFinalAnswer(personName) {
+    const answers = state.answers[personName] || {};
+    return Object.keys(answers).length > 0;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     SIDEBAR
+  ═══════════════════════════════════════════════════════════════ */
+  function updateSidebar() {
+    const isHome     = document.getElementById('screen-home').classList.contains('active');
+    const isLoad     = document.getElementById('screen-roster').classList.contains('active');
+    const isQuestion = document.getElementById('screen-question').classList.contains('active');
+    const isSummary  = document.getElementById('screen-summary').classList.contains('active');
+
+    // Nav button active state
+    const homeBtn = document.getElementById('nav-btn-home');
+    const loadBtn = document.getElementById('nav-btn-load');
+
+    if (isHome) {
+      homeBtn.classList.add('nav-active');
+      homeBtn.style.background = '#fff';
+      homeBtn.style.color = '#000';
+      loadBtn.classList.remove('nav-active');
+      loadBtn.style.background = '#000';
+      loadBtn.style.color = '#fff';
+    } else if (isLoad) {
+      loadBtn.classList.add('nav-active');
+      loadBtn.style.background = '#fff';
+      loadBtn.style.color = '#000';
+      homeBtn.classList.remove('nav-active');
+      homeBtn.style.background = '#000';
+      homeBtn.style.color = '#fff';
+    } else {
+      homeBtn.classList.remove('nav-active');
+      homeBtn.style.background = '#000';
+      homeBtn.style.color = '#fff';
+      loadBtn.classList.remove('nav-active');
+      loadBtn.style.background = '#000';
+      loadBtn.style.color = '#fff';
     }
 
-    function renderHomeScreen() {
-      const listContainer = document.getElementById('home-person-list');
-      listContainer.innerHTML = '';
+    // Person section
+    const personSection = document.getElementById('sidebar-person-section');
+    const person = state.currentPerson;
 
-      for (const personName of state.personList) {
-        const questions     = state.roster[personName] || [];
-        const answers       = state.answers[personName] || {};
-        const answeredCount = Object.keys(answers).length;
-        const totalCount    = questions.length;
-        const status        = getPersonStatus(personName);
+    if (person && state.roster[person] && (isQuestion || isSummary)) {
+      personSection.style.display = 'flex';
+
+      // Name
+      document.getElementById('sidebar-person-name').textContent = person;
+
+      // Progress
+      const questions     = state.roster[person] || [];
+      const answers       = state.answers[person] || {};
+      const answeredCount = Object.keys(answers).length;
+      const totalCount    = questions.length;
+
+      document.getElementById('sidebar-progress-label').textContent =
+        answeredCount + '/' + totalCount + ' answered';
+      document.getElementById('sidebar-progress-bar').textContent =
+        makeBlockProgressBar(answeredCount, totalCount, 16);
+
+      // Question list
+      const listEl = document.getElementById('sidebar-question-list');
+      listEl.innerHTML = '';
+
+      questions.forEach(function(q, idx) {
+        const status = getQuestionStatus(person, idx);
+        const isCurrent = isQuestion && (state.currentQuestionIndex === idx);
+
+        const statusIcon = {
+          pending:  '[ ]',
+          noted:    '[~]',
+          drafted:  '[D]',
+          accepted: '[X]',
+          skipped:  '[S]',
+        }[status] || '[ ]';
+
+        const label = q.question.length > 28
+          ? q.question.substring(0, 28) + '…'
+          : q.question;
 
         const row = document.createElement('div');
-        row.className = 'home-person-row';
+        row.style.cssText = 'padding:8px 10px; cursor:pointer; display:flex; align-items:center; gap:8px; user-select:none; font-size:14px; font-family:\'VT323\', monospace;';
 
-        // Name
-        const nameEl = document.createElement('div');
-        nameEl.className = 'home-person-name';
-        nameEl.textContent = personName;
-        row.appendChild(nameEl);
-
-        // Progress bar
-        const progressWrap = document.createElement('div');
-        progressWrap.className = 'home-progress-wrap';
-
-        const track = document.createElement('div');
-        track.className = 'home-progress-track';
-        const fill = document.createElement('div');
-        fill.className = 'home-progress-fill';
-        fill.style.width = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) + '%' : '0%';
-        track.appendChild(fill);
-        progressWrap.appendChild(track);
-
-        const label = document.createElement('div');
-        label.className = 'home-progress-label';
-        label.textContent = answeredCount + '/' + totalCount;
-        progressWrap.appendChild(label);
-
-        row.appendChild(progressWrap);
-
-        // Badge
-        row.appendChild(makeBadge(status));
-
-        // Action button
-        let btnLabel;
-        if (status === 'done') {
-          btnLabel = '▶ VIEW RESULTS';
-        } else if (status === 'in-progress' || status === 'has-drafts') {
-          btnLabel = '▶ CONTINUE';
+        if (isCurrent) {
+          row.style.background = '#fff';
+          row.style.color = '#000';
         } else {
-          btnLabel = '▶ START REVIEW';
+          row.style.background = '#000';
+          row.style.color = '#fff';
+          row.onmouseenter = function() { this.style.background = '#222'; };
+          row.onmouseleave = function() { this.style.background = '#000'; };
         }
 
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-primary btn-sm btn-row-right';
-        btn.textContent = btnLabel;
-        btn.addEventListener('click', (function(name) {
-          return function() { startPerson(name); };
-        })(personName));
-        row.appendChild(btn);
+        row.innerHTML = '<span style="font-size:13px; flex-shrink:0; font-family:\'VT323\', monospace;">' + statusIcon + '</span>'
+          + '<span>' + escapeHtml(label) + '</span>';
 
-        listContainer.appendChild(row);
-      }
-    }
+        row.addEventListener('click', (function(p, i) {
+          return function() { jumpToQuestion(p, i); };
+        })(person, idx));
 
-    /* ═══════════════════════════════════════════════════════════════
-       LANDMARK SCREEN
-    ═══════════════════════════════════════════════════════════════ */
-
-    function showLandmarkScreen() {
-      showScreen('landmark');
-
-      const person    = state.currentPerson;
-      const idx       = state.currentQuestionIndex;
-      const questions = state.roster[person];
-      const q         = questions[idx];
-
-      // Trail event flavor text
-      document.getElementById('landmark-event').textContent = '~ ' + randomTrailEvent() + ' ~';
-
-      // Progress indicator
-      document.getElementById('landmark-progress').textContent =
-        'LANDMARK ' + (idx + 1) + ' OF ' + questions.length + ' — ' + person;
-
-      // Question
-      document.getElementById('landmark-question').textContent = q.question;
-
-      // Self-review signpost
-      const srSection = document.getElementById('landmark-self-review-section');
-      if (q.selfReview) {
-        srSection.style.display = '';
-        document.getElementById('landmark-self-review').textContent = q.selfReview;
-      } else {
-        srSection.style.display = 'none';
-      }
-
-      // Choose flow based on pre-existing manager reflection
-      if (q.managerReflection) {
-        showExistingDraftFlow(q.managerReflection);
-      } else {
-        showNotesFlow(null);
-      }
-    }
-
-    function showExistingDraftFlow(existingDraft) {
-      document.getElementById('landmark-existing-draft').style.display = '';
-      document.getElementById('landmark-notes-section').style.display  = 'none';
-      document.getElementById('landmark-edit-section').style.display   = 'none';
-      document.getElementById('landmark-error').style.display          = 'none';
-      document.getElementById('landmark-existing-text').textContent    = existingDraft;
-    }
-
-    function showNotesFlow(previousDraft) {
-      document.getElementById('landmark-existing-draft').style.display = 'none';
-      document.getElementById('landmark-notes-section').style.display  = '';
-      document.getElementById('landmark-edit-section').style.display   = 'none';
-      document.getElementById('landmark-notes').value                  = '';
-      document.getElementById('landmark-error').style.display          = 'none';
-
-      const reviseRef = document.getElementById('landmark-revise-reference');
-      if (previousDraft) {
-        reviseRef.style.display = '';
-        document.getElementById('landmark-revise-text').textContent = previousDraft;
-      } else {
-        reviseRef.style.display = 'none';
-      }
-    }
-
-    function showInlineEditFlow(prefillText) {
-      document.getElementById('landmark-existing-draft').style.display = 'none';
-      document.getElementById('landmark-notes-section').style.display  = 'none';
-      document.getElementById('landmark-edit-section').style.display   = '';
-      document.getElementById('landmark-edit-text').value              = prefillText || '';
-    }
-
-    function initLandmarkScreen() {
-      // Keep button
-      document.getElementById('btn-keep').addEventListener('click', function() {
-        const q = state.roster[state.currentPerson][state.currentQuestionIndex];
-        saveAnswer(state.currentPerson, state.currentQuestionIndex, q.managerReflection);
-        advanceQuestion();
+        listEl.appendChild(row);
       });
 
-      // Revise button
-      document.getElementById('btn-revise').addEventListener('click', function() {
-        const q = state.roster[state.currentPerson][state.currentQuestionIndex];
-        showNotesFlow(q.managerReflection);
-      });
+      // View summary button
+      const summaryBtn = document.getElementById('sidebar-view-summary');
+      if (personHasAnyFinalAnswer(person)) {
+        summaryBtn.style.display = 'block';
+      } else {
+        summaryBtn.style.display = 'none';
+      }
+    } else {
+      personSection.style.display = 'none';
+    }
+  }
 
-      // Edit button
-      document.getElementById('btn-edit-existing').addEventListener('click', function() {
-        const q = state.roster[state.currentPerson][state.currentQuestionIndex];
-        showInlineEditFlow(q.managerReflection);
-      });
+  /* ═══════════════════════════════════════════════════════════════
+     SCREEN ROUTER
+  ═══════════════════════════════════════════════════════════════ */
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const el = document.getElementById('screen-' + name);
+    if (!el) { console.error('Unknown screen:', name); return; }
+    el.classList.add('active');
+    document.getElementById('main-content').scrollTop = 0;
+  }
 
-      // Draft it button
-      document.getElementById('btn-draft-it').addEventListener('click', function() {
-        if (window._stopVoiceRecording) window._stopVoiceRecording();
-        const notes = document.getElementById('landmark-notes').value.trim();
-        if (!notes) {
-          const errEl = document.getElementById('landmark-error');
-          errEl.textContent = 'Please add some notes first.';
-          errEl.style.display = '';
-          return;
-        }
-        const q = state.roster[state.currentPerson][state.currentQuestionIndex];
-        const reviseRef = document.getElementById('landmark-revise-reference');
-        const previousDraft = reviseRef.style.display !== 'none'
-          ? document.getElementById('landmark-revise-text').textContent
-          : null;
+  function showHomeScreen() {
+    showScreen('home');
+    renderHomeScreen();
+    updateSidebar();
+  }
 
-        document.getElementById('landmark-loading').style.display = '';
-        document.getElementById('btn-draft-it').disabled = true;
-        document.getElementById('landmark-error').style.display = 'none';
+  function showLoadScreen() {
+    showScreen('roster');
+    // Show/hide cancel button
+    const cancelBtn = document.getElementById('btn-cancel-load');
+    if (state.personList.length > 0) {
+      cancelBtn.style.display = '';
+    } else {
+      cancelBtn.style.display = 'none';
+    }
+    updateSidebar();
+  }
 
+  function showQuestionScreen(personName, questionIdx) {
+    state.currentPerson        = personName;
+    state.currentQuestionIndex = questionIdx;
+
+    showScreen('question');
+
+    const questions = state.roster[personName] || [];
+    const q         = questions[questionIdx];
+    if (!q) return;
+
+    const status     = getQuestionStatus(personName, questionIdx);
+    const draftText  = getQuestionDraft(personName, questionIdx) || q.managerReflection || '';
+    const notesText  = getQuestionNotes(personName, questionIdx);
+    const finalAnswer = (state.answers[personName] || {})[questionIdx] || '';
+
+    // Header
+    document.getElementById('question-header').textContent =
+      personName + ' — Q' + (questionIdx + 1) + ' / ' + questions.length;
+
+    // Question text
+    document.getElementById('question-text').textContent = q.question;
+
+    // Self review
+    document.getElementById('question-self-review-text').textContent = q.selfReview || '(none provided)';
+
+    // Prior manager reflection
+    const priorBox = document.getElementById('question-prior-reflection-box');
+    if (q.managerReflection && status !== 'accepted' && status !== 'skipped') {
+      priorBox.style.display = '';
+      document.getElementById('question-prior-reflection-text').textContent = q.managerReflection;
+    } else {
+      priorBox.style.display = 'none';
+    }
+
+    // Notes textarea
+    document.getElementById('question-notes').value = notesText;
+
+    // Style hint
+    const styleHint = document.getElementById('question-style-hint');
+    if (state.styleInstructions && state.styleInstructions.trim()) {
+      styleHint.style.display = '';
+      styleHint.textContent = 'Style: ' + state.styleInstructions.substring(0, 80) + (state.styleInstructions.length > 80 ? '…' : '');
+    } else {
+      styleHint.style.display = 'none';
+    }
+
+    // View summary top button
+    const summaryTopBtn = document.getElementById('btn-view-summary-top');
+    if (personHasAnyFinalAnswer(personName)) {
+      summaryTopBtn.style.display = '';
+    } else {
+      summaryTopBtn.style.display = 'none';
+    }
+
+    // Draft panel state
+    renderDraftPanel(personName, questionIdx);
+
+    updateSidebar();
+    saveToStorage();
+  }
+
+  function renderDraftPanel(personName, questionIdx) {
+    const q          = (state.roster[personName] || [])[questionIdx];
+    const status     = getQuestionStatus(personName, questionIdx);
+    const draftText  = getQuestionDraft(personName, questionIdx) || (q && q.managerReflection) || '';
+    const finalAnswer = (state.answers[personName] || {})[questionIdx] || '';
+
+    const emptyState    = document.getElementById('draft-empty-state');
+    const loadingState  = document.getElementById('draft-loading-state');
+    const contentState  = document.getElementById('draft-content-state');
+    const editState     = document.getElementById('draft-edit-state');
+
+    const acceptedActions   = document.getElementById('draft-accepted-actions');
+    const unacceptedActions = document.getElementById('draft-unaccepted-actions');
+    const draftStatusTag    = document.getElementById('draft-status-tag');
+    const draftTextEl       = document.getElementById('draft-text');
+
+    // Hide all, then show correct one
+    emptyState.style.display   = 'none';
+    loadingState.style.display = 'none';
+    contentState.style.display = 'none';
+    editState.style.display    = 'none';
+
+    if (status === 'accepted') {
+      contentState.style.display = '';
+      draftTextEl.textContent = finalAnswer;
+      draftStatusTag.textContent = '✓ ACCEPTED';
+      draftStatusTag.style.cssText = 'font-family:\'Press Start 2P\'; font-size:9px; color:#0f0; border:1px solid #0f0; padding:4px 8px;';
+      acceptedActions.style.display   = '';
+      unacceptedActions.style.display = 'none';
+    } else if (status === 'skipped') {
+      contentState.style.display = '';
+      draftTextEl.textContent = '[ SKIPPED ]';
+      draftTextEl.style.color = '#888';
+      draftStatusTag.textContent = 'SKIPPED';
+      draftStatusTag.style.cssText = 'font-family:\'Press Start 2P\'; font-size:9px; color:#888; border:1px solid #555; padding:4px 8px;';
+      acceptedActions.style.display   = '';
+      unacceptedActions.style.display = 'none';
+    } else if (status === 'drafted' || draftText) {
+      contentState.style.display = '';
+      draftTextEl.textContent = draftText;
+      draftTextEl.style.color = '#fff';
+      draftStatusTag.textContent = 'DRAFT';
+      draftStatusTag.style.cssText = 'font-family:\'Press Start 2P\'; font-size:9px; color:#aaa; border:1px solid #555; padding:4px 8px;';
+      acceptedActions.style.display   = 'none';
+      unacceptedActions.style.display = '';
+      buildToneChips(personName, questionIdx);
+    } else {
+      emptyState.style.display = 'flex';
+    }
+  }
+
+  function buildToneChips(personName, questionIdx) {
+    const chips = [
+      { label: 'MORE DIRECT',        tone: 'Make this more direct and concise.' },
+      { label: 'MORE CONCISE',       tone: 'Make this shorter — reduce to 2-3 sentences max.' },
+      { label: 'MORE ENCOURAGING',   tone: 'Make this more encouraging and positive in tone.' },
+      { label: 'ADD DETAIL',         tone: 'Add more detail and specific examples based on the notes.' },
+    ];
+
+    const container = document.getElementById('tone-chips');
+    container.innerHTML = '';
+
+    chips.forEach(function(chip) {
+      const btn = document.createElement('button');
+      btn.textContent = chip.label;
+      btn.style.cssText = 'font-family:\'Press Start 2P\'; font-size:8px; padding:7px 10px; background:#000; border:1px solid #555; color:#aaa; cursor:pointer;';
+      btn.onmouseenter = function() { this.style.borderColor = '#fff'; this.style.color = '#fff'; };
+      btn.onmouseleave = function() { this.style.borderColor = '#555'; this.style.color = '#aaa'; };
+
+      btn.addEventListener('click', function() {
+        const currentDraft = document.getElementById('draft-text').textContent;
+        const q = state.roster[personName][questionIdx];
+        setDraftPanelLoading(true);
         callDraftAPI({
           question:           q.question,
           self_review:        q.selfReview,
-          notes:              notes,
-          previous_draft:     previousDraft || null,
-          tone_instruction:   null,
+          notes:              null,
+          previous_draft:     currentDraft,
+          tone_instruction:   chip.tone,
           style_instructions: state.styleInstructions || null,
-        }).then(function(draft) {
-          document.getElementById('landmark-loading').style.display = 'none';
-          document.getElementById('btn-draft-it').disabled = false;
-          showCampfireScreen(draft);
+        }).then(function(newDraft) {
+          setDraftPanelLoading(false);
+          setQuestionDraft(personName, questionIdx, newDraft);
+          setQuestionStatus(personName, questionIdx, 'drafted');
+          renderDraftPanel(personName, questionIdx);
+          updateSidebar();
         }).catch(function(err) {
-          document.getElementById('landmark-loading').style.display = 'none';
-          document.getElementById('btn-draft-it').disabled = false;
-          const errEl = document.getElementById('landmark-error');
-          errEl.textContent = 'Draft failed: ' + err.message;
-          errEl.style.display = '';
+          setDraftPanelLoading(false);
+          showQuestionError('Tone tweak failed: ' + err.message);
         });
       });
 
-      // Skip button
-      document.getElementById('btn-skip-landmark').addEventListener('click', function() {
-        saveAnswer(state.currentPerson, state.currentQuestionIndex, '(Skipped)');
-        advanceQuestion();
-      });
+      container.appendChild(btn);
+    });
+  }
 
-      // Save edit button
-      document.getElementById('btn-save-edit').addEventListener('click', function() {
-        const text = document.getElementById('landmark-edit-text').value.trim();
-        saveAnswer(state.currentPerson, state.currentQuestionIndex, text || '(No answer entered)');
-        advanceQuestion();
-      });
-
-      // Cancel edit button
-      document.getElementById('btn-cancel-edit').addEventListener('click', function() {
-        const q = state.roster[state.currentPerson][state.currentQuestionIndex];
-        if (q.managerReflection) {
-          showExistingDraftFlow(q.managerReflection);
-        } else {
-          showNotesFlow(null);
-        }
-      });
+  function setDraftPanelLoading(loading) {
+    const emptyState    = document.getElementById('draft-empty-state');
+    const loadingState  = document.getElementById('draft-loading-state');
+    const contentState  = document.getElementById('draft-content-state');
+    if (loading) {
+      emptyState.style.display   = 'none';
+      contentState.style.display = 'none';
+      loadingState.style.display = 'flex';
+    } else {
+      loadingState.style.display = 'none';
     }
+  }
 
-    /* ═══════════════════════════════════════════════════════════════
-       LABELED-BLOCK PARSER
-    ═══════════════════════════════════════════════════════════════ */
+  function showQuestionError(msg) {
+    const el = document.getElementById('question-error');
+    el.textContent = msg;
+    el.style.display = '';
+  }
 
-    /**
-     * Extract named fields from a single block of text.
-     *
-     * Labels supported (case-insensitive):
-     *   Person | Question | Self Review | Manager Reflection
-     *
-     * A field's value is everything from after "Label:" to just before
-     * the next label line, or end of block. Multi-line values are kept.
-     *
-     * @param {string} block
-     * @returns {{ person?, question?, selfReview?, managerReflection? }}
-     */
-    function extractFields(block) {
-      const LABELS = ['Person', 'Question', 'Self Review', 'Manager Reflection'];
-      const labelPattern = new RegExp(`^(${LABELS.join('|')}):(.*)$`, 'i');
+  function hideQuestionError() {
+    document.getElementById('question-error').style.display = 'none';
+  }
 
-      const keyMap = {
-        person:             'person',
-        question:           'question',
-        selfreview:         'selfReview',
-        managerreflection:  'managerReflection',
+  function showSummaryScreen() {
+    showScreen('summary');
+
+    const person    = state.currentPerson;
+    const questions = state.roster[person] || [];
+    const answers   = state.answers[person] || {};
+
+    document.getElementById('summary-person-name').textContent = person;
+
+    const listEl = document.getElementById('summary-qa-list');
+    listEl.innerHTML = '';
+
+    questions.forEach(function(q, idx) {
+      const answer     = answers[idx];
+      const status     = getQuestionStatus(person, idx);
+      const draftText  = getQuestionDraft(person, idx) || q.managerReflection || '';
+
+      const card = document.createElement('div');
+      card.style.cssText = 'border:1px solid #555; padding:20px 22px;';
+
+      const qLabel = document.createElement('div');
+      qLabel.style.cssText = 'font-family:\'Press Start 2P\'; font-size:10px; color:#aaa; margin-bottom:8px;';
+      qLabel.textContent = 'Q' + (idx + 1);
+      card.appendChild(qLabel);
+
+      const qText = document.createElement('div');
+      qText.style.cssText = 'font-size:20px; margin-bottom:14px; font-family:\'VT323\', monospace;';
+      qText.textContent = q.question;
+      card.appendChild(qText);
+
+      const answerEl = document.createElement('div');
+      answerEl.style.fontSize = '19px';
+      answerEl.style.fontFamily = '\'VT323\', monospace';
+      answerEl.style.lineHeight = '1.5';
+
+      if (status === 'accepted' && answer && answer !== '(Skipped)') {
+        answerEl.style.color = '#fff';
+        answerEl.textContent = answer;
+      } else if (status === 'skipped' || answer === '(Skipped)') {
+        answerEl.style.color = '#888';
+        answerEl.textContent = '[ SKIPPED ]';
+      } else if (status === 'drafted' || draftText) {
+        answerEl.style.color = '#aaa';
+        answerEl.textContent = draftText + '\n(not yet accepted)';
+      } else {
+        answerEl.style.color = '#666';
+        answerEl.textContent = '[ NOT ANSWERED ]';
+      }
+
+      card.appendChild(answerEl);
+      listEl.appendChild(card);
+    });
+
+    updateSidebar();
+  }
+
+  function jumpToQuestion(personName, idx) {
+    showQuestionScreen(personName, idx);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     HOME SCREEN RENDERER
+  ═══════════════════════════════════════════════════════════════ */
+  function renderHomeScreen() {
+    // Subtitle
+    document.getElementById('home-subtitle').textContent =
+      state.personList.length + ' direct report' + (state.personList.length !== 1 ? 's' : '') + ' loaded';
+
+    const listContainer = document.getElementById('home-person-list');
+    listContainer.innerHTML = '';
+
+    for (const personName of state.personList) {
+      const questions     = state.roster[personName] || [];
+      const answers       = state.answers[personName] || {};
+      const answeredCount = Object.keys(answers).length;
+      const totalCount    = questions.length;
+      const status        = getPersonStatus(personName);
+
+      const card = document.createElement('div');
+      card.style.cssText = 'border:1px solid #444; padding:20px 22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;';
+
+      // Left content block
+      const leftBlock = document.createElement('div');
+      leftBlock.style.cssText = 'flex:1; min-width:0; max-width:calc(100% - 130px);';
+
+      // Name
+      const nameEl = document.createElement('div');
+      nameEl.style.cssText = 'font-family:\'Press Start 2P\'; font-size:15px;';
+      nameEl.textContent = personName;
+      leftBlock.appendChild(nameEl);
+
+      // Question count
+      const countEl = document.createElement('div');
+      countEl.style.cssText = 'font-size:16px; color:#999; margin-top:6px; font-family:\'VT323\', monospace;';
+      countEl.textContent = totalCount + ' question' + (totalCount !== 1 ? 's' : '');
+      leftBlock.appendChild(countEl);
+
+      // Progress row
+      const progressRow = document.createElement('div');
+      progressRow.style.cssText = 'display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-top:12px;';
+
+      const barEl = document.createElement('div');
+      barEl.style.cssText = 'font-size:20px; letter-spacing:-1px; font-family:\'VT323\', monospace;';
+      barEl.textContent = makeBlockProgressBar(answeredCount, totalCount, 16);
+      progressRow.appendChild(barEl);
+
+      const fractionEl = document.createElement('div');
+      fractionEl.style.cssText = 'font-size:16px; color:#bbb; font-family:\'VT323\', monospace;';
+      fractionEl.textContent = answeredCount + '/' + totalCount + ' answered';
+      progressRow.appendChild(fractionEl);
+
+      // Status badge
+      const badgeEl = document.createElement('span');
+      badgeEl.style.cssText = 'font-family:\'Press Start 2P\'; font-size:9px; border:1px solid #fff; padding:6px 10px; white-space:nowrap; flex-shrink:0;';
+      const badgeLabels = {
+        'done':        'DONE',
+        'in-progress': 'IN PROGRESS',
+        'has-drafts':  'HAS DRAFTS',
+        'not-started': 'NOT STARTED',
       };
-
-      const lines = block.split('\n');
-      const fields = {};
-      let currentKey = null;
-      let currentValue = [];
-
-      function saveField() {
-        if (currentKey === null) return;
-        const normalized = currentKey.toLowerCase().replace(/ /g, '');
-        const mappedKey = keyMap[normalized];
-        if (mappedKey) {
-          fields[mappedKey] = currentValue.join('\n').trim();
-        }
+      badgeEl.textContent = badgeLabels[status] || 'NOT STARTED';
+      if (status === 'done') {
+        badgeEl.style.background = '#fff';
+        badgeEl.style.color = '#000';
+      } else {
+        badgeEl.style.background = '#000';
+        badgeEl.style.color = '#fff';
       }
+      progressRow.appendChild(badgeEl);
 
-      for (const line of lines) {
-        const match = line.match(labelPattern);
-        if (match) {
-          saveField();
-          currentKey   = match[1];
-          currentValue = [match[2]]; // text on the same line as the label
-        } else if (currentKey !== null) {
-          currentValue.push(line);
-        }
-        // lines before any label are silently ignored
-      }
-      saveField();
+      leftBlock.appendChild(progressRow);
+      card.appendChild(leftBlock);
 
-      return fields;
+      // Open button
+      const openBtn = document.createElement('button');
+      const btnLabel = status === 'done' ? 'VIEW →' : (status === 'not-started' ? 'OPEN →' : 'CONTINUE →');
+      openBtn.textContent = btnLabel;
+      openBtn.style.cssText = 'font-family:\'Press Start 2P\'; font-size:10px; background:#000; color:#ccc; border:1px solid #666; padding:10px 14px; cursor:pointer; letter-spacing:0.05em; flex-shrink:0; min-width:110px; align-self:center;';
+      openBtn.onmouseenter = function() { this.style.background = '#fff'; this.style.color = '#000'; this.style.borderColor = '#fff'; };
+      openBtn.onmouseleave = function() { this.style.background = '#000'; this.style.color = '#ccc'; this.style.borderColor = '#666'; };
+      openBtn.addEventListener('click', (function(name) {
+        return function() { startPerson(name); };
+      })(personName));
+      card.appendChild(openBtn);
+
+      listContainer.appendChild(card);
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     NAVIGATION
+  ═══════════════════════════════════════════════════════════════ */
+  function startPerson(personName) {
+    state.currentPerson = personName;
+    const status = getPersonStatus(personName);
+
+    if (status === 'done') {
+      saveToStorage();
+      showSummaryScreen();
+      return;
     }
 
-    /**
-     * Parse the full labeled-block input text into a roster.
-     *
-     * Blocks are separated by lines containing only "---".
-     * A `Person:` field carries forward to subsequent blocks if omitted.
-     *
-     * @param {string} text
-     * @returns {{ roster: Object, personList: string[] }}
-     */
-    function parseRoster(text) {
-      const blocks = text.split(/^---\s*$/m).map(b => b.trim()).filter(b => b);
-      const roster = {};
-      const personList = [];
-      let currentPerson = null;
+    // Find first unanswered question
+    const questions = state.roster[personName] || [];
+    const answers   = state.answers[personName] || {};
+    let resumeIdx = 0;
+    for (let i = 0; i < questions.length; i++) {
+      if (answers[i] === undefined) { resumeIdx = i; break; }
+    }
+    state.currentQuestionIndex = resumeIdx;
+    saveToStorage();
+    showQuestionScreen(personName, resumeIdx);
+  }
 
-      for (const block of blocks) {
-        const fields = extractFields(block);
+  function advanceQuestion() {
+    const personName = state.currentPerson;
+    const questions  = state.roster[personName] || [];
 
-        if (fields.person) {
-          currentPerson = fields.person.trim();
-          if (!roster[currentPerson]) {
-            roster[currentPerson] = [];
-            personList.push(currentPerson);
+    // Find next non-accepted, non-skipped question
+    let nextIdx = -1;
+    for (let i = 0; i < questions.length; i++) {
+      if (i === state.currentQuestionIndex) continue;
+      const s = getQuestionStatus(personName, i);
+      if (s !== 'accepted' && s !== 'skipped') {
+        nextIdx = i;
+        break;
+      }
+    }
+
+    saveToStorage();
+
+    if (nextIdx >= 0) {
+      showQuestionScreen(personName, nextIdx);
+    } else {
+      showSummaryScreen();
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     MARKDOWN GENERATOR
+  ═══════════════════════════════════════════════════════════════ */
+  function generateMarkdown(person) {
+    const questions = state.roster[person] || [];
+    const answers   = state.answers[person] || {};
+    const lines     = ['# Performance Review: ' + person + '\n'];
+
+    questions.forEach(function(q, idx) {
+      const answer = answers[idx] || q.managerReflection || '(No answer)';
+      lines.push('### ' + q.question + '\n');
+      lines.push(answer + '\n');
+    });
+
+    return lines.join('\n');
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     VOICE INPUT  (preserved verbatim, updated for new btn-mic)
+  ═══════════════════════════════════════════════════════════════ */
+  function initVoiceInput() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      document.querySelectorAll('[id="btn-mic"]').forEach(btn => { btn.style.display = 'none'; });
+      const micBtn = document.getElementById('btn-mic');
+      if (micBtn) micBtn.style.display = 'none';
+      return;
+    }
+
+    let activeRecognition = null;
+    let activeButton = null;
+    let activeTarget = null;
+    let committedText = '';
+
+    function stopRecording() {
+      if (activeRecognition) {
+        activeRecognition.stop();
+        activeRecognition = null;
+      }
+      if (activeButton) {
+        activeButton.style.background = '#000';
+        activeButton.style.color = '#fff';
+        activeButton.textContent = '● REC';
+        activeButton = null;
+      }
+      activeTarget = null;
+      committedText = '';
+    }
+
+    window._stopVoiceRecording = stopRecording;
+
+    function startRecording(btn, targetId) {
+      stopRecording();
+
+      const textarea = document.getElementById(targetId);
+      if (!textarea) return;
+
+      const existingText = textarea.value;
+      committedText = '';
+
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
           }
         }
 
-        // Skip malformed blocks
-        if (!currentPerson || !fields.question) continue;
-
-        roster[currentPerson].push({
-          question:           fields.question.trim(),
-          selfReview:         (fields.selfReview         || '').trim(),
-          managerReflection:  (fields.managerReflection  || '').trim(),
-        });
-      }
-
-      return { roster, personList };
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       TRAIL EVENTS
-    ═══════════════════════════════════════════════════════════════ */
-    const TRAIL_EVENTS = [
-      "Your wagon fords the Monday Standup River. No losses.",
-      "A wild Slack Notification appears! You ignore it and press on.",
-      "One of your oxen (a summer intern) has come down with mild Scope Creep. It should pass.",
-      "You spot a Herd of Distractions on the horizon. You keep the wagon steady.",
-      "A trader offers you three Post-it Notes for your undivided attention. You accept.",
-      "You successfully cross the Q3 OKRs River! No wagons lost.",
-      "The trail forks. You take the path marked 'Constructive Feedback.'",
-      "Your wagon wheel (calendar) nearly breaks under the weight of back-to-back meetings.",
-      "You find an abandoned wagon labeled 'Last Year's Review Template.' You take what's useful.",
-      "A sudden hailstorm of Reply-All emails passes overhead. You take cover briefly.",
-    ];
-
-    function randomTrailEvent() {
-      return TRAIL_EVENTS[Math.floor(Math.random() * TRAIL_EVENTS.length)];
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       STATUS HELPERS
-    ═══════════════════════════════════════════════════════════════ */
-
-    /**
-     * Determine a person's review status.
-     * @param {string} personName
-     * @returns {'not-started' | 'has-drafts' | 'in-progress' | 'done'}
-     */
-    function getPersonStatus(personName) {
-      const questions = state.roster[personName] || [];
-      const answers   = state.answers[personName] || {};
-
-      // A question is "covered" if it has a session answer OR a pre-existing managerReflection
-      const coveredCount = questions.filter((q, i) =>
-        answers[i] !== undefined || q.managerReflection
-      ).length;
-      const sessionAnsweredCount = Object.keys(answers).length;
-      const hasPreExistingDrafts = questions.some(q => q.managerReflection);
-
-      if (sessionAnsweredCount === 0 && !hasPreExistingDrafts) return 'not-started';
-      if (coveredCount === questions.length)                    return 'done';
-      if (hasPreExistingDrafts && sessionAnsweredCount === 0)   return 'has-drafts';
-      return 'in-progress';
-    }
-
-    /**
-     * Return a badge element for a person's status.
-     * @param {string} status
-     * @returns {HTMLElement}
-     */
-    function makeBadge(status) {
-      const el = document.createElement('span');
-      el.className = 'badge';
-      switch (status) {
-        case 'done':
-          el.classList.add('badge-done');
-          el.textContent = 'DONE';
-          break;
-        case 'in-progress':
-          el.classList.add('badge-in-progress');
-          el.textContent = 'IN PROGRESS';
-          break;
-        case 'has-drafts':
-          el.classList.add('badge-has-drafts');
-          el.textContent = 'HAS DRAFTS';
-          break;
-        default:
-          el.classList.add('badge-not-started');
-          el.textContent = 'NOT STARTED';
-      }
-      return el;
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       API HELPER
-    ═══════════════════════════════════════════════════════════════ */
-
-    /**
-     * Call the /api/draft endpoint.
-     * @param {{ question, self_review, notes, previous_draft?, tone_instruction? }} payload
-     * @returns {Promise<string>} the draft text
-     */
-    async function callDraftAPI(payload) {
-      const resp = await fetch('/api/draft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'API error');
-      return data.draft;
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       ANSWER STORAGE
-    ═══════════════════════════════════════════════════════════════ */
-
-    /**
-     * Save a manager's drafted answer into state.
-     * @param {string} personName
-     * @param {number} questionIndex
-     * @param {string} answer
-     */
-    function saveAnswer(personName, questionIndex, answer) {
-      if (!state.answers[personName]) {
-        state.answers[personName] = {};
-      }
-      state.answers[personName][questionIndex] = answer;
-      saveToStorage();
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       NAVIGATION HELPERS
-    ═══════════════════════════════════════════════════════════════ */
-
-    /**
-     * Begin reviewing a specific person, starting at question 0.
-     * @param {string} personName
-     */
-    function startPerson(personName) {
-      state.currentPerson = personName;
-      const status = getPersonStatus(personName);
-      if (status === 'done') {
-        // Already completed — jump straight to results, don't reset progress
-        saveToStorage();
-        showCompleteScreen();
-      } else {
-        // Find the first unanswered question index
-        const questions = state.roster[personName] || [];
-        const answers   = state.answers[personName] || {};
-        let resumeIdx = 0;
-        for (let i = 0; i < questions.length; i++) {
-          if (answers[i] === undefined) { resumeIdx = i; break; }
+        if (finalTranscript) {
+          committedText += (committedText ? ' ' : '') + finalTranscript.trim();
         }
-        state.currentQuestionIndex = resumeIdx;
-        saveToStorage();
-        showLandmarkScreen();
-      }
+
+        const display = (existingText ? existingText.trimEnd() + '\n' : '') +
+                        (committedText || '') +
+                        (interimTranscript ? ' [' + interimTranscript + ']' : '');
+        textarea.value = display;
+        textarea.scrollTop = textarea.scrollHeight;
+      };
+
+      recognition.onerror = (event) => {
+        if (event.error === 'no-speech') return;
+        stopRecording();
+      };
+
+      recognition.onend = () => {
+        if (activeTarget === targetId) {
+          const ta = document.getElementById(targetId);
+          if (ta) {
+            ta.value = ta.value.replace(/\s*\[.*?\]/g, '').trim();
+          }
+        }
+        stopRecording();
+      };
+
+      activeRecognition = recognition;
+      activeButton = btn;
+      activeTarget = targetId;
+
+      btn.style.background = '#fff';
+      btn.style.color = '#000';
+      btn.textContent = '● LISTENING...';
+      recognition.start();
     }
 
-    /**
-     * Move to the next question for the current person.
-     * Navigates to complete screen when all questions are answered.
-     */
-    function advanceQuestion() {
-      const questions = state.roster[state.currentPerson];
-      state.currentQuestionIndex++;
-      saveToStorage();
-      if (state.currentQuestionIndex >= questions.length) {
-        showCompleteScreen();
-      } else {
-        showLandmarkScreen();
-      }
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       UI UTILITIES
-    ═══════════════════════════════════════════════════════════════ */
-
-    /**
-     * Create a progress bar element.
-     * @param {number} current  0-based answered count
-     * @param {number} total
-     * @param {string} [label]
-     * @returns {HTMLElement}
-     */
-    function makeProgressBar(current, total, label) {
-      const pct  = total === 0 ? 0 : Math.round((current / total) * 100);
-      const wrap = document.createElement('div');
-      wrap.className = 'progress-wrap';
-      wrap.innerHTML = `
-        <div class="progress-label">
-          <span>${label || 'Progress'}</span>
-          <span>${current} / ${total}</span>
-        </div>
-        <div class="progress-track">
-          <div class="progress-fill" style="width: ${pct}%"></div>
-        </div>
-      `;
-      return wrap;
-    }
-
-    /**
-     * Render an error message box.
-     * @param {string} message
-     * @returns {HTMLElement}
-     */
-    function makeErrorBox(message) {
-      const div = document.createElement('div');
-      div.className = 'error-box';
-      div.innerHTML = `<span class="error-label">Trail Trouble</span>${escapeHtml(message)}`;
-      return div;
-    }
-
-    /**
-     * Minimal HTML escaping for safe text insertion.
-     * @param {string} str
-     * @returns {string}
-     */
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       ROSTER SCREEN
-    ═══════════════════════════════════════════════════════════════ */
-
-    /**
-     * Show an error message below the load button.
-     * @param {string} msg
-     */
-    function showRosterError(msg) {
-      const el = document.getElementById('roster-error');
-      el.textContent = msg;
-      el.style.display = 'block';
-    }
-
-    function hideRosterError() {
-      const el = document.getElementById('roster-error');
-      el.style.display = 'none';
-      el.textContent = '';
-    }
-
-    /**
-     * Rebuild the person list and switch to list state.
-     */
-    function renderRosterList() {
-      const listContainer = document.getElementById('roster-person-list');
-      listContainer.innerHTML = '';
-
-      for (const personName of state.personList) {
-        const questions  = state.roster[personName] || [];
-        const status     = getPersonStatus(personName);
-
-        const row = document.createElement('div');
-        row.className = 'roster-person-row';
-
-        // Name
-        const nameEl = document.createElement('span');
-        nameEl.className = 'roster-name';
-        nameEl.textContent = personName;
-        row.appendChild(nameEl);
-
-        // Badge
-        const badge = makeBadge(status);
-        row.appendChild(badge);
-
-        // Question count
-        const metaEl = document.createElement('span');
-        metaEl.className = 'roster-meta';
-        metaEl.textContent = questions.length + ' question' + (questions.length !== 1 ? 's' : '');
-        row.appendChild(metaEl);
-
-        // Action button — label depends on status
-        let btnLabel;
-        if (status === 'done') {
-          btnLabel = '▶ VIEW RESULTS';
-        } else if (status === 'in-progress' || status === 'has-drafts') {
-          btnLabel = '▶ CONTINUE';
+    // Wire the single btn-mic button
+    const micBtn = document.getElementById('btn-mic');
+    if (micBtn) {
+      micBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = micBtn.dataset.target;
+        if (activeButton === micBtn) {
+          stopRecording();
         } else {
-          btnLabel = '▶ START REVIEW';
+          startRecording(micBtn, targetId);
         }
-
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-primary btn-sm btn-row-right';
-        btn.textContent = btnLabel;
-        // Capture personName in closure
-        btn.addEventListener('click', (function(name) {
-          return function() { startPerson(name); };
-        })(personName));
-        row.appendChild(btn);
-
-        listContainer.appendChild(row);
-      }
-
-      // Switch visibility
-      document.getElementById('roster-input-state').style.display = 'none';
-      document.getElementById('roster-list-state').style.display  = 'block';
+      });
     }
+  }
 
-    /**
-     * Wire up the roster screen. Called each time the screen becomes visible.
-     */
-    function initRosterScreen() {
-      // Load screen is now input-only; always show the paste textarea
-      document.getElementById('roster-input-state').style.display = 'block';
-      document.getElementById('roster-list-state').style.display  = 'none';
-      hideRosterError();
-    }
+  /* ═══════════════════════════════════════════════════════════════
+     WIRE ALL BUTTONS
+  ═══════════════════════════════════════════════════════════════ */
+  function wireAllButtons() {
+    // Sidebar nav
+    document.getElementById('nav-btn-home').addEventListener('click', function() {
+      if (state.personList.length > 0) showHomeScreen();
+      else showLoadScreen();
+    });
+    document.getElementById('nav-btn-load').addEventListener('click', showLoadScreen);
+    document.getElementById('sidebar-view-summary').addEventListener('click', showSummaryScreen);
 
-    // Wire up "Load Roster" button (once, at page load)
+    // Home screen
+    document.getElementById('btn-load-new-roster').addEventListener('click', showLoadScreen);
+
+    // Style instructions textarea
+    const styleTA = document.getElementById('style-instructions');
+    styleTA.addEventListener('input', function() {
+      state.styleInstructions = styleTA.value;
+      saveToStorage();
+    });
+
+    // Roster/Load screen
     document.getElementById('btn-load-roster').addEventListener('click', function() {
       const text = document.getElementById('roster-input').value.trim();
-      hideRosterError();
+      const errEl = document.getElementById('roster-error');
+      errEl.style.display = 'none';
+      errEl.textContent = '';
+
       if (!text) {
-        showRosterError('Please paste your roster text above.');
+        errEl.textContent = 'Please paste your roster text above.';
+        errEl.style.display = '';
         return;
       }
       try {
         const { roster, personList } = parseRoster(text);
         if (personList.length === 0) {
-          showRosterError('No people found. Check the format: Person: / Question: / Self Review: / Manager Reflection: separated by ---');
+          errEl.textContent = 'No people found. Check format: Person: / Question: / Self Review: / Manager Reflection: separated by ---';
+          errEl.style.display = '';
           return;
         }
-        state.roster     = roster;
-        state.personList = personList;
-        state.rawInput   = text;
+        state.roster       = roster;
+        state.personList   = personList;
+        state.rawInput     = text;
+        state.answers      = {};
+        state.questionDrafts  = {};
+        state.questionNotes   = {};
+        state.questionStatus  = {};
         saveToStorage();
         showHomeScreen();
       } catch (e) {
-        showRosterError('Parse error: ' + e.message);
+        errEl.textContent = 'Parse error: ' + e.message;
+        errEl.style.display = '';
       }
     });
 
-    // Wire up "Load New Roster" button (once, at page load)
-    document.getElementById('btn-clear-roster').addEventListener('click', function() {
-      state.roster     = {};
-      state.personList = [];
-      state.rawInput   = '';
-      state.answers    = {};
-      clearStorage();
-      document.getElementById('roster-input').value = '';
-      document.getElementById('roster-list-state').style.display  = 'none';
-      document.getElementById('roster-input-state').style.display = 'block';
-      hideRosterError();
+    document.getElementById('btn-cancel-load').addEventListener('click', function() {
+      showHomeScreen();
     });
 
-    /* ═══════════════════════════════════════════════════════════════
-       CAMPFIRE SCREEN
-    ═══════════════════════════════════════════════════════════════ */
+    // Question screen: go home
+    document.getElementById('btn-go-home-from-question').addEventListener('click', function() {
+      showHomeScreen();
+    });
 
-    /**
-     * Reset and populate the campfire screen with a new draft.
-     * Called by showCampfireScreen(draft) each time the screen is shown.
-     * @param {string} draft
-     */
-    function initCampfireScreen(draft) {
-      // Reset all sub-sections
-      document.getElementById('campfire-revise-section').style.display = 'none';
-      document.getElementById('campfire-edit-section').style.display = 'none';
-      document.getElementById('campfire-loading').style.display = 'none';
-      document.getElementById('campfire-error').style.display = 'none';
-      document.getElementById('copy-feedback').style.display = 'none';
+    // Question screen: view summary
+    document.getElementById('btn-view-summary-top').addEventListener('click', showSummaryScreen);
 
-      // Show the draft
-      document.getElementById('campfire-draft-text').textContent = draft;
-
-      // Progress text
+    // Notes textarea: update status to 'noted' when typing
+    document.getElementById('question-notes').addEventListener('input', function() {
       const person = state.currentPerson;
       const idx    = state.currentQuestionIndex;
-      const total  = state.roster[person].length;
-      document.getElementById('campfire-progress').textContent =
-        'Q ' + (idx + 1) + ' OF ' + total + ' — ' + person;
-    }
+      if (!person) return;
 
-    /** Show/hide the loading indicator and disable/enable all campfire buttons. */
-    function setLoadingCampfire(loading) {
-      document.getElementById('campfire-loading').style.display = loading ? '' : 'none';
-      document.querySelectorAll('#screen-campfire .btn').forEach(function(b) {
-        b.disabled = loading;
-      });
-    }
+      // Save notes
+      setQuestionNotes(person, idx, this.value);
 
-    /** Display an error message on the campfire screen. */
-    function showCampfireError(msg) {
-      const el = document.getElementById('campfire-error');
-      el.textContent = msg;
-      el.style.display = '';
-    }
+      // If still pending and has text, mark as noted
+      const status = getQuestionStatus(person, idx);
+      if (status === 'pending' && this.value.trim()) {
+        setQuestionStatus(person, idx, 'noted');
+        updateSidebar();
+      } else if (status === 'noted' && !this.value.trim()) {
+        setQuestionStatus(person, idx, 'pending');
+        updateSidebar();
+      }
+    });
 
-    /**
-     * Wire up all button handlers for the campfire screen.
-     * Called once at page load.
-     */
-    function initCampfireHandlers() {
-      // Accept — save current draft and advance
-      document.getElementById('btn-accept').addEventListener('click', function() {
-        const draft = document.getElementById('campfire-draft-text').textContent;
-        saveAnswer(state.currentPerson, state.currentQuestionIndex, draft);
-        advanceQuestion();
-      });
+    // Draft answer button
+    document.getElementById('btn-draft-answer').addEventListener('click', function() {
+      const person  = state.currentPerson;
+      const idx     = state.currentQuestionIndex;
+      const q       = state.roster[person][idx];
+      const notes   = document.getElementById('question-notes').value.trim();
 
-      // Revise — show the revise notes section
-      document.getElementById('btn-revise-campfire').addEventListener('click', function() {
-        document.getElementById('campfire-revise-section').style.display = '';
-        document.getElementById('campfire-revise-notes').value = '';
-        document.getElementById('campfire-edit-section').style.display = 'none';
-        document.getElementById('campfire-error').style.display = 'none';
-      });
+      hideQuestionError();
 
-      // Redraft — call API with extra notes
-      document.getElementById('btn-redraft').addEventListener('click', function() {
-        if (window._stopVoiceRecording) window._stopVoiceRecording();
-        const moreNotes = document.getElementById('campfire-revise-notes').value.trim();
-        if (!moreNotes) {
-          showCampfireError('Please add some notes before redrafting.');
-          return;
-        }
-        const q = state.roster[state.currentPerson][state.currentQuestionIndex];
-        const currentDraft = document.getElementById('campfire-draft-text').textContent;
-
-        setLoadingCampfire(true);
-        callDraftAPI({
-          question:           q.question,
-          self_review:        q.selfReview,
-          notes:              moreNotes,
-          previous_draft:     currentDraft,
-          tone_instruction:   null,
-          style_instructions: state.styleInstructions || null,
-        }).then(function(newDraft) {
-          setLoadingCampfire(false);
-          pendingDraft = newDraft;
-          document.getElementById('campfire-draft-text').textContent = newDraft;
-          document.getElementById('campfire-revise-section').style.display = 'none';
-          document.getElementById('campfire-revise-notes').value = '';
-        }).catch(function(err) {
-          setLoadingCampfire(false);
-          showCampfireError('Redraft failed: ' + err.message);
-        });
-      });
-
-      // Cancel revise
-      document.getElementById('btn-cancel-revise').addEventListener('click', function() {
-        document.getElementById('campfire-revise-section').style.display = 'none';
-      });
-
-      // Edit by hand — show the edit textarea pre-filled with current draft
-      document.getElementById('btn-edit-hand').addEventListener('click', function() {
-        document.getElementById('campfire-edit-section').style.display = '';
-        document.getElementById('campfire-edit-text').value =
-          document.getElementById('campfire-draft-text').textContent;
-        document.getElementById('campfire-revise-section').style.display = 'none';
-        document.getElementById('campfire-error').style.display = 'none';
-      });
-
-      // Save hand edit — save whatever the user typed and advance
-      document.getElementById('btn-save-hand-edit').addEventListener('click', function() {
-        const text = document.getElementById('campfire-edit-text').value.trim();
-        saveAnswer(state.currentPerson, state.currentQuestionIndex, text || pendingDraft);
-        advanceQuestion();
-      });
-
-      // Cancel edit campfire
-      document.getElementById('btn-cancel-edit-campfire').addEventListener('click', function() {
-        document.getElementById('campfire-edit-section').style.display = 'none';
-      });
-
-      // Skip
-      document.getElementById('btn-skip-campfire').addEventListener('click', function() {
-        saveAnswer(state.currentPerson, state.currentQuestionIndex, '(Skipped)');
-        advanceQuestion();
-      });
-
-      // Copy draft to clipboard
-      document.getElementById('btn-copy-draft').addEventListener('click', function() {
-        const draft = document.getElementById('campfire-draft-text').textContent;
-        navigator.clipboard.writeText(draft).then(function() {
-          const fb = document.getElementById('copy-feedback');
-          fb.style.display = 'inline';
-          setTimeout(function() { fb.style.display = 'none'; }, 2000);
-        });
-      });
-
-      // Tone tweak buttons
-      document.querySelectorAll('.btn-tone').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          const toneInstruction = btn.dataset.tone;
-          const currentDraft = document.getElementById('campfire-draft-text').textContent;
-          const q = state.roster[state.currentPerson][state.currentQuestionIndex];
-
-          setLoadingCampfire(true);
-          callDraftAPI({
-            question:           q.question,
-            self_review:        q.selfReview,
-            notes:              null,
-            previous_draft:     currentDraft,
-            tone_instruction:   toneInstruction,
-            style_instructions: state.styleInstructions || null,
-          }).then(function(newDraft) {
-            setLoadingCampfire(false);
-            pendingDraft = newDraft;
-            document.getElementById('campfire-draft-text').textContent = newDraft;
-          }).catch(function(err) {
-            setLoadingCampfire(false);
-            showCampfireError('Tone tweak failed: ' + err.message);
-          });
-        });
-      });
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       COMPLETE SCREEN
-    ═══════════════════════════════════════════════════════════════ */
-
-    /**
-     * Render Q&As for the current person into the complete screen.
-     * Called each time showCompleteScreen() fires.
-     */
-    function initCompleteScreen() {
-      const person = state.currentPerson;
-      const questions = state.roster[person];
-      const answers = state.answers[person] || {};
-
-      document.getElementById('complete-person-name').textContent = person;
-
-      const listEl = document.getElementById('complete-qa-list');
-      listEl.innerHTML = '';  // clear
-
-      questions.forEach(function(q, idx) {
-        const answer = answers[idx] || q.managerReflection || '(No answer)';
-
-        const qEl = document.createElement('div');
-        qEl.className = 'qa-item';
-
-        const questionEl = document.createElement('div');
-        questionEl.className = 'qa-question';
-        questionEl.textContent = q.question;
-
-        const answerEl = document.createElement('div');
-        answerEl.className = 'qa-answer';
-        answerEl.textContent = answer;
-
-        qEl.appendChild(questionEl);
-        qEl.appendChild(answerEl);
-        listEl.appendChild(qEl);
-      });
-    }
-
-    /**
-     * Generate a Markdown string for a person's completed review.
-     * @param {string} person
-     * @returns {string}
-     */
-    function generateMarkdown(person) {
-      const questions = state.roster[person];
-      const answers = state.answers[person] || {};
-
-      const lines = ['# Performance Review: ' + person + '\n'];
-
-      questions.forEach(function(q, idx) {
-        const answer = answers[idx] || q.managerReflection || '(No answer)';
-        lines.push('### ' + q.question + '\n');
-        lines.push(answer + '\n');
-      });
-
-      return lines.join('\n');
-    }
-
-    /**
-     * Wire up all button handlers for the complete screen.
-     * Called once at page load.
-     */
-    function initCompleteHandlers() {
-      // Copy All
-      document.getElementById('btn-copy-all').addEventListener('click', function() {
-        const md = generateMarkdown(state.currentPerson);
-        navigator.clipboard.writeText(md).then(function() {
-          const fb = document.getElementById('copy-all-feedback');
-          fb.style.display = 'inline';
-          setTimeout(function() { fb.style.display = 'none'; }, 2000);
-        });
-      });
-
-      // Download .md
-      document.getElementById('btn-download-md').addEventListener('click', function() {
-        const md = generateMarkdown(state.currentPerson);
-        const blob = new Blob([md], { type: 'text/markdown' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = state.currentPerson.replace(/\s+/g, '_') + '_review.md';
-        a.click();
-        URL.revokeObjectURL(url);
-      });
-
-      // Back to Roster
-      document.getElementById('btn-back-roster').addEventListener('click', function() {
-        showRosterScreen();
-      });
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       INIT — Steps 4-9 will populate the individual screens.
-       For now, the shell is in place and the router is wired.
-    ═══════════════════════════════════════════════════════════════ */
-    function initVoiceInput() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-      if (!SpeechRecognition) {
-        document.querySelectorAll('.btn-mic').forEach(btn => {
-          btn.style.display = 'none';
-        });
+      if (!notes) {
+        showQuestionError('Please add some notes first.');
         return;
       }
 
-      let activeRecognition = null;
-      let activeButton = null;
-      let activeTarget = null;
-      let committedText = '';
+      if (window._stopVoiceRecording) window._stopVoiceRecording();
 
-      function stopRecording() {
-        if (activeRecognition) {
-          activeRecognition.stop();
-          activeRecognition = null;
-        }
-        if (activeButton) {
-          activeButton.classList.remove('recording');
-          activeButton = null;
-        }
-        activeTarget = null;
-        committedText = '';
-      }
+      const existingDraft = getQuestionDraft(person, idx) || q.managerReflection || null;
 
-      // Export stopRecording globally so it can be called from other handlers
-      window._stopVoiceRecording = stopRecording;
+      setDraftPanelLoading(true);
 
-      function startRecording(btn, targetId) {
-        stopRecording();
-
-        const textarea = document.getElementById(targetId);
-        if (!textarea) return;
-
-        const existingText = textarea.value;
-        committedText = '';
-
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
-
-        recognition.onresult = (event) => {
-          let interimTranscript = '';
-          let finalTranscript = '';
-
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              finalTranscript += transcript;
-            } else {
-              interimTranscript += transcript;
-            }
-          }
-
-          if (finalTranscript) {
-            committedText += (committedText ? ' ' : '') + finalTranscript.trim();
-          }
-
-          const display = (existingText ? existingText.trimEnd() + '\n' : '') +
-                          (committedText || '') +
-                          (interimTranscript ? ' [' + interimTranscript + ']' : '');
-          textarea.value = display;
-          textarea.scrollTop = textarea.scrollHeight;
-        };
-
-        recognition.onerror = (event) => {
-          if (event.error === 'no-speech') return;
-          stopRecording();
-        };
-
-        recognition.onend = () => {
-          if (activeTarget === targetId) {
-            const ta = document.getElementById(targetId);
-            if (ta) {
-              ta.value = ta.value.replace(/\s*\[.*?\]/g, '').trim();
-            }
-          }
-          stopRecording();
-        };
-
-        activeRecognition = recognition;
-        activeButton = btn;
-        activeTarget = targetId;
-
-        btn.classList.add('recording');
-        recognition.start();
-      }
-
-      document.querySelectorAll('.btn-mic').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          const targetId = btn.dataset.target;
-
-          if (activeButton === btn) {
-            stopRecording();
-          } else {
-            startRecording(btn, targetId);
-          }
-        });
+      callDraftAPI({
+        question:           q.question,
+        self_review:        q.selfReview,
+        notes:              notes,
+        previous_draft:     existingDraft,
+        tone_instruction:   null,
+        style_instructions: state.styleInstructions || null,
+      }).then(function(draft) {
+        setDraftPanelLoading(false);
+        setQuestionDraft(person, idx, draft);
+        setQuestionStatus(person, idx, 'drafted');
+        renderDraftPanel(person, idx);
+        updateSidebar();
+      }).catch(function(err) {
+        setDraftPanelLoading(false);
+        showQuestionError('Draft failed: ' + err.message);
       });
+    });
+
+    // Skip question (from notes section)
+    document.getElementById('btn-skip-question').addEventListener('click', function() {
+      const person = state.currentPerson;
+      const idx    = state.currentQuestionIndex;
+      saveAnswer(person, idx, '(Skipped)');
+      setQuestionStatus(person, idx, 'skipped');
+      updateSidebar();
+      advanceQuestion();
+    });
+
+    // Accept draft
+    document.getElementById('btn-accept-draft').addEventListener('click', function() {
+      const person = state.currentPerson;
+      const idx    = state.currentQuestionIndex;
+      const draft  = document.getElementById('draft-text').textContent;
+      saveAnswer(person, idx, draft);
+      setQuestionStatus(person, idx, 'accepted');
+      renderDraftPanel(person, idx);
+      updateSidebar();
+      advanceQuestion();
+    });
+
+    // Revise draft
+    document.getElementById('btn-revise-draft').addEventListener('click', function() {
+      const person = state.currentPerson;
+      const idx    = state.currentQuestionIndex;
+      const q      = state.roster[person][idx];
+      const currentDraft = document.getElementById('draft-text').textContent;
+      const notes  = document.getElementById('question-notes').value.trim();
+
+      setDraftPanelLoading(true);
+
+      callDraftAPI({
+        question:           q.question,
+        self_review:        q.selfReview,
+        notes:              notes || null,
+        previous_draft:     currentDraft,
+        tone_instruction:   null,
+        style_instructions: state.styleInstructions || null,
+      }).then(function(newDraft) {
+        setDraftPanelLoading(false);
+        setQuestionDraft(person, idx, newDraft);
+        setQuestionStatus(person, idx, 'drafted');
+        renderDraftPanel(person, idx);
+        updateSidebar();
+      }).catch(function(err) {
+        setDraftPanelLoading(false);
+        showQuestionError('Revise failed: ' + err.message);
+      });
+    });
+
+    // Edit by hand (open edit state)
+    document.getElementById('btn-edit-by-hand').addEventListener('click', function() {
+      const person = state.currentPerson;
+      const idx    = state.currentQuestionIndex;
+      const currentDraft = document.getElementById('draft-text').textContent;
+
+      document.getElementById('draft-empty-state').style.display   = 'none';
+      document.getElementById('draft-loading-state').style.display = 'none';
+      document.getElementById('draft-content-state').style.display = 'none';
+      document.getElementById('draft-edit-state').style.display    = '';
+      document.getElementById('edit-by-hand-text').value = currentDraft;
+    });
+
+    // Edit button (from accepted state)
+    document.getElementById('btn-edit-draft').addEventListener('click', function() {
+      const finalAnswer = document.getElementById('draft-text').textContent;
+      document.getElementById('draft-empty-state').style.display   = 'none';
+      document.getElementById('draft-loading-state').style.display = 'none';
+      document.getElementById('draft-content-state').style.display = 'none';
+      document.getElementById('draft-edit-state').style.display    = '';
+      document.getElementById('edit-by-hand-text').value = finalAnswer;
+    });
+
+    // Save & Accept (from edit-by-hand state)
+    document.getElementById('btn-save-hand-edit').addEventListener('click', function() {
+      const person = state.currentPerson;
+      const idx    = state.currentQuestionIndex;
+      const text   = document.getElementById('edit-by-hand-text').value.trim();
+      if (!text) return;
+      saveAnswer(person, idx, text);
+      setQuestionDraft(person, idx, text);
+      setQuestionStatus(person, idx, 'accepted');
+      renderDraftPanel(person, idx);
+      updateSidebar();
+      advanceQuestion();
+    });
+
+    // Cancel edit
+    document.getElementById('btn-cancel-edit').addEventListener('click', function() {
+      const person = state.currentPerson;
+      const idx    = state.currentQuestionIndex;
+      renderDraftPanel(person, idx);
+    });
+
+    // Skip from draft panel
+    document.getElementById('btn-skip-from-draft').addEventListener('click', function() {
+      const person = state.currentPerson;
+      const idx    = state.currentQuestionIndex;
+      saveAnswer(person, idx, '(Skipped)');
+      setQuestionStatus(person, idx, 'skipped');
+      renderDraftPanel(person, idx);
+      updateSidebar();
+      advanceQuestion();
+    });
+
+    // Summary screen buttons
+    document.getElementById('btn-copy-all').addEventListener('click', function() {
+      const md = generateMarkdown(state.currentPerson);
+      navigator.clipboard.writeText(md).then(function() {
+        const fb = document.getElementById('copy-all-feedback');
+        fb.style.display = 'block';
+        setTimeout(function() { fb.style.display = 'none'; }, 2000);
+      });
+    });
+
+    document.getElementById('btn-download-md').addEventListener('click', function() {
+      const md   = generateMarkdown(state.currentPerson);
+      const blob = new Blob([md], { type: 'text/markdown' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = state.currentPerson.replace(/\s+/g, '_') + '_review.md';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('btn-back-to-questions').addEventListener('click', function() {
+      if (state.currentPerson && state.currentQuestionIndex >= 0) {
+        showQuestionScreen(state.currentPerson, state.currentQuestionIndex);
+      } else {
+        showHomeScreen();
+      }
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     INIT
+  ═══════════════════════════════════════════════════════════════ */
+  (function init() {
+    const saved = loadFromStorage();
+    if (saved && saved.rawInput) {
+      try {
+        const { roster, personList } = parseRoster(saved.rawInput);
+        state.roster              = roster;
+        state.personList          = personList;
+        state.rawInput            = saved.rawInput;
+        state.answers             = saved.answers || {};
+        state.styleInstructions   = saved.styleInstructions || '';
+        state.questionNotes       = saved.questionNotes || {};
+        state.currentPerson       = saved.currentPerson || null;
+        state.currentQuestionIndex = saved.currentQuestionIndex || 0;
+      } catch (e) {
+        // corrupt saved data
+      }
     }
 
+    // Wire all buttons before showing any screen
+    wireAllButtons();
+    initVoiceInput();
 
-    (function init() {
-      // Screen router is ready; state machine is initialized.
-      console.log('[Performance Trail] Shell initialized. Screens: home, roster, landmark, campfire, complete.');
-      initLandmarkScreen();
-      initCampfireHandlers();
-      initCompleteHandlers();
-      // Pre-load saved state so home screen can render with progress
-      const _savedForInit = loadFromStorage();
-      if (_savedForInit && _savedForInit.rawInput) {
-        try {
-          const { roster, personList } = parseRoster(_savedForInit.rawInput);
-          state.roster              = roster;
-          state.personList          = personList;
-          state.rawInput            = _savedForInit.rawInput;
-          state.answers             = _savedForInit.answers || {};
-          state.styleInstructions   = _savedForInit.styleInstructions || '';
-        } catch (e) {
-          // corrupt saved data — ignore, will fall through to load screen
-        }
-      }
+    // Restore style instructions textarea
+    const styleTA = document.getElementById('style-instructions');
+    styleTA.value = state.styleInstructions || '';
 
-      // Show home if roster loaded, else show load screen
-      if (state.personList.length > 0) {
-        showHomeScreen();
-      } else {
-        showLoadScreen();
-      }
-
-      initVoiceInput();
-
-      // Persistent back-to-roster navigation
-      document.getElementById('btn-nav-roster-from-landmark').addEventListener('click', showRosterScreen);
-      document.getElementById('btn-nav-roster-from-campfire').addEventListener('click', showRosterScreen);
-
-      // Home screen load-new-roster button
-      document.getElementById('btn-load-new-roster').addEventListener('click', showLoadScreen);
-
-      // Style instructions — sync textarea ↔ state, auto-save
-      const styleTA = document.getElementById('style-instructions');
-      styleTA.value = state.styleInstructions || '';
-      styleTA.addEventListener('input', function() {
-        state.styleInstructions = styleTA.value;
-        saveToStorage();
-      });
-    })();
-  </script>
+    // Initial screen
+    if (state.personList.length > 0) {
+      showHomeScreen();
+    } else {
+      showLoadScreen();
+    }
+  })();
+</script>
 </body>
 </html>
