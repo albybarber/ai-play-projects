@@ -54,6 +54,26 @@
             font-size: 14px;
         }
 
+        .start-date-heading {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 0 12px;
+        }
+
+        .full-year-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 400;
+        }
+
+        input:disabled {
+            background: #f8f9fa;
+            color: #999;
+        }
+
         input[type="number"],
         input[type="date"] {
             width: 100%;
@@ -226,7 +246,13 @@
             </div>
 
             <div class="form-group">
-                <label for="startDate">Your Start Date</label>
+                <div class="start-date-heading">
+                    <label for="startDate">Your Start Date</label>
+                    <label class="full-year-option" for="fullFiscalYear">
+                        <input type="checkbox" id="fullFiscalYear">
+                        I was employed for the full fiscal year
+                    </label>
+                </div>
                 <input type="date" id="startDate" required>
             </div>
 
@@ -267,6 +293,10 @@
 
         <div class="results" id="results">
             <div class="result-row">
+                <span class="result-label">Calculation Basis</span>
+                <span class="result-value" id="calculationBasis">-</span>
+            </div>
+            <div class="result-row">
                 <span class="result-label">Days Worked</span>
                 <span class="result-value" id="daysWorked">-</span>
             </div>
@@ -293,6 +323,7 @@
         const fyStartInput = document.getElementById('fyStart');
         const fyEndInput = document.getElementById('fyEnd');
         const startDateInput = document.getElementById('startDate');
+        const fullFiscalYearInput = document.getElementById('fullFiscalYear');
         const periodDisplay = document.getElementById('periodDisplay');
 
         function daysBetween(a, b) {
@@ -306,15 +337,29 @@
         function updatePeriodDisplay() {
             const fyStart = new Date(fyStartInput.value);
             const fyEnd = new Date(fyEndInput.value);
-            const totalDays = daysBetween(fyStart, fyEnd) + 1;
-            periodDisplay.textContent = `${formatDate(fyStart)} - ${formatDate(fyEnd)} (${totalDays} days)`;
-
+            const validPeriod = !isNaN(fyStart) && !isNaN(fyEnd) && fyEnd >= fyStart;
+            fyEndInput.setCustomValidity(
+                validPeriod ? '' : 'Enter a valid fiscal year range with the end on or after the start.'
+            );
             startDateInput.min = fyStartInput.value;
             startDateInput.max = fyEndInput.value;
+            document.getElementById('results').classList.remove('show');
+            if (!validPeriod) {
+                periodDisplay.textContent = 'Enter a valid fiscal year range.';
+                return;
+            }
+            const totalDays = daysBetween(fyStart, fyEnd) + 1;
+            periodDisplay.textContent = `${formatDate(fyStart)} - ${formatDate(fyEnd)} (${totalDays} days)`;
         }
 
+        fyStartInput.addEventListener('input', updatePeriodDisplay);
+        fyEndInput.addEventListener('input', updatePeriodDisplay);
         fyStartInput.addEventListener('change', updatePeriodDisplay);
         fyEndInput.addEventListener('change', updatePeriodDisplay);
+        fullFiscalYearInput.addEventListener('change', function() {
+            startDateInput.disabled = fullFiscalYearInput.checked;
+            updatePeriodDisplay();
+        });
         updatePeriodDisplay();
 
         // Set default start date to today if within the fiscal year
@@ -327,6 +372,10 @@
 
         document.getElementById('aipForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            updatePeriodDisplay();
+            if (!this.reportValidity()) {
+                return;
+            }
 
             const fyEnd = new Date(fyEndInput.value);
             const fyStart = new Date(fyStartInput.value);
@@ -338,13 +387,17 @@
             const corporateFactor = parseFloat(document.getElementById('corporateFactor').value) / 100;
             const individualFactor = parseFloat(document.getElementById('individualFactor').value) / 100;
 
-            const daysWorked = daysBetween(startDate, fyEnd) + 1;
+            const fullFiscalYear = fullFiscalYearInput.checked;
+            const daysWorked = fullFiscalYear ? totalDays : daysBetween(startDate, fyEnd) + 1;
             const proration = daysWorked / totalDays;
             const fullYearTarget = salary * aipTarget;
             const proratedTarget = fullYearTarget * proration;
             const finalPayout = proratedTarget * corporateFactor * individualFactor;
 
             const fmt = (v) => `$${v.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('calculationBasis').textContent = fullFiscalYear
+                ? 'Full fiscal year (self-declared)'
+                : 'Start-date proration';
             document.getElementById('daysWorked').textContent = `${daysWorked} days (of ${totalDays})`;
             document.getElementById('proration').textContent = `${(proration * 100).toFixed(2)}%`;
             document.getElementById('fullYearTarget').textContent = fmt(fullYearTarget);
