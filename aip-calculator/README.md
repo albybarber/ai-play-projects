@@ -8,6 +8,7 @@ A simple browser-based Annual Incentive Plan (AIP) bonus calculator with prorati
 
 ## Inputs
 
+- **Fiscal Year Start / End** — Defaults to November 29, 2025 through November 27, 2026 (364 days); both dates are editable
 - **Start Date** — Your start date within the fiscal year
 - **Annual Salary** — Your base annual salary
 - **AIP Target %** — Your target bonus percentage
