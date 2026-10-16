@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
-"""Read-only helper for the pr-tone skill.
+"""Helper for the pr-tone skill. Read-only towards GitHub; writes only to the local reports folder.
 
-Every GitHub call goes through `gh api --method GET` on a fixed set of
-endpoints; this script never writes to GitHub or to disk. It only prints.
+Every GitHub call is `gh api --method GET` on a fixed set of endpoints. The
+only files written are under $PR_TONE_HOME (default ~/pr-tone-reports), which
+must not be inside a git working tree unless git ignores it.
 
     prtone.py fetch --repo owner/name [--author login ...] [--since YYYY-MM-DD] [--until YYYY-MM-DD]
     prtone.py fetch --org acme --author alice --author bob --since 2026-10-01
     prtone.py fetch --repo owner/name --pr 123
+    prtone.py fetch ... --offset 20 --run <run-id>   # next page, added to the same run
+    prtone.py report --run <run-id> [--open] < labels.jsonl
+    prtone.py show --run <run-id> --id review_comment:123
+    prtone.py runs
     prtone.py calibrate             # print the labelled eval cases, without their answers
     prtone.py score < labels.jsonl  # score {"case": n, "tone": ..., ...} lines read from stdin
 """
@@ -15,6 +20,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import platform
 import re
 import subprocess
 import sys
@@ -175,6 +182,7 @@ def mark_targets(comments: list[dict], start: datetime, end: datetime, authors: 
             continue
         reason = skip_reason(c)
         if reason:
+            c["skip"] = reason
             skipped[reason] += 1
             continue
         c["target"] = True
@@ -219,6 +227,175 @@ def render_pr(pr: dict, comments: list[dict]) -> str:
     return "\n".join(lines)
 
 
+# ---------------------------------------------------------------- local run storage
+
+
+def reports_home() -> Path:
+    return Path(os.environ.get("PR_TONE_HOME") or Path.home() / "pr-tone-reports").expanduser().resolve()
+
+
+def ensure_untracked(path: Path) -> None:
+    """Refuse to write inside a git working tree unless git ignores the path: reports must never be committed."""
+    probe = path
+    while not probe.exists():
+        probe = probe.parent
+    inside = subprocess.run(["git", "-C", str(probe), "rev-parse", "--is-inside-work-tree"],
+                            capture_output=True, text=True)
+    if inside.returncode != 0 or inside.stdout.strip() != "true":
+        return
+    # trailing slash: a not-yet-created folder must still match directory patterns like "reports/"
+    ignored = subprocess.run(["git", "-C", str(probe), "check-ignore", "-q", str(path) + "/"])
+    if ignored.returncode != 0:
+        sys.exit(f"refusing to write reports to {path}: it is inside a git repository and not ignored. "
+                 "Set PR_TONE_HOME to a folder outside any repo (default ~/pr-tone-reports).")
+
+
+def run_dir(run_id: str) -> Path:
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+", run_id):
+        sys.exit(f"bad run id {run_id!r}")
+    return reports_home() / run_id
+
+
+def _private_mkdir(path: Path) -> None:
+    ensure_untracked(path)
+    path.mkdir(parents=True, exist_ok=True)
+    for p in (path, reports_home()):
+        os.chmod(p, 0o700)  # comment text and judgements about people: owner-only
+
+
+def _private_write(path: Path, text: str) -> None:
+    path.write_text(text)
+    os.chmod(path, 0o600)
+
+
+def new_run_id(args: argparse.Namespace) -> str:
+    bits = [r.split("/")[1] for r in args.repo] + args.org + args.author + [f"pr{n}" for n in args.pr or []]
+    slug = re.sub(r"[^A-Za-z0-9_-]+", "-", "-".join(bits))[:60].strip("-") or "run"
+    return f"{datetime.now().strftime('%Y%m%d-%H%M%S')}-{slug}"
+
+
+def load_run(run_id: str) -> dict:
+    path = run_dir(run_id) / "threads.json"
+    if not path.exists():
+        sys.exit(f"no run {run_id!r} in {reports_home()}; use `prtone.py runs` to list them")
+    return json.loads(path.read_text())
+
+
+def save_fetch(args: argparse.Namespace, start: datetime, end: datetime, fetched: list[dict]) -> str:
+    """Store the threads so report/show can use them later. Pages fetched with --run are merged in."""
+    run_id = getattr(args, "run", None) or new_run_id(args)
+    d = run_dir(run_id)
+    _private_mkdir(d)
+    path = d / "threads.json"
+    data = json.loads(path.read_text()) if path.exists() else {
+        "run": run_id,
+        "created": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "scope": {"repos": args.repo, "orgs": args.org, "authors": args.author, "prs": args.pr or []},
+        "window": {"start": start.date().isoformat(), "end": (end - timedelta(days=1)).date().isoformat()},
+        "prs": {},
+    }
+    for item in fetched:
+        data["prs"][f"{item['pr']['repo']}#{item['pr']['number']}"] = item
+    _private_write(path, json.dumps(data))
+    return run_id
+
+
+LABEL_FIELDS = {
+    "tone": {"kind", "neutral", "mean", "toxic"},
+    "helpfulness": {"helpful", "somewhat_helpful", "not_helpful"},
+    "conflict": {"none", "respectful_disagreement", "contradicts_earlier"},
+    "confidence": {"low", "medium", "high"},
+}
+
+
+def parse_labels(lines: list[str], run: dict) -> tuple[dict, list[dict], list[str]]:
+    """Split stdin lines into per-comment labels, notes (summary/person), and problems."""
+    targets = {c["id"] for item in run["prs"].values() for c in item["comments"] if c.get("target")}
+    labels, notes, problems = {}, [], []
+    for n, line in enumerate(lines, 1):
+        if not line.strip():
+            continue
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError as e:
+            problems.append(f"line {n}: not JSON ({e})")
+            continue
+        if obj.get("type") in ("summary", "person"):
+            notes.append(obj)
+            continue
+        cid = obj.get("id")
+        if cid not in targets:
+            problems.append(f"line {n}: {cid!r} is not a target comment in this run")
+            continue
+        bad = [f for f, ok in LABEL_FIELDS.items() if obj.get(f) not in ok]
+        if bad:
+            problems.append(f"line {n} ({cid}): missing or invalid {', '.join(bad)}")
+            continue
+        labels[cid] = obj
+    missing = targets - labels.keys()
+    if missing:
+        problems.append(f"{len(missing)} target comments have no label: {', '.join(sorted(missing)[:10])}"
+                        + (" ..." if len(missing) > 10 else ""))
+    return labels, notes, problems
+
+
+def open_file(path: Path) -> None:
+    opener = {"Darwin": ["open"], "Windows": ["cmd", "/c", "start", ""]}.get(platform.system(), ["xdg-open"])
+    try:
+        subprocess.Popen([*opener, str(path)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except OSError:
+        pass
+
+
+def cmd_report(args: argparse.Namespace) -> str:
+    from report_html import render_report  # noqa: PLC0415 - sibling module, only needed here
+
+    run = load_run(args.run)
+    labels, notes, problems = parse_labels(sys.stdin.read().splitlines(), run)
+    d = run_dir(args.run)
+    _private_mkdir(d)
+    _private_write(d / "labels.json", json.dumps({"labels": labels, "notes": notes}))
+    out = d / "report.html"
+    _private_write(out, render_report(run, labels, notes))
+    if args.open:
+        open_file(out)
+    lines = [f"report: {out}", f"url: {out.as_uri()}", f"labelled {len(labels)} comments"]
+    lines += [f"WARNING {p}" for p in problems]
+    return "\n".join(lines) + "\n"
+
+
+def cmd_show(args: argparse.Namespace) -> str:
+    """Print the full PR thread around one comment, with any saved labels, for digging deeper."""
+    run = load_run(args.run)
+    saved = run_dir(args.run) / "labels.json"
+    labels = json.loads(saved.read_text())["labels"] if saved.exists() else {}
+    for item in run["prs"].values():
+        ids = [c["id"] for c in item["comments"]]
+        if args.id in ids:
+            comments = [{**c, "target": c["id"] == args.id} for c in item["comments"]]
+            out = [render_pr(item["pr"], comments)]
+            if args.id in labels:
+                out.append("# saved label: " + json.dumps(labels[args.id]))
+            related = [c for c in item["comments"] if c["id"] in labels and c["id"] != args.id]
+            for c in related:
+                out.append(f"# other label in this PR: {c['id']} by {c['author']}: {labels[c['id']]['tone']}")
+            return "\n".join(out) + "\n"
+    sys.exit(f"comment {args.id!r} not found in run {args.run}")
+
+
+def cmd_runs(_: argparse.Namespace) -> str:
+    home = reports_home()
+    rows = []
+    for d in sorted(home.glob("*/threads.json"), reverse=True):
+        run = json.loads(d.read_text())
+        has = "report" if (d.parent / "report.html").exists() else "no report yet"
+        scope = run["scope"]
+        who = ", ".join(scope["repos"] + [f"org:{o}" for o in scope["orgs"]]) or "-"
+        people = ", ".join(scope["authors"]) or "everyone"
+        rows.append(f"{run['run']}  {run['window']['start']}..{run['window']['end']}  {who}  [{people}]  {has}")
+    return "\n".join(rows or [f"no runs in {home}"]) + "\n"
+
+
 # ---------------------------------------------------------------- commands
 
 
@@ -237,6 +414,7 @@ def cmd_fetch(args: argparse.Namespace, get: Runner = gh_get) -> str:
         sys.exit("--pr needs exactly one --repo")
     if not (args.repo or args.org or args.author):
         sys.exit("give at least one of --repo, --org or --author")
+    ensure_untracked(reports_home())  # fail before any GitHub calls, not after
 
     today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     if args.pr and not args.since:
@@ -259,16 +437,19 @@ def cmd_fetch(args: argparse.Namespace, get: Runner = gh_get) -> str:
     window = prs[args.offset: args.offset + args.limit]
 
     skipped: Counter = Counter()
-    blocks, targets = [], 0
+    blocks, targets, fetched = [], 0, []
     for pr in window:
         comments = pr_comments(get, pr["repo"], pr["number"])
         n = mark_targets(comments, start, end, authors, skipped)
         if n:
             targets += n
             blocks.append(render_pr(pr, comments))
+            fetched.append({"pr": pr, "comments": comments})
 
+    run_id = save_fetch(args, start, end, fetched)
     shown_to = args.offset + len(window)
     head = [
+        f"# run: {run_id}",
         f"# window: {start.date()} to {(end - timedelta(days=1)).date()} (UTC, inclusive)",
         f"# authors: {', '.join(args.author) or 'everyone'}",
         f"# PRs {args.offset + 1 if window else 0}-{shown_to} of {total}; "
@@ -276,7 +457,7 @@ def cmd_fetch(args: argparse.Namespace, get: Runner = gh_get) -> str:
         f"# skipped before labelling: {dict(skipped) or 'none'}",
     ]
     if shown_to < total:
-        head.append(f"# MORE: rerun with --offset {shown_to} for the next {args.limit} PRs")
+        head.append(f"# MORE: rerun with --offset {shown_to} --run {run_id} for the next {args.limit} PRs")
     if total >= 1000:
         head.append("# WARNING: search returns at most 1000 PRs; narrow the dates or scope")
     return "\n".join(head) + "\n\n" + "\n\n".join(blocks) + "\n"
@@ -348,10 +529,19 @@ def main(argv: list[str] | None = None) -> None:
     f.add_argument("--until", type=_day, help="UTC day to stop before, YYYY-MM-DD (default: tomorrow)")
     f.add_argument("--offset", type=int, default=0)
     f.add_argument("--limit", type=int, default=20, help="PRs per call")
+    f.add_argument("--run", help="add this page to an existing run instead of starting a new one")
+    r = sub.add_parser("report", help="build the HTML report from labels on stdin")
+    r.add_argument("--run", required=True)
+    r.add_argument("--open", action="store_true", help="open the report in the default browser")
+    sh = sub.add_parser("show", help="print the full thread around one comment")
+    sh.add_argument("--run", required=True)
+    sh.add_argument("--id", required=True)
+    sub.add_parser("runs", help="list saved runs")
     sub.add_parser("calibrate", help="print eval cases without answers")
     sub.add_parser("score", help="score answers read from stdin")
     args = p.parse_args(argv)
-    run = {"fetch": cmd_fetch, "calibrate": cmd_calibrate, "score": cmd_score}[args.cmd]
+    run = {"fetch": cmd_fetch, "report": cmd_report, "show": cmd_show, "runs": cmd_runs,
+           "calibrate": cmd_calibrate, "score": cmd_score}[args.cmd]
     sys.stdout.write(run(args))
 
 

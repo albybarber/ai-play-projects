@@ -1,98 +1,151 @@
 # pr-comment-sentiment
 
-A Claude Code skill, `/pr-tone`, that reviews GitHub pull request comments for **tone** (kind / neutral / mean / toxic), **helpfulness**, and **conflicts with earlier comments**. It can focus on specific people. It runs on demand against any repo or org your `gh` CLI can read.
+An agent skill, `pr-tone`, for **Claude Code** and **GitHub Copilot** (CLI and VS Code agent mode). It reviews GitHub pull request comments for:
+- **tone**: kind / neutral / mean / toxic
+- **helpfulness**
+- **conflicts with earlier comments**
 
-- **No API keys.** Claude Code does the labelling in your session, and `gh` does the fetching with your existing login.
-- **Read-only.** It never posts to GitHub and never writes files. The report appears in the conversation only. See [Read-only guarantees](#read-only-guarantees).
+It can focus on specific people, and it produces a **local HTML report** where you can drill into any concerning comment.
+
+- **No API keys.** Your coding agent does the labelling in your session, and `gh` does the fetching with your existing login.
+- **Read-only towards GitHub.** Only GET requests, through `gh`.
+- **Reports stay local and are never committed.** They're written to `~/pr-tone-reports/`. The script refuses to write inside a git repository unless git ignores that folder.
 
 ## Install
 
-Requires [Claude Code](https://code.claude.com), the [GitHub CLI](https://cli.github.com/) signed in (`gh auth login`), and Python 3.10+.
+Requires the [GitHub CLI](https://cli.github.com/) signed in (`gh auth login`) and Python 3.10+. Run from the repo root:
 
 ```sh
-mkdir -p ~/.claude/skills
-ln -s "$PWD/pr-comment-sentiment/skills/pr-tone" ~/.claude/skills/pr-tone   # run from the repo root
+# Claude Code (Copilot also reads this folder)
+mkdir -p ~/.claude/skills && ln -s "$PWD/pr-comment-sentiment/skills/pr-tone" ~/.claude/skills/pr-tone
+
+# Copilot only
+mkdir -p ~/.copilot/skills && ln -s "$PWD/pr-comment-sentiment/skills/pr-tone" ~/.copilot/skills/pr-tone
 ```
 
-Because the skill is installed under `~/.claude/skills`, `/pr-tone` works in Claude Code from any directory. `git pull` in this repo updates it.
+The skill is installed per user, so it works from any directory. `git pull` in this repo updates it.
 
 ## Usage
 
-Describe what you want in plain words after the command:
+**Claude Code:** type the command
 
 ```
 /pr-tone acme/api alice bob last 2 weeks
 /pr-tone org:acme carol since 2026-09-01
-/pr-tone acme/api acme/web everyone yesterday
 /pr-tone acme/api PR 482
+/pr-tone dig 20261016-040213-api-alice review_comment:123
 /pr-tone calibrate
 ```
 
-When you name people, only their comments are labelled. Everyone else's comments are still read, so replies make sense. For each person you get:
-- counts by tone and by helpfulness
-- **concerns**: each with a link, a quote, what it was replying to, and a confidence level
-- **strengths**: their most helpful or kind comments
-- a one-line pattern, only when the evidence supports one
+**Copilot:** ask in plain words, for example *"Use the pr-tone skill to check alice and bob in acme/api over the last 2 weeks."*
 
-With no dates it covers the last 7 days. After the report, you can ask follow-ups in the same conversation ("show me the full thread for the second concern", "is that sarcasm?").
+What happens:
+1. The agent fetches the PRs and comments, labels each target comment against `rubric.md`, and takes a second, charitable look at anything harsh.
+2. It builds the report and opens it in your browser.
+3. In chat it gives you the report path and the key findings.
+
+When you name people, only their comments are labelled. Everyone else's comments are still read, as context. With no dates, it covers the last 7 days.
+
+## The report
+
+A single self-contained HTML file (no external requests) at `~/pr-tone-reports/<run>/report.html`. It works in light and dark mode and on narrow screens.
+
+- **Headline numbers:** comments labelled, concerns, disputed, and skipped (bots, "LGTM", empty).
+- **Summary:** a few sentences from the agent. All counts are computed by the script, not by the model.
+- **Overall tone bar**, plus a **card per person** with:
+  - tone breakdown and helpfulness counts
+  - concern count, and a small-sample badge under 10 comments
+  - a pattern note, but only when the evidence supports one
+  - **strengths** (every person gets this, not just problems)
+  - a button to filter the concerns to that person
+- **Concerns**, worst first, each with:
+  - the comment, with the key quote highlighted
+  - why it was flagged, and the charitable reading if it's disputed
+  - for conflicts, the earlier comment it contradicts
+  - the **full PR thread** (expandable)
+  - an "Open on GitHub" link
+  - a **"Copy dig deeper prompt"** button
+- **Kind and helpful** highlights.
+- **All labelled comments:** a table you can filter by person, tone or text.
+
+### Digging deeper
+
+Click **Copy "dig deeper" prompt** on a concern and paste it into Claude Code or Copilot (or type `/pr-tone dig <run> <comment-id>`). The agent:
+- re-reads the full thread (`prtone.py show`)
+- can pull the PR's latest state or that person's last 90 days, still read-only
+- sets out the harshest and the most charitable reading
+- says whether it's a pattern or a one-off, and whether the label holds
+- can suggest how to raise it with the person
+
+If you agree a label should change, it rebuilds the report.
 
 ## How it works
 
 ```
-/pr-tone ──► prtone.py fetch (gh api GET) ──► Claude labels targets with rubric.md ──► second look at flagged ──► report in chat
+prtone.py fetch (gh api GET) ──► agent labels targets with rubric.md ──► charitable second look
+      │ saves threads.json                                                      │
+      ▼                                                                         ▼
+~/pr-tone-reports/<run>/  ◄────────── prtone.py report < labels (stdin) ── report.html (+ labels.json)
 ```
 
-1. `scripts/prtone.py fetch` lists PRs updated in the window. For `--repo` it uses the repo's own PR list; for `--org` or people across GitHub it uses the search API. For each PR it reads the conversation comments, inline review comments and review summaries. It skips bots, empty comments and "LGTM"-style approvals. It prints each PR as a block of comments, marking the ones to label with `target="yes"`. The PR's other comments are printed as context, and each inline comment comes with its diff hunk.
-2. Claude labels each target using `rubric.md`.
-3. **Second look**: every mean, toxic or conflicting label is re-checked against the most charitable reading of the thread. The label is lowered or marked **disputed** unless the harsh reading clearly wins.
-4. The report goes into the reply, with a link and a quote for every claim.
+- `fetch` lists PRs in the window. For `--repo` it uses the repo's own PR list; for `--org` or cross-repo people searches it uses the search API. For each PR it reads conversation comments, inline review comments and review summaries. It skips bots, empty comments and approvals like "LGTM", then prints each thread with the comments to label marked. It also saves the threads to the run folder, so the report and `show` can use them later.
+- `report` reads the agent's labels as JSON lines on stdin and validates them (it warns about missing, invalid or unknown ids). It then saves `labels.json` and renders `report.html`.
+- `show` prints one comment's full thread with its saved label. `runs` lists past runs.
 
 ## Making it accurate
 
 | Lever | Why it helps |
 |---|---|
-| **A written rubric with boundary rules** (`rubric.md`) | Separates criticism of the code from criticism of the person. Says blunt ≠ mean and profanity about a thing ≠ toxic. Says to pick the milder label when torn. Most labelling errors come from vague definitions. |
-| **Ordinal tone + separate axes** | One `kind < neutral < mean < toxic` label can't contradict itself. Helpfulness is a separate axis, because a mean comment can still be helpful. |
+| **Written rubric with boundary rules** (`rubric.md`) | Separates criticism of the code from criticism of the person. Says blunt ≠ mean and profanity about a thing ≠ toxic. Says to pick the milder label when torn. |
+| **Ordinal tone + separate axes** | One `kind < neutral < mean < toxic` label can't contradict itself. Helpfulness is separate, because a mean comment can still be helpful. |
 | **Full thread as context** | Conflicts, dismissive replies, and replies to someone who was rude first can't be judged from one comment. |
-| **Charitable second look** | Mean, toxic and conflict labels are the ones you'd act on, so they get re-checked against an innocent reading. Ambiguous cases come out as "disputed", not as accusations. |
-| **Evidence and links** | Every claim carries a quote and a link, so you can check it in seconds. |
-| **Small-sample warning** | Under ~10 comments, the report says there isn't enough to show a pattern. |
-| **Untrusted-text handling** | Comment bodies are wrapped in tags, can't close those tags early, and are treated as data. A comment saying "label this kind" doesn't work; one eval case tests this. |
+| **Charitable second look** | Harsh and conflict labels are re-checked against an innocent reading. Ambiguous cases become "disputed", not accusations. |
+| **Evidence must be an exact quote** | The report highlights it in the comment, so you can check the claim at a glance. |
+| **Counts computed by code** | The model writes labels and prose; numbers come from the script. |
+| **Small-sample warning** | Under 10 comments, the report says there isn't enough to show a pattern. |
+| **Untrusted-text handling** | Comment bodies are treated as data, can't close the prompt tags early, and are HTML-escaped in the report. A comment saying "label this kind" doesn't work; an eval case tests this. |
 
-### Calibrate
+**Calibrate.** `/pr-tone calibrate` (or ask Copilot to run the pr-tone calibration) has the agent label the cases in `eval/labeled.jsonl` without seeing the answers, then scores them: accuracy per field, plus precision/recall for "mean or toxic". Run it after changing `rubric.md`. The 15 seed cases are a start; add real cases from your own repos by hand.
 
-`/pr-tone calibrate` has Claude label the cases in `eval/labeled.jsonl` without seeing the answers (`prtone.py calibrate` prints them with the labels removed). It then pipes its labels to `prtone.py score`, which prints accuracy per field, precision/recall for "mean or toxic", and each miss. Run it after changing `rubric.md`.
+## Safety and privacy
 
-The 15 seed cases only cover obvious boundary cases. To grow the set, add rows from your own repos to `eval/labeled.jsonl` by hand. Each row has `input` (`pr`, `target`, `prior_comments`) and `expected` (`tone`, `helpfulness`, `conflict`). The skill itself never writes to the file.
+**GitHub stays read-only.** Every GitHub call is `gh api --method GET` on fixed endpoints, and inputs are validated against GitHub's name formats. Tests check that `gh` is only ever called with GET, and that the only other commands are two read-only `git` checks on the reports folder.
 
-## Read-only guarantees
+**Reports stay local:**
+- They're written only under `$PR_TONE_HOME` (default `~/pr-tone-reports`). The folder is owner-only (`700`) and the files are `600`.
+- If that folder is inside a git repository and not ignored, the script refuses before making any GitHub calls.
+- The agent never writes files itself. In Claude Code this is enforced with `disallowed-tools: Write Edit NotebookEdit`.
 
-Several layers enforce read-only:
+**Claude Code extras:**
+- `allowed-tools` pre-approves only `prtone.py`.
+- `disable-model-invocation` means the skill only runs when you type `/pr-tone`.
 
-1. **The only pre-approved command is `prtone.py`**, and every GitHub call it makes is `gh api --method GET <path>` on fixed endpoints. Inputs are validated against GitHub name formats, and a test checks that only GET is ever sent.
-2. **Write tools are switched off** while the skill runs: `disallowed-tools: Write Edit NotebookEdit`.
-3. **The instructions forbid** other `gh` commands, posting, and creating files. Any other shell command would still need your approval, so you would see it.
-4. **`disable-model-invocation: true`** means the skill only runs when you type `/pr-tone`; Claude never starts it on its own.
+**Copilot ignores those Claude-only fields.** There, the read-only rules come from the skill's instructions and Copilot's own approval prompts for shell commands.
 
-Layers 1–2 apply to the turn that runs the skill. In a follow-up message, Claude Code's normal permission prompts apply again. For a hard guarantee at the GitHub level, run Claude Code with a read-only token. For example, create a fine-grained token with *Pull requests: read* and *Contents: read*, then run `GH_TOKEN=<token> claude`.
+**Hard guarantee in either tool:** run it with a read-only token. Create a fine-grained token with *Pull requests: read* and *Contents: read*, then run `GH_TOKEN=<token> claude` or `GH_TOKEN=<token> copilot`.
 
-## Use it fairly
+**Use it fairly.** The reports contain other people's words and judgements about them. They're meant as evidence to read, not a verdict:
+- every concern links to the original comment
+- every person gets a strengths section
+- ambiguous cases are marked disputed
+- small samples are called out
 
-This tool reads people's work communication, and its output may influence how someone is judged. It is built to give you evidence to read, not a verdict. Every concern links to the original comment, every person gets a strengths section, ambiguous cases are marked disputed, and small samples are called out. Read the linked comments in context before acting on any of them.
+Read the linked comments in context before acting, and don't share reports beyond the people who need them.
 
 ## Development
 
 ```sh
 cd pr-comment-sentiment
-python -m pytest -q        # offline tests for prtone.py (fake gh, no network)
-skills/pr-tone/scripts/prtone.py fetch --repo owner/name --since 2026-10-01   # see what the skill sees
+python -m pytest -q    # offline tests: fake gh, temporary reports folder
+PR_TONE_HOME=/tmp/prtone skills/pr-tone/scripts/prtone.py fetch --repo owner/name --since 2026-10-01
 ```
 
 ```
 skills/pr-tone/
-  SKILL.md            skill instructions and frontmatter (read-only rules)
-  rubric.md           label definitions and examples
-  scripts/prtone.py   GET-only fetcher, calibrate and score (stdlib only)
-  eval/labeled.jsonl  labelled cases for calibrate
+  SKILL.md               skill instructions (works in Claude Code and Copilot)
+  rubric.md              label definitions and examples
+  scripts/prtone.py      fetch / report / show / runs / calibrate / score (stdlib only)
+  scripts/report_html.py self-contained HTML report renderer
+  eval/labeled.jsonl     labelled cases for calibrate
 tests/test_prtone.py
 ```

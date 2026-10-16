@@ -2,11 +2,16 @@ import argparse
 import importlib.util
 import io
 import json
-from collections import Counter
+import os
+import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import pytest
+
 SCRIPT = Path(__file__).resolve().parent.parent / "skills" / "pr-tone" / "scripts" / "prtone.py"
+sys.path.insert(0, str(SCRIPT.parent))
 spec = importlib.util.spec_from_file_location("prtone", SCRIPT)
 prtone = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(prtone)
@@ -51,8 +56,15 @@ ROUTES = {
 
 
 def fetch_args(**kw):
-    base = dict(repo=["o/r"], org=[], author=[], pr=None, since=DAY, until=NEXT, offset=0, limit=20)
+    base = dict(repo=["o/r"], org=[], author=[], pr=None, since=DAY, until=NEXT, offset=0, limit=20, run=None)
     return argparse.Namespace(**{**base, **kw})
+
+
+@pytest.fixture(autouse=True)
+def reports_home(tmp_path, monkeypatch):
+    home = tmp_path / "reports"
+    monkeypatch.setenv("PR_TONE_HOME", str(home))
+    return home
 
 
 def test_skip_reasons():
@@ -102,7 +114,6 @@ def test_org_uses_search_with_author_queries():
 
 
 def test_bad_names_rejected():
-    import pytest
     for kw in ({"repo": ["o/r; rm -rf /"]}, {"author": ["a b"]}, {"org": ["x/y"]}):
         with pytest.raises(SystemExit):
             prtone.cmd_fetch(fetch_args(**kw), FakeGh(ROUTES))
@@ -116,7 +127,10 @@ def test_gh_is_only_ever_called_with_get(monkeypatch):
 
     monkeypatch.setattr(prtone.subprocess, "run", lambda args, **kw: seen.append(args) or P())
     prtone.cmd_fetch(fetch_args())
-    assert seen and all(a[:4] == ["gh", "api", "--method", "GET"] and len(a) == 5 for a in seen)
+    gh_calls = [a for a in seen if a[0] == "gh"]
+    assert gh_calls and all(a[:4] == ["gh", "api", "--method", "GET"] and len(a) == 5 for a in gh_calls)
+    # the only other commands are local, read-only git checks on the reports folder
+    assert all(a[0] == "git" and a[3] in ("rev-parse", "check-ignore") for a in seen if a[0] != "gh")
 
 
 def test_calibrate_hides_answers_and_score():
@@ -129,3 +143,80 @@ def test_calibrate_hides_answers_and_score():
     assert "misses" not in prtone.score(cases, perfect)
     report = prtone.score(cases, {})
     assert "recall 0%" in report and "misses:" in report
+
+
+def _run_id(out):
+    return out.split("# run: ")[1].split()[0]
+
+
+def _label(cid, **kw):
+    return {"id": cid, "tone": "neutral", "helpfulness": "helpful", "conflict": "none", "confidence": "high",
+            "evidence": "", "rationale": "r", **kw}
+
+
+def _report(run_id, lines, monkeypatch):
+    monkeypatch.setattr(sys, "stdin", io.StringIO("\n".join(json.dumps(x) for x in lines)))
+    return prtone.cmd_report(argparse.Namespace(run=run_id, open=False))
+
+
+def test_fetch_saves_private_run_and_pages_merge(reports_home):
+    out = prtone.cmd_fetch(fetch_args(), FakeGh(ROUTES))
+    run_id = _run_id(out)
+    path = reports_home / run_id / "threads.json"
+    assert json.loads(path.read_text())["prs"].keys() == {"o/r#7"}
+    assert oct(os.stat(reports_home).st_mode & 0o777) == "0o700"
+    assert oct(os.stat(path).st_mode & 0o777) == "0o600"
+    again = prtone.cmd_fetch(fetch_args(run=run_id), FakeGh(ROUTES))
+    assert _run_id(again) == run_id and len(list(reports_home.iterdir())) == 1
+
+
+def test_report_html_escapes_counts_and_highlights(reports_home, monkeypatch):
+    routes = dict(ROUTES)
+    routes["repos/o/r/issues/7/comments"] = [[c(1, "ana", "2026-10-15T08:00:00Z", "Keep it at 30s"),
+                                              c(9, "lee", "2026-10-15T09:00:00Z", "<script>alert(1)</script> you clown")]]
+    run_id = _run_id(prtone.cmd_fetch(fetch_args(author=["lee"]), FakeGh(routes)))
+    out = _report(run_id, [
+        _label("issue_comment:9", tone="toxic", helpfulness="not_helpful", evidence="you clown"),
+        _label("review_comment:4", conflict="contradicts_earlier", conflicts_with="issue_comment:1",
+               evidence="Drop the timeout to 5s", disputed=True, charitable_reading="New info"),
+        {"type": "person", "login": "lee", "pattern": "Pattern <b>text</b>"},
+        {"type": "summary", "text": "Summary here"},
+    ], monkeypatch)
+    assert "WARNING" not in out
+    page = (reports_home / run_id / "report.html").read_text()
+    assert "<script>alert(1)" not in page and "&lt;script&gt;alert(1)" in page
+    assert "<mark>you clown</mark>" in page and "<mark>Drop the timeout to 5s</mark>" in page
+    assert "Pattern &lt;b&gt;text&lt;/b&gt;" in page and "Summary here" in page
+    assert "Concerns (2)" in page and "Contradicts ana" in page and "small sample (2)" in page
+    assert "dig deeper into comment issue_comment:9 from run " + run_id in page
+    assert "http://" not in page.replace("http://www.w3.org", "") and "<link" not in page  # no external loads
+
+
+def test_report_warns_on_missing_and_invalid_labels(reports_home, monkeypatch):
+    run_id = _run_id(prtone.cmd_fetch(fetch_args(), FakeGh(ROUTES)))
+    out = _report(run_id, [_label("review_comment:4", tone="rude"), _label("issue_comment:999")], monkeypatch)
+    assert "invalid tone" in out and "not a target" in out and "have no label" in out
+
+
+def test_show_prints_thread_with_label(reports_home, monkeypatch):
+    run_id = _run_id(prtone.cmd_fetch(fetch_args(), FakeGh(ROUTES)))
+    _report(run_id, [_label("review_comment:4", tone="mean"), _label("review_comment:5")], monkeypatch)
+    out = prtone.cmd_show(argparse.Namespace(run=run_id, id="review_comment:4"))
+    assert out.count('target="yes"') == 1 and '"tone": "mean"' in out and "issue_comment:1" in out
+    assert run_id in prtone.cmd_runs(None)
+
+
+def test_refuses_to_write_inside_a_git_repo(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    monkeypatch.setenv("PR_TONE_HOME", str(repo / "reports"))
+    with pytest.raises(SystemExit, match="inside a git repository"):
+        prtone.cmd_fetch(fetch_args(), FakeGh(ROUTES))
+    (repo / ".gitignore").write_text("reports/\n")
+    assert "# run:" in prtone.cmd_fetch(fetch_args(), FakeGh(ROUTES))  # allowed once git ignores it
+
+
+def test_bad_run_id_rejected():
+    with pytest.raises(SystemExit):
+        prtone.run_dir("../etc")
