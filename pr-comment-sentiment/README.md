@@ -13,17 +13,30 @@ It can focus on specific people, and it produces a **local HTML report** where y
 
 ## Install
 
-Requires the [GitHub CLI](https://cli.github.com/) signed in (`gh auth login`) and Python 3.10+. Run from the repo root:
+One command, no clone needed (macOS, Linux, or WSL):
 
 ```sh
-# Claude Code (Copilot also reads this folder)
-mkdir -p ~/.claude/skills && ln -s "$PWD/pr-comment-sentiment/skills/pr-tone" ~/.claude/skills/pr-tone
-
-# Copilot only
-mkdir -p ~/.copilot/skills && ln -s "$PWD/pr-comment-sentiment/skills/pr-tone" ~/.copilot/skills/pr-tone
+curl -fsSL https://raw.githubusercontent.com/albybarber/ai-play-projects/main/pr-comment-sentiment/install.sh | bash
 ```
 
-The skill is installed per user, so it works from any directory. `git pull` in this repo updates it.
+Or, from a clone of this repo: `./pr-comment-sentiment/install.sh`
+
+The installer:
+- puts the skill in `~/.claude/skills/pr-tone`. Claude Code **and** Copilot both read that folder, so one install covers both.
+  - Run from a clone, it **links** to your checkout, so `git pull` updates it.
+  - Run via `curl`, it downloads just this folder to `~/.local/share/pr-tone`. Run the same command again to update.
+- checks for Python 3.10+, the [GitHub CLI](https://cli.github.com/), and that `gh` is signed in. It tells you what's missing; run `gh auth login` if it says so.
+- never overwrites a folder that isn't this skill.
+
+| Option | What it does |
+|---|---|
+| `--target ~/.copilot/skills` | install somewhere else (repeatable), e.g. if your Copilot version only reads `~/.copilot/skills` |
+| `--copy` | copy the files instead of linking them |
+| `--uninstall` | remove the skill and the downloaded copy; your reports in `~/pr-tone-reports` are kept |
+
+With `curl`, pass options after `bash -s --`, for example `curl -fsSL … | bash -s -- --uninstall`.
+
+On Windows without WSL, copy the `skills/pr-tone` folder into `%USERPROFILE%\.copilot\skills\` (or `.claude\skills\`), and install Python and `gh`.
 
 ## Usage
 
@@ -136,16 +149,17 @@ Read the linked comments in context before acting, and don't share reports beyon
 
 ```sh
 cd pr-comment-sentiment
-python -m pytest -q    # offline tests: fake gh, temporary reports folder
+python -m pytest -q    # offline tests: fake gh, temporary HOME and reports folder
 PR_TONE_HOME=/tmp/prtone skills/pr-tone/scripts/prtone.py fetch --repo owner/name --since 2026-10-01
 ```
 
 ```
+install.sh               installer: link/copy/download, update, uninstall
 skills/pr-tone/
   SKILL.md               skill instructions (works in Claude Code and Copilot)
   rubric.md              label definitions and examples
   scripts/prtone.py      fetch / report / show / runs / calibrate / score (stdlib only)
   scripts/report_html.py self-contained HTML report renderer
   eval/labeled.jsonl     labelled cases for calibrate
-tests/test_prtone.py
+tests/                 offline tests for prtone.py and install.sh
 ```
