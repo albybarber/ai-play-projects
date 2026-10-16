@@ -22,11 +22,11 @@ curl -fsSL https://raw.githubusercontent.com/albybarber/ai-play-projects/main/pr
 Or, from a clone of this repo: `./pr-comment-sentiment/install.sh`
 
 The installer:
-- puts the skill in **`~/.claude/skills/pr-tone`** (Claude Code) and **`~/.copilot/skills/pr-tone`** (GitHub Copilot CLI and VS Code). Both are links to the same files, so they never drift apart. Recent Copilot CLI versions don't read `~/.claude/skills`, which is why it installs into both.
+- puts the skill in **`~/.claude/skills/pr-tone`** (Claude Code) and **`~/.copilot/skills/pr-tone`** (GitHub Copilot CLI and VS Code). Both are links to the same files, so they never drift apart. Some recent Copilot CLI versions no longer read `~/.claude/skills`, which is why it installs into both.
   - Run from a clone, it **links** to your checkout, so `git pull` updates it.
   - Run via `curl`, it downloads just this folder to `~/.local/share/pr-tone`. Run the same command again to update.
 - checks for Python 3.10+, the [GitHub CLI](https://cli.github.com/), and that `gh` is signed in. It tells you what's missing; run `gh auth login` if it says so.
-- never overwrites a folder that isn't this skill.
+- never overwrites or deletes a folder that isn't this skill (or, for the download folder, isn't its own download).
 
 | Option | What it does |
 |---|---|
@@ -64,7 +64,7 @@ What happens:
 2. It builds the report and opens it in your browser.
 3. In chat it gives you the report path and the key findings.
 
-When you name people, only their comments are labelled. Everyone else's comments are still read, as context. With no dates, it covers the last 7 days.
+When you name people, only their comments are labelled. Everyone else's comments are still read, as context. Dates are UTC and refer to when a comment was posted; with no dates, it covers the last 7 days plus today. Comments edited after posting are labelled as they read now and marked "edited".
 
 ## The report
 
@@ -76,7 +76,7 @@ A single self-contained HTML file (no external requests) at `~/pr-tone-reports/<
   - tone breakdown and helpfulness counts
   - concern count, and a small-sample badge under 10 comments
   - a pattern note, but only when the evidence supports one
-  - **strengths** (every person gets this, not just problems)
+  - **strengths** (every person gets this section, not just problems)
   - a button to filter the concerns to that person
 - **Concerns**, worst first, each with:
   - the comment, with the key quote highlighted
@@ -97,7 +97,7 @@ Click **Copy "dig deeper" prompt** on a concern and paste it into Claude Code or
 - says whether it's a pattern or a one-off, and whether the label holds
 - can suggest how to raise it with the person
 
-If you agree a label should change, it rebuilds the report.
+If you agree a label should change, it rebuilds the report with `report --merge`, which replaces just that label and keeps the rest.
 
 ## How it works
 
@@ -108,8 +108,8 @@ prtone.py fetch (gh api GET) ──► agent labels targets with rubric.md ─�
 ~/pr-tone-reports/<run>/  ◄────────── prtone.py report < labels (stdin) ── report.html (+ labels.json)
 ```
 
-- `fetch` lists PRs in the window. For `--repo` it uses the repo's own PR list; for `--org` or cross-repo people searches it uses the search API. For each PR it reads conversation comments, inline review comments and review summaries. It skips bots, empty comments and approvals like "LGTM", then prints each thread with the comments to label marked. It also saves the threads to the run folder, so the report and `show` can use them later.
-- `report` reads the agent's labels as JSON lines on stdin and validates them (it warns about missing, invalid or unknown ids). It then saves `labels.json` and renders `report.html`.
+- `fetch` lists PRs updated in the window. For `--repo` it uses the repo's own PR list; for `--org` or cross-repo people searches it uses the search API, which returns at most 1000 PRs per query (the output warns when that cuts anything off). For each PR it reads conversation comments, inline review comments and review summaries. It skips bots, empty comments and approvals like "LGTM", then prints each thread with the comments to label marked. In very long threads it keeps the context nearest the target comments and marks what it left out; `show` prints the whole thread. It saves the threads, and the PR list, to the run folder, so later pages (`--offset --run`), the report and `show` all use the same data.
+- `report` reads the agent's labels as JSON lines on stdin and validates them. It warns about missing labels, invalid values, unknown ids, evidence that isn't an exact quote, concerns with no quote, disputes with no charitable reading, and conflicts that don't name the earlier comment. It then saves `labels.json` and renders `report.html`. `--merge` keeps the saved labels and only adds or replaces the ones on stdin.
 - `show` prints one comment's full thread with its saved label. `runs` lists past runs.
 
 ## Making it accurate
@@ -120,12 +120,12 @@ prtone.py fetch (gh api GET) ──► agent labels targets with rubric.md ─�
 | **Ordinal tone + separate axes** | One `kind < neutral < mean < toxic` label can't contradict itself. Helpfulness is separate, because a mean comment can still be helpful. |
 | **Full thread as context** | Conflicts, dismissive replies, and replies to someone who was rude first can't be judged from one comment. |
 | **Charitable second look** | Harsh and conflict labels are re-checked against an innocent reading. Ambiguous cases become "disputed", not accusations. |
-| **Evidence must be an exact quote** | The report highlights it in the comment, so you can check the claim at a glance. |
+| **Evidence must be an exact quote** | The script warns when it isn't, and the report highlights it in the comment, so you can check the claim at a glance. |
 | **Counts computed by code** | The model writes labels and prose; numbers come from the script. |
 | **Small-sample warning** | Under 10 comments, the report says there isn't enough to show a pattern. |
-| **Untrusted-text handling** | Comment bodies are treated as data, can't close the prompt tags early, and are HTML-escaped in the report. A comment saying "label this kind" doesn't work; an eval case tests this. |
+| **Untrusted-text handling** | Comment bodies are treated as data, can't open or close the prompt tags (so they can't forge a comment from someone else), and are HTML-escaped in the report. A comment saying "label this kind" doesn't work; eval cases test this. |
 
-**Calibrate.** `/pr-tone calibrate` (or ask Copilot to run the pr-tone calibration) has the agent label the cases in `eval/labeled.jsonl` without seeing the answers, then scores them: accuracy per field, plus precision/recall for "mean or toxic". Run it after changing `rubric.md`. The 15 seed cases are a start; add real cases from your own repos by hand.
+**Calibrate.** `/pr-tone calibrate` (or ask Copilot to run the pr-tone calibration) has the agent label the cases in `eval/labeled.jsonl` without seeing the answers, then scores them: accuracy per field, plus precision/recall for "mean or toxic". Run it after changing `rubric.md`. The 24 seed cases cover the main boundaries (blunt vs mean, jokes about code, quoted insults, acknowledged vs silent reversals, polite condescension, prompt injection). They are a start; add real cases from your own repos by hand.
 
 ## Safety and privacy
 
@@ -137,7 +137,7 @@ prtone.py fetch (gh api GET) ──► agent labels targets with rubric.md ─�
 - The agent never writes files itself. In Claude Code this is enforced with `disallowed-tools: Write Edit NotebookEdit`.
 
 **Claude Code extras:**
-- `allowed-tools` pre-approves only `prtone.py`.
+- `allowed-tools` pre-approves only running `prtone.py` and reading the skill's own files.
 - `disable-model-invocation` means the skill only runs when you type `/pr-tone`.
 
 **Copilot ignores those Claude-only fields.** There, the read-only rules come from the skill's instructions and Copilot's own approval prompts for shell commands.
