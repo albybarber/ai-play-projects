@@ -16,6 +16,7 @@ HELP_LABEL = {"helpful": "Helpful", "somewhat_helpful": "Somewhat helpful", "not
 CONFLICT_LABEL = {"respectful_disagreement": "Respectful disagreement", "contradicts_earlier": "Contradicts earlier"}
 SMALL_SAMPLE = 10
 DISPUTED_SM = ' <span class="badge outline warn sm">disputed</span>'
+EDITED = ' · <span title="Edited after posting; labels apply to the current text">edited</span>'
 
 
 def e(s: object) -> str:
@@ -23,8 +24,25 @@ def e(s: object) -> str:
 
 
 def severity(lab: dict) -> int:
-    return {"toxic": 40, "mean": 30}.get(lab["tone"], 0) + (20 if lab.get("disputed") else 0) + (
-        10 if lab["conflict"] == "contradicts_earlier" else 0)
+    return {"toxic": 40, "mean": 30}.get(lab["tone"], 0) + (10 if lab["conflict"] == "contradicts_earlier" else 0)
+
+
+def concern_order(x: tuple) -> tuple:
+    """Worst first; at the same level, disputed ones (a charitable reading holds up) go after the clear ones."""
+    c, lab = x[0], x[3]
+    return -severity(lab), bool(lab.get("disputed")), c["created_at"]
+
+
+def url(u: object) -> str:
+    """Escaped link target; anything but an http(s) URL becomes '#', so stored data can't inject javascript: links."""
+    s = "" if u is None else str(u)
+    return e(s) if s.startswith(("https://", "http://")) else "#"
+
+
+def quote_of(lab: dict, body: str) -> str:
+    """The label's evidence if it really is a quote from the comment, else the comment itself."""
+    ev = (lab.get("evidence") or "").strip()
+    return ev if ev and ev in body else body.strip()
 
 
 def is_concern(lab: dict) -> bool:
@@ -37,6 +55,10 @@ def _body_with_evidence(body: str, evidence: str | None) -> str:
         i = body.index(evidence)
         return e(body[:i]) + "<mark>" + e(evidence) + "</mark>" + e(body[i + len(evidence):])
     return e(body)
+
+
+def _edited(c: dict) -> bool:
+    return bool(c.get("updated_at")) and c["updated_at"] != c["created_at"]
 
 
 def plural(n: int, word: str) -> str:
@@ -56,10 +78,10 @@ def _tone_bar(counts: Counter, label: str) -> str:
         n = counts[t]
         if n:
             pct = 100 * n / total
-            segs.append(f'<span class="seg t-{t}" style="flex:{n}" data-tip="{e(label)}: {n} {t} ({pct:.0f}%)" '
-                        f'aria-label="{n} {t}"></span>')
+            segs.append(f'<span class="seg t-{t}" style="flex:{n}" data-tip="{e(label)}: {n} {t} ({pct:.0f}%)"></span>')
     legend = " ".join(f'<span class="lg"><i class="sw t-{t}"></i>{t} <b>{counts[t]}</b></span>' for t in TONES)
-    return f'<div class="bar" role="img" aria-label="{e(label)} tone breakdown">{"".join(segs)}</div>' \
+    spoken = ", ".join(f"{counts[t]} {t}" for t in TONES)
+    return f'<div class="bar" role="img" aria-label="{e(label)} tone: {spoken}">{"".join(segs)}</div>' \
            f'<div class="legend">{legend}</div>'
 
 
@@ -86,7 +108,8 @@ def _thread(item: dict, focus: str, also: str | None, labels: dict) -> str:
         state = f' · {e(c["review_state"].lower().replace("_", " "))}' if c.get("review_state") else ""
         rows.append(
             f'<div class="{cls}" id="t-{e(focus)}-{e(c["id"])}"><div class="tm"><b>{e(c["author"])}</b> · '
-            f'{e(_date(c["created_at"]))}{where}{state}{tag} · <a href="{e(c["url"])}" target="_blank" rel="noopener">open</a></div>'
+            f'{e(_date(c["created_at"]))}{EDITED if _edited(c) else ""}{where}{state}{tag} · '
+            f'<a href="{url(c["url"])}" target="_blank" rel="noopener">open</a></div>'
             f'<div class="tb">{e(c["body"].strip())}</div></div>')
     return "".join(rows)
 
@@ -102,9 +125,9 @@ def _concern_card(c: dict, pr: dict, item: dict, lab: dict, labels: dict, run_id
                   if lab.get("charitable_reading") else "")
     dig = f"Use the pr-tone skill to dig deeper into comment {c['id']} from run {run_id}"
     return f'''
-<article class="card concern" data-person="{e(c['author'].lower())}" id="c-{e(c['id'])}">
-  <header><div class="who"><b>{e(c['author'])}</b> on <a href="{e(pr['url'])}" target="_blank" rel="noopener">{e(pr['repo'])}#{e(pr['number'])}</a>
-    <span class="muted">· {e(pr['title'])} · {e(_date(c['created_at']))}</span></div>
+<article class="card concern" data-person="{e(c['author'].lower())}" data-tone="{e(lab['tone'])}" id="c-{e(c['id'])}">
+  <header><div class="who"><b>{e(c['author'])}</b> on <a href="{url(pr['url'])}" target="_blank" rel="noopener">{e(pr['repo'])}#{e(pr['number'])}</a>
+    <span class="muted">· {e(pr['title'])} · {e(_date(c['created_at']))}{EDITED if _edited(c) else ''}</span></div>
     <div class="badges">{_badges(lab)}</div></header>
   <blockquote class="body">{_body_with_evidence(c['body'].strip(), lab.get('evidence'))}</blockquote>
   <div class="kv"><span class="k">Why</span>{e(lab.get('rationale'))}</div>
@@ -112,15 +135,15 @@ def _concern_card(c: dict, pr: dict, item: dict, lab: dict, labels: dict, run_id
   {conflict}
   <details><summary>Full PR thread ({len([x for x in item['comments'] if x['body'].strip()])} comments)</summary>
     <div class="thread">{_thread(item, c['id'], other, labels)}</div></details>
-  <footer><a class="btn" href="{e(c['url'])}" target="_blank" rel="noopener">Open on GitHub</a>
+  <footer><a class="btn" href="{url(c['url'])}" target="_blank" rel="noopener">Open on GitHub</a>
     <button class="btn copy" data-copy="{e(dig)}">Copy “dig deeper” prompt</button></footer>
 </article>'''
 
 
 def _highlight(c: dict, pr: dict, lab: dict) -> str:
     return (f'<li><span class="badge t-{lab["tone"]} sm">{e(lab["tone"])}</span> '
-            f'<b>{e(c["author"])}</b> on <a href="{e(c["url"])}" target="_blank" rel="noopener">{e(pr["repo"])}#{e(pr["number"])}</a>: '
-            f'“{e((lab.get("evidence") or c["body"]).strip()[:220])}”</li>')
+            f'<b>{e(c["author"])}</b> on <a href="{url(c["url"])}" target="_blank" rel="noopener">{e(pr["repo"])}#{e(pr["number"])}</a>: '
+            f'“{e(quote_of(lab, c["body"])[:220])}”</li>')
 
 
 def render_report(run: dict, labels: dict, notes: list[dict]) -> str:
@@ -133,7 +156,7 @@ def render_report(run: dict, labels: dict, notes: list[dict]) -> str:
     labelled = [(c, pr, it, labels[c["id"]]) for c, pr, it in items if c["id"] in labels]
     skipped = Counter(c["skip"] for it in run["prs"].values() for c in it["comments"] if c.get("skip"))
     overall = Counter(l["tone"] for *_, l in labelled)
-    concerns = sorted((x for x in labelled if is_concern(x[3])), key=lambda x: (-severity(x[3]), x[0]["created_at"]))
+    concerns = sorted((x for x in labelled if is_concern(x[3])), key=concern_order)
     disputed = sum(1 for *_, l in labelled if l.get("disputed"))
 
     scope = run["scope"]
@@ -176,7 +199,9 @@ def render_report(run: dict, labels: dict, notes: list[dict]) -> str:
   <p class="muted small">{e(help_txt)}</p>
   {f'<p>{e(note.get("pattern"))}</p>' if note.get("pattern") else ''}
   {f'<p class="muted">{e(note.get("context"))}</p>' if note.get("context") else ''}
-  {('<h4>Strengths</h4><ul class="hl">' + "".join(_highlight(c, pr, l) for c, pr, _, l in strengths) + '</ul>') if strengths else ''}
+  <h4>Strengths</h4>
+  {('<ul class="hl">' + "".join(_highlight(c, pr, l) for c, pr, _, l in strengths) + '</ul>') if strengths
+   else f'<p class="muted small">{"No labelled comments in this run." if not mine else "None of these comments were labelled kind or helpful; that is not evidence of a problem."}</p>'}
   {f'<button class="btn filter" data-person="{e(p.lower())}">Show {n_concern} concern{"s" if n_concern != 1 else ""}</button>' if n_concern else ''}
 </article>''')
 
@@ -188,7 +213,7 @@ def render_report(run: dict, labels: dict, notes: list[dict]) -> str:
         f'<tr data-person="{e(c["author"].lower())}" data-tone="{e(l["tone"])}" '
         f'data-text="{e((c["body"] + " " + pr["repo"]).lower())}">'
         f'<td>{e(_date(c["created_at"]))}</td><td>{e(c["author"])}</td>'
-        f'<td><a href="{e(c["url"])}" target="_blank" rel="noopener">{e(pr["repo"])}#{e(pr["number"])}</a></td>'
+        f'<td><a href="{url(c["url"])}" target="_blank" rel="noopener">{e(pr["repo"])}#{e(pr["number"])}</a></td>'
         f'<td><span class="badge t-{l["tone"]} sm">{e(l["tone"])}</span>{DISPUTED_SM if l.get("disputed") else ""}</td>'
         f'<td>{e(HELP_LABEL[l["helpfulness"]])}</td>'
         f'<td>{e(CONFLICT_LABEL.get(l["conflict"], "—"))}</td>'
@@ -210,10 +235,12 @@ def render_report(run: dict, labels: dict, notes: list[dict]) -> str:
 @media (prefers-color-scheme: dark) {{ :root:where(:not([data-theme="light"])) {{
   color-scheme:dark; --page:#0d0d0d; --surface:#1a1a19; --card:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
   --line:#2c2c2a; --accent:#6da7ec; --mark:#5c4a12; --warn:#f0a35e;
-  --t-kind:#3987e5; --t-neutral:#6a6964; --t-mean:#cc7d28; --t-toxic:#c4353f; }} }}
+  --t-kind:#3987e5; --t-neutral:#6a6964; --t-mean:#cc7d28; --t-toxic:#c4353f; }}
+  :root:where(:not([data-theme="light"])) .badge.t-kind {{ color:#0b0b0b }} }}
 :root[data-theme="dark"] {{ color-scheme:dark; --page:#0d0d0d; --surface:#1a1a19; --card:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7;
   --muted:#898781; --line:#2c2c2a; --accent:#6da7ec; --mark:#5c4a12; --warn:#f0a35e;
   --t-kind:#3987e5; --t-neutral:#6a6964; --t-mean:#cc7d28; --t-toxic:#c4353f; }}
+:root[data-theme="dark"] .badge.t-kind {{ color:#0b0b0b }}
 * {{ box-sizing:border-box }}
 body {{ margin:0; background:var(--page); color:var(--ink); font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif }}
 main {{ max-width:1080px; margin:0 auto; padding:32px 16px 64px }}
@@ -242,11 +269,13 @@ h4 {{ margin:16px 0 6px; font-size:13px; text-transform:uppercase; letter-spacin
 .badges {{ display:flex; flex-wrap:wrap; gap:6px }}
 .badge {{ font-size:12px; padding:2px 8px; border-radius:999px; color:#fff; white-space:nowrap }}
 .badge.t-neutral {{ color:var(--ink) }} .badge.sm {{ font-size:11px; padding:1px 6px }}
+.badge.t-mean {{ color:#0b0b0b }} /* white on orange is under 3:1 */
 .badge.plain {{ background:transparent; color:var(--ink2); border:1px solid var(--line) }}
 .badge.outline {{ background:transparent; color:var(--ink); border:1px solid var(--ink2) }}
 .badge.warn {{ border-color:var(--warn); color:var(--warn) }}
 blockquote.body {{ margin:0 0 12px; padding:10px 14px; border-left:3px solid var(--line); white-space:pre-wrap; overflow-wrap:anywhere }}
-.concern[data-tone] blockquote {{ border-color:var(--t-mean) }}
+.concern[data-tone="mean"] blockquote {{ border-color:var(--t-mean) }}
+.concern[data-tone="toxic"] blockquote {{ border-color:var(--t-toxic) }}
 mark {{ background:var(--mark); color:inherit; border-radius:3px; padding:0 2px }}
 .kv {{ margin:6px 0 }} .k {{ font-weight:600; margin-right:8px; color:var(--ink2) }}
 .conflict {{ margin:10px 0; padding:10px 14px; border:1px dashed var(--ink2); border-radius:8px }}
@@ -304,10 +333,10 @@ td.ex {{ color:var(--ink2); min-width:240px }}
 
 <h2>All labelled comments</h2>
 <div class="filters">
-  <select id="fp"><option value="">Everyone</option>{person_opts}</select>
-  <select id="ft"><option value="">Any tone</option>{"".join(f'<option>{t}</option>' for t in TONES)}</select>
-  <input id="fq" type="search" placeholder="Search text or repo">
-  <span class="muted small" id="fc"></span>
+  <select id="fp" aria-label="Filter by person"><option value="">Everyone</option>{person_opts}</select>
+  <select id="ft" aria-label="Filter by tone"><option value="">Any tone</option>{"".join(f'<option>{t}</option>' for t in TONES)}</select>
+  <input id="fq" type="search" placeholder="Search text or repo" aria-label="Search comment text or repo">
+  <span class="muted small" id="fc" aria-live="polite"></span>
 </div>
 <div class="tablewrap"><table><thead><tr><th>Date</th><th>Person</th><th>PR</th><th>Tone</th><th>Helpfulness</th><th>Conflict</th><th>Comment</th></tr></thead>
 <tbody id="rows">{rows}</tbody></table></div>
