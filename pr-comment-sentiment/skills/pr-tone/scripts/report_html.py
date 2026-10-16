@@ -146,6 +146,75 @@ def _highlight(c: dict, pr: dict, lab: dict) -> str:
             f'“{e(quote_of(lab, c["body"])[:220])}”</li>')
 
 
+def _coverage(run: dict, labels: dict) -> str:
+    if "partial" not in run:
+        return '<p class="muted">Legacy report: discovery coverage and evidence freshness were not recorded.</p>'
+    partial = run["partial"]
+    status = "PARTIAL COVERAGE" if partial else "Complete within the stated discovery scope"
+    stats = run["stats"]
+    selected = {f'{p["repo"]}#{p["number"]}' for p in run.get("pr_list", [])}
+    examined = len(set(run["prs"]) | (selected & run.get("errors", {}).keys()))
+    stamps = [it["fetched_at"] for it in run["prs"].values() if it.get("fetched_at")]
+    if run.get("discovered_at"):
+        stamps.append(run["discovered_at"])
+    oldest = min(stamps) if stamps else "not recorded"
+    newest = max(stamps) if stamps else "not recorded"
+    team_info = ""
+    if run["scope"].get("team"):
+        snapshot = run.get("team_snapshot")
+        team_info = f'<p>PR author team: <b>{e(run["scope"]["team"])}</b>. '
+        if snapshot is None:
+            team_info += 'Team membership was not resolved; see fetch errors.</p>'
+        else:
+            team_info += (
+                f'Current membership snapshot fetched at {e(snapshot["fetched_at"])}; '
+                f'{len(snapshot["members"])} members. Historical membership is not inferred. '
+                'Only PR authors are restricted by the team; eligible comments from all human commenters '
+                'are assessed unless a separate comment-author filter is set. '
+                f'Team membership cache hits: {stats.get("team_cache_hits", 0)}.</p>'
+                '<details><summary>Team roster used for PR selection</summary><p>'
+                f'{e(", ".join(snapshot["members"]) or "Empty roster; no PR candidates selected.")}</p></details>'
+            )
+    errors = "".join(f'<li>{e(key)}: {e(error)}</li>' for key, error in run.get("errors", {}).items())
+    windows = []
+    for window in run["windows"]:
+        comments = [c for it in run["prs"].values() for c in it["comments"]
+                    if c.get("target") and window["name"] in c.get("windows", [])]
+        scored = [labels[c["id"]] for c in comments if c["id"] in labels]
+        tones = Counter(lab["tone"] for lab in scored)
+        concerns = sum(is_concern(lab) for lab in scored)
+        windows.append(
+            f'<tr><td>{e(window["name"])}</td><td>{e(window["start"])} to {e(window["end"])}</td>'
+            f'<td>{len(scored)} / {len(comments)} collected targets</td><td>{concerns}</td>'
+            f'<td>{e(", ".join(f"{tones[t]} {t}" for t in TONES))}</td>'
+            f'<td>{"Partial" if partial else "Within stated scope"}; '
+            f'{len(run["prs"])} shared complete PR threads</td></tr>')
+    budget = run["config"]["budget"]
+    return (
+        f'<section class="card"><h2 style="margin-top:0">{status}</h2>'
+        f'{team_info}'
+        f'<p>{examined} of {len(run.get("pr_list", []))} selected PR candidates examined; '
+        f'{len(run["prs"])} complete PR threads; '
+        f'budget: {e(budget if budget is not None else "all explicitly requested")}. '
+        'Cached candidates and PRs without eligible comments count toward the budget. '
+        'Candidates are newest first among bounded discovery results, not a representative sample. '
+        'No coverage percentage is known.</p>'
+        '<p>Search-index results can miss activity. Missing comments or no concerns in collected evidence '
+        'do not establish that the person made no comments or that unexamined activity had no concerns.</p>'
+        f'<p>Evidence fetched: {e(oldest)} to {e(newest)}. The cache reuses discovery and threads for up to '
+        '24 hours; saved runs are snapshots and can be older. New comments, edits and deletions may be absent. '
+        'Start a new fetch with <code>--refresh</code> for current evidence.</p>'
+        f'<p>API requests: {stats["api_requests"]}; discovery cache hits: {stats["discovery_cache_hits"]}; '
+        f'thread cache hits: {stats["thread_cache_hits"]}; labels reused at fetch: '
+        f'{len(run.get("reused_ids", []))}.</p>'
+        f'{("<ul>" + errors + "</ul>") if errors else ""}'
+        '<h3>Window summaries (shared evidence; UTC, inclusive dates)</h3>'
+        '<div class="table-wrap"><table><thead><tr><th>Window</th><th>Dates</th><th>Labelled</th>'
+        '<th>Concerns</th><th>Tone</th><th>Coverage</th></tr></thead><tbody>'
+        + "".join(windows) + '</tbody></table></div></section>'
+    )
+
+
 def render_report(run: dict, labels: dict, notes: list[dict]) -> str:
     items, by_id = [], {}
     for item in run["prs"].values():
@@ -170,6 +239,8 @@ def render_report(run: dict, labels: dict, notes: list[dict]) -> str:
     summary = next((n.get("text", "") for n in notes if n.get("type") == "summary"), "")
 
     where = ", ".join(scope["repos"] + [f"org:{o}" for o in scope["orgs"]]) or "GitHub"
+    if scope.get("team"):
+        where += " · PR author team:" + scope["team"]
     if scope["prs"]:
         where += " · PR " + ", ".join(f"#{n}" for n in scope["prs"])
     who = ", ".join(scope["authors"]) or "everyone"
@@ -308,6 +379,7 @@ td.ex {{ color:var(--ink2); min-width:240px }}
 <body><main>
 <h1>PR tone report</h1>
 <div class="meta">{e(where)} · people: {e(who)} · {e(window)} · generated {e(generated)} · run <code>{e(run["run"])}</code></div>
+{_coverage(run, labels)}
 
 <div class="kpis">
   <div class="kpi"><b>{len(labelled)}</b><span>comments labelled</span></div>

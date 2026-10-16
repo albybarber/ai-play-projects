@@ -5,10 +5,11 @@ An agent skill, `pr-tone`, for **Claude Code** and **GitHub Copilot** (CLI and V
 - **helpfulness**
 - **conflicts with earlier comments**
 
-It can focus on specific people, and it produces a **local HTML report** where you can drill into any concerning comment.
+It can focus on specific commenters or PRs authored by a GitHub team, reuses fetched evidence in a **local SQLite database**, and produces a **local HTML report** where you can drill into any concerning comment. No hosted service is needed.
 
 - **No API keys.** Your coding agent does the labelling in your session, and `gh` does the fetching with your existing login.
 - **Read-only towards GitHub.** Only GET requests, through `gh`.
+- **Fetch once, reuse locally.** Discovery and full PR threads are reusable for 24 hours. Missing or stale data is fetched on demand; unchanged evidence and rubric allow label reuse.
 - **Reports stay local and are never committed.** They're written to `~/pr-tone-reports/`. The script refuses to write inside a git repository unless git ignores that folder.
 
 ## Install
@@ -52,6 +53,7 @@ On Windows without WSL, copy the `skills/pr-tone` folder into `%USERPROFILE%\.co
 ```
 /pr-tone acme/api alice bob last 2 weeks
 /pr-tone org:acme carol since 2026-09-01
+/pr-tone Frameio/massdriver team:content-supply-chain-csc last month
 /pr-tone acme/api PR 482
 /pr-tone dig 20261016-040213-api-alice review_comment:123
 /pr-tone calibrate
@@ -60,17 +62,62 @@ On Windows without WSL, copy the `skills/pr-tone` folder into `%USERPROFILE%\.co
 **Copilot:** ask in plain words, for example *"Use the pr-tone skill to check alice and bob in acme/api over the last 2 weeks."*
 
 What happens:
-1. The agent fetches the PRs and comments, labels each target comment against `rubric.md`, and takes a second, charitable look at anything harsh.
+1. The helper reuses fresh local discovery/threads and fetches missing or stale evidence. The agent labels only comments without compatible saved labels, against `rubric.md`, and takes a second, charitable look at anything harsh.
 2. It builds the report and opens it in your browser.
 3. In chat it gives you the report path and the key findings.
 
 When you name people, only their comments are labelled. Everyone else's comments are still read, as context. Dates are UTC and refer to when a comment was posted; with no dates, it covers the last 7 days plus today. Comments edited after posting are labelled as they read now and marked "edited".
+
+### Feedback on your team's PRs
+
+Use a team scope to assess comments **on PRs authored by team members**, rather than comments written by one reviewer:
+
+```sh
+skills/pr-tone/scripts/prtone.py fetch --repo Frameio/massdriver \
+  --team Frameio/content-supply-chain-csc --since 2026-09-16 --until 2026-10-17
+```
+
+The helper resolves the team's **current members**, searches for their PRs updated since the window began (including older PRs receiving new comments), and labels eligible human comments from everyone, including PR-author replies. Bots, empty comments and trivial acknowledgements are still skipped. Report cards and concerns are grouped by the **commenter**, not the PR author, so the team is not blamed for feedback it received. An optional `--author LOGIN` separately restricts which commenters to assess.
+
+`--team` requires `ORGANIZATION/TEAM-SLUG`; without `--repo` or `--org`, it searches the team's organization. This selects authored PRs, not PRs where the team was requested to review. Discovery remains search-index-dependent and budgeted, including with `--exhaustive`.
+
+Membership is cached for 24 hours, saved with its timestamp and roster in the run/report, and frozen when resuming. New runs with changed membership use a different discovery cache entry; `--refresh` also refreshes membership. Current membership does **not** reconstruct who belonged to the team when a PR or comment was created. An empty roster selects no PRs. If membership cannot be read, the helper stops explicitly; confirm team visibility and your `gh` token's organization/team access and any required SSO authorization.
+
+### Scope, speed and freshness
+
+The default is **fast person-focused discovery, at most 100 unique candidate PRs per run**, newest first among bounded discovered results. All requested date windows share that budget; cached PRs and PRs with no eligible comments count too. The skill finishes approved batches without asking about pagination or scope expansion, then stops. A 100-PR budget does **not** mean only 100 API requests: comments and reviews have separate paginated endpoints.
+
+Person-focused discovery uses GitHub's `involves:` and `reviewed-by:` searches, not the PR's author. Search indexing and bounded discovery can miss relevant comments. Reports prominently show partial coverage, evidence age, failures, per-window summaries, and API/cache counts. Missing results are not proof of no activity; no coverage percentage is claimed when the true total is unknown.
+
+You can say *"max 30 candidates"*, *"refresh the evidence"*, or *"use broad discovery, max 200 candidates"* in your request. Helper equivalents:
+
+```sh
+skills/pr-tone/scripts/prtone.py fetch --repo acme/api --author alice --budget 30
+skills/pr-tone/scripts/prtone.py fetch --repo acme/api --author alice --refresh
+skills/pr-tone/scripts/prtone.py fetch --repo acme/api --author alice --exhaustive --budget 200
+skills/pr-tone/scripts/prtone.py fetch --repo acme/api --exhaustive --all  # explicit unbounded candidate scope
+skills/pr-tone/scripts/prtone.py fetch --run <run-id>                  # same scope and total budget
+```
+
+`--exhaustive` selects broad discovery; it does not remove the budget. Organization-wide broad discovery still uses GitHub search and its 1,000-result cap per query, so it can remain incomplete even with `--all`. `--limit` controls batch size (default 20), not the total budget.
+
+For overlapping windows, fetch once and score each collected comment once:
+
+```sh
+skills/pr-tone/scripts/prtone.py fetch --repo acme/api --author alice \
+  --window weekly:2026-10-09:2026-10-16 --window monthly:2026-10-01:2026-10-16
+```
+
+Window ends are exclusive. A comment can contribute to both summaries without being duplicated within either.
+
+Fresh discovery results (including successful empty searches), team membership and complete threads are reused for up to **24 hours**. This can omit subsequent comments, edits, deletions and membership changes. `--refresh` bypasses these caches on a new run; resuming a saved run preserves completed snapshots, even when older than 24 hours. Run an explicitly refreshed new analysis for current evidence. Labels are reused only when the full PR context, comment, rubric and skill instructions match; summary/person prose is not reused across runs.
 
 ## The report
 
 A single self-contained HTML file (no external requests) at `~/pr-tone-reports/<run>/report.html`. It works in light and dark mode and on narrow screens.
 
 - **Headline numbers:** comments labelled, concerns, disputed, and skipped (bots, "LGTM", empty).
+- **Coverage and provenance:** candidate budget, partial discovery/fetching, evidence timestamps, team roster when selected, API requests, cache hits, and separate summaries for each date window.
 - **Summary:** a few sentences from the agent. All counts are computed by the script, not by the model.
 - **Overall tone bar**, plus a **card per person** with:
   - tone breakdown and helpfulness counts
@@ -102,15 +149,29 @@ If you agree a label should change, it rebuilds the report with `report --merge`
 ## How it works
 
 ```
-prtone.py fetch (gh api GET) ──► agent labels targets with rubric.md ──► charitable second look
-      │ saves threads.json                                                      │
-      ▼                                                                         ▼
-~/pr-tone-reports/<run>/  ◄────────── prtone.py report < labels (stdin) ── report.html (+ labels.json)
+                       ┌── cache.sqlite3: discovery, team rosters, threads, labels
+prtone.py fetch ◄───────┤
+      │                └── gh api GET: only missing/stale evidence
+      ▼
+agent session labels remaining targets ──► charitable second look
+      │
+      ▼
+prtone.py report --merge ──► <run>/report.html (+ threads.json and labels.json)
 ```
 
-- `fetch` lists PRs updated in the window. For `--repo` it uses the repo's own PR list; for `--org` or cross-repo people searches it uses the search API, which returns at most 1000 PRs per query (the output warns when that cuts anything off). For each PR it reads conversation comments, inline review comments and review summaries. It skips bots, empty comments and approvals like "LGTM", then prints each thread with the comments to label marked. In very long threads it keeps the context nearest the target comments and marks what it left out; `show` prints the whole thread. It saves the threads, and the PR list, to the run folder, so later pages (`--offset --run`), the report and `show` all use the same data.
-- `report` reads the agent's labels as JSON lines on stdin and validates them. It warns about missing labels, invalid values, unknown ids, evidence that isn't an exact quote, concerns with no quote, disputes with no charitable reading, and conflicts that don't name the earlier comment. It then saves `labels.json` and renders `report.html`. `--merge` keeps the saved labels and only adds or replaces the ones on stdin.
+- `fetch` uses person-focused searches by default when people are named. Broad repository discovery uses the repo's PR list, stopping at the date boundary or budget. Uncached fetching first checks authentication and repository/organization access, then fetches with up to four PR workers. Each completed PR (including those without target comments) is saved immediately. Only fully fetched threads enter the shared cache; failures are not cached as empty. Authentication/rate-limit failures stop further fetching and preserve progress. Other PR failures remain explicit gaps, retryable by run ID.
+- The saved candidate list fixes the scope and total budget for continuation. Run locks prevent simultaneous fetch/report writers from corrupting one run; SQLite transactions coordinate the shared cache. File writes are atomic. Report HTML remains a portable snapshot, independent of the database. Older JSON-only runs still support reporting and drill-down; start a new run rather than resuming one without saved budget metadata.
+- `fetch` reads conversation comments, inline review comments and review summaries. It skips bots, empty comments and approvals like "LGTM", then prints threads with only comments still needing labels marked `target="yes"`. In very long threads it keeps the context nearest the targets and marks omissions; `show` prints the whole thread.
+- `report` validates JSON-line labels from the assistant session, saves `labels.json`, renders `report.html`, and indexes valid labels for reuse. It warns about missing/invalid labels, unknown IDs, non-matching evidence, unsupported concerns/disputes and invalid conflict references. `--merge` preserves saved labels and notes across batches; fresh-run reused labels are retained even without it. Summary/person notes remain specific to each run.
 - `show` prints one comment's full thread with its saved label. `runs` lists past runs.
+
+### Local storage and permissions
+
+`$PR_TONE_HOME` selects the reports directory (default `~/pr-tone-reports`). It contains `cache.sqlite3` and run directories; no other cache location, model API key, database server or background service is required. Old reports and cache entries are not automatically deleted. They contain private review text and judgements, so manage retention and sharing deliberately.
+
+On first use of a new database, complete threads from existing run files are imported with their recorded fetch time (or, conservatively, the run's creation time). They are reusable only while fresh. Old labels without matching provenance are rescored, and existing report files are left intact.
+
+The helper's scope budget does not change Copilot/Claude execution permissions. Use `/permissions` in Copilot CLI to review permission modes, and narrow helper/path grants where your client supports them. The project does not modify those settings or require unrestricted shell approval. Cached runs can work without GitHub access, but the client may still ask to execute the helper.
 
 ## Making it accurate
 
@@ -131,7 +192,7 @@ prtone.py fetch (gh api GET) ──► agent labels targets with rubric.md ─�
 
 **GitHub stays read-only.** Every GitHub call is `gh api --method GET` on fixed endpoints, and inputs are validated against GitHub's name formats. Tests check that `gh` is only ever called with GET, and that the only other commands are two read-only `git` checks on the reports folder.
 
-**Reports stay local:**
+**Reports and the database stay local:**
 - They're written only under `$PR_TONE_HOME` (default `~/pr-tone-reports`). The folder is owner-only (`700`) and the files are `600`.
 - If that folder is inside a git repository and not ignored, the script refuses before making any GitHub calls.
 - The agent never writes files itself. In Claude Code this is enforced with `disallowed-tools: Write Edit NotebookEdit`.
@@ -142,7 +203,7 @@ prtone.py fetch (gh api GET) ──► agent labels targets with rubric.md ─�
 
 **Copilot ignores those Claude-only fields.** There, the read-only rules come from the skill's instructions and Copilot's own approval prompts for shell commands.
 
-**Hard guarantee in either tool:** run it with a read-only token. Create a fine-grained token with *Pull requests: read* and *Contents: read*, then run `GH_TOKEN=<token> claude` or `GH_TOKEN=<token> copilot`.
+**Optional credential-level protection:** a fine-grained read-only GitHub token can further constrain access, but is not required; the normal flow uses your existing `gh` login and never requires a separate model API key.
 
 **Use it fairly.** The reports contain other people's words and judgements about them. They're meant as evidence to read, not a verdict:
 - every concern links to the original comment
@@ -156,7 +217,7 @@ Read the linked comments in context before acting, and don't share reports beyon
 
 ```sh
 cd pr-comment-sentiment
-python -m pytest -q    # offline tests: fake gh, temporary HOME and reports folder
+uv run --python 3.14 --no-project --with pytest python -m pytest -q  # offline fake-GitHub tests
 PR_TONE_HOME=/tmp/prtone skills/pr-tone/scripts/prtone.py fetch --repo owner/name --since 2026-10-01
 ```
 
@@ -167,6 +228,7 @@ skills/pr-tone/
   rubric.md              label definitions and examples
   scripts/prtone.py      fetch / report / show / runs / calibrate / score (stdlib only)
   scripts/report_html.py self-contained HTML report renderer
+  scripts/local_store.py private SQLite cache and per-run process locks
   eval/labeled.jsonl     labelled cases for calibrate
 tests/                 offline tests for prtone.py and install.sh
 ```
