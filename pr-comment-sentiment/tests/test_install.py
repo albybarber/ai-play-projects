@@ -39,3 +39,16 @@ def test_never_overwrites_someone_elses_folder(tmp_path):
         r = run(tmp_path, "--target", str(tmp_path / "skills"), *args)
         assert (other / "notes.txt").read_text() == "mine"
     assert "isn't a pr-tone skill" in r.stdout + r.stderr
+
+
+def test_never_deletes_an_unrelated_download_folder(tmp_path):
+    src = tmp_path / "not-ours"
+    src.mkdir()
+    (src / "keep.txt").write_text("mine")
+    env = {**os.environ, "HOME": str(tmp_path), "PR_TONE_SRC": str(src), "PR_TONE_REPO_URL": "file:///nonexistent"}
+    # piped through bash, as with curl: there is no checkout next to the script, so it would download
+    r = subprocess.run(["bash"], input=INSTALL.read_text(), env=env, capture_output=True, text=True)
+    assert r.returncode != 0 and "isn't a pr-tone download" in r.stderr
+    r = subprocess.run(["bash", "-s", "--", "--uninstall"], input=INSTALL.read_text(), env=env,
+                       capture_output=True, text=True)
+    assert r.returncode == 0 and (src / "keep.txt").read_text() == "mine"

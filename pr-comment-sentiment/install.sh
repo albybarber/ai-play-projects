@@ -24,7 +24,10 @@ targets=()
 mode=link
 action=install
 
-usage() { sed -n '2,15p' "${BASH_SOURCE[0]:-$0}" 2>/dev/null | sed 's/^# \{0,1\}//' || true; }
+usage() {
+  if [ -f "${BASH_SOURCE[0]:-}" ]; then sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  else say "Options: --target DIR (repeatable), --copy, --uninstall, -h/--help. See pr-comment-sentiment/README.md."; fi
+}
 say() { printf '%s\n' "$*"; }
 if [ -t 1 ]; then G=$'\033[32m' Y=$'\033[33m' R=$'\033[31m' N=$'\033[0m'; else G='' Y='' R='' N=''; fi
 ok() { printf '  %s✓%s %s\n' "$G" "$N" "$*"; }
@@ -47,6 +50,13 @@ is_ours() {
   [ -f "$1/SKILL.md" ] && grep -q '^name: pr-tone$' "$1/SKILL.md"
 }
 
+# Is $SRC_HOME a download this installer made (or nothing at all)? It may come from PR_TONE_SRC,
+# so never delete a folder that holds anything else.
+src_home_is_ours() {
+  [ ! -e "$SRC_HOME" ] || is_ours "$SRC_HOME/pr-comment-sentiment/skills/$SKILL" \
+    || [ -z "$(ls -A "$SRC_HOME" 2>/dev/null)" ]
+}
+
 if [ "$action" = uninstall ]; then
   say "Uninstalling $SKILL"
   for t in "${targets[@]}"; do
@@ -59,7 +69,10 @@ if [ "$action" = uninstall ]; then
       ok "nothing at $dest"
     fi
   done
-  if [ -d "$SRC_HOME" ]; then rm -rf "$SRC_HOME"; ok "removed downloaded copy $SRC_HOME"; fi
+  if [ -d "$SRC_HOME" ]; then
+    if src_home_is_ours; then rm -rf "$SRC_HOME"; ok "removed downloaded copy $SRC_HOME"
+    else warn "left $SRC_HOME alone: it isn't a pr-tone download"; fi
+  fi
   say "Reports were kept in ${PR_TONE_HOME:-$HOME/pr-tone-reports}. Delete that folder yourself if you no longer need them."
   exit 0
 fi
@@ -76,6 +89,7 @@ if [ -n "$script_dir" ] && [ -f "$script_dir/skills/$SKILL/SKILL.md" ]; then
   ok "using this checkout: $src"
 else
   command -v git >/dev/null || die "git is required to download the skill"
+  src_home_is_ours || die "$SRC_HOME exists and isn't a pr-tone download; move it or set PR_TONE_SRC"
   if [ -d "$SRC_HOME/.git" ]; then
     git -C "$SRC_HOME" fetch -q --depth 1 origin "$REF"
     git -C "$SRC_HOME" checkout -q --detach FETCH_HEAD
@@ -83,8 +97,9 @@ else
   else
     rm -rf "$SRC_HOME"
     mkdir -p "$(dirname "$SRC_HOME")"
+    # a partial clone needs server support; if it fails, clear what it left and clone normally
     git clone -q --depth 1 --filter=blob:none --sparse --branch "$REF" "$REPO_URL" "$SRC_HOME" 2>/dev/null \
-      || git clone -q --depth 1 --branch "$REF" "$REPO_URL" "$SRC_HOME"
+      || { rm -rf "$SRC_HOME"; git clone -q --depth 1 --branch "$REF" "$REPO_URL" "$SRC_HOME"; }
     git -C "$SRC_HOME" sparse-checkout set pr-comment-sentiment 2>/dev/null || true
     ok "downloaded to $SRC_HOME"
   fi
@@ -123,7 +138,8 @@ else
   warn "GitHub CLI (gh) not found: install it from https://cli.github.com and run 'gh auth login'"
 fi
 if [ -n "$py" ]; then
-  "$py" "$src/scripts/prtone.py" --help >/dev/null && ok "helper script runs"
+  if "$py" "$src/scripts/prtone.py" --help >/dev/null; then ok "helper script runs"
+  else warn "the helper script failed to start: try '$py $src/scripts/prtone.py --help'"; fi
 fi
 
 cat <<EOF
