@@ -1,78 +1,98 @@
 # pr-comment-sentiment
 
-A command-line tool that reads pull request comments from any repo you can access with the `gh` CLI. It labels each comment for **tone** (kind / neutral / mean / toxic), **helpfulness**, and whether it **conflicts with an earlier comment**, then writes a short markdown report.
+A Claude Code skill, `/pr-tone`, that reviews GitHub pull request comments for **tone** (kind / neutral / mean / toxic), **helpfulness**, and **conflicts with earlier comments**. It can focus on specific people. It runs on demand against any repo or org your `gh` CLI can read.
 
-The labels come from Claude (`claude-opus-5-5`) using a written rubric, structured outputs, and the full PR conversation as context. A labelled eval set measures how accurate the labels are.
+- **No API keys.** Claude Code does the labelling in your session, and `gh` does the fetching with your existing login.
+- **Read-only.** It never posts to GitHub and never writes files. The report appears in the conversation only. See [Read-only guarantees](#read-only-guarantees).
 
-> This is a team-health tool, not a performance-review tool. The report links to comments, not people's scores, and anything uncertain is marked for a person to read before anyone acts on it.
+## Install
+
+Requires [Claude Code](https://code.claude.com), the [GitHub CLI](https://cli.github.com/) signed in (`gh auth login`), and Python 3.10+.
+
+```sh
+mkdir -p ~/.claude/skills
+ln -s "$PWD/pr-comment-sentiment/skills/pr-tone" ~/.claude/skills/pr-tone   # run from the repo root
+```
+
+Because the skill is installed under `~/.claude/skills`, `/pr-tone` works in Claude Code from any directory. `git pull` in this repo updates it.
+
+## Usage
+
+Describe what you want in plain words after the command:
+
+```
+/pr-tone acme/api alice bob last 2 weeks
+/pr-tone org:acme carol since 2026-09-01
+/pr-tone acme/api acme/web everyone yesterday
+/pr-tone acme/api PR 482
+/pr-tone calibrate
+```
+
+When you name people, only their comments are labelled. Everyone else's comments are still read, so replies make sense. For each person you get:
+- counts by tone and by helpfulness
+- **concerns**: each with a link, a quote, what it was replying to, and a confidence level
+- **strengths**: their most helpful or kind comments
+- a one-line pattern, only when the evidence supports one
+
+With no dates it covers the last 7 days. After the report, you can ask follow-ups in the same conversation ("show me the full thread for the second concern", "is that sarcasm?").
 
 ## How it works
 
 ```
-gh api ──► fetch ──► prefilter ──► Claude pass 1 ──► (flagged?) ──► Claude pass 2 ──► report
-           date range  bots,        rubric + PR        mean/toxic,     higher effort,    report.md
-           or PR list  "LGTM"       context            conflict, or    disagree ⇒        results.jsonl
-                                                                low confidence  human review
+/pr-tone ──► prtone.py fetch (gh api GET) ──► Claude labels targets with rubric.md ──► second look at flagged ──► report in chat
 ```
 
-1. **Fetch** (`sentiment/github_client.py`, via `gh api`): for each repo, every PR updated in the date range, or just the PRs you name with `--pr`. It collects all three kinds of PR text (conversation comments, inline review comments, and review summaries), sorted oldest first. A comment is a target if it was created or edited in the range. Each target carries up to the 30 earlier comments on the PR (from any thread) and its diff hunk.
-2. **Prefilter** (`sentiment/prefilter.py`): bot accounts, empty bodies, and one-word approvals like "LGTM" or 👍 are skipped without a model call.
-3. **Classify** (`sentiment/classifier.py`): one structured-output call per comment returns `tone`, `helpfulness`, `conflict`, `conflicts_with_comment_id`, `flags`, an `evidence` quote, `rationale`, and `confidence`.
-4. **Verify**: comments labelled mean or toxic, comments that contradict an earlier one, and low-confidence labels get a second, independent pass at higher effort. The second answer is kept. If the two passes disagree on tone or conflict, the item goes to the "needs human review" list.
-5. **Report** (`sentiment/report.py`): counts by tone and helpfulness, then four lists: toxic or mean, contradicts an earlier comment, other items for human review, and kind and helpful.
+1. `scripts/prtone.py fetch` lists PRs updated in the window. For `--repo` it uses the repo's own PR list; for `--org` or people across GitHub it uses the search API. For each PR it reads the conversation comments, inline review comments and review summaries. It skips bots, empty comments and "LGTM"-style approvals. It prints each PR as a block of comments, marking the ones to label with `target="yes"`. The PR's other comments are printed as context, and each inline comment comes with its diff hunk.
+2. Claude labels each target using `rubric.md`.
+3. **Second look**: every mean, toxic or conflicting label is re-checked against the most charitable reading of the thread. The label is lowered or marked **disputed** unless the harsh reading clearly wins.
+4. The report goes into the reply, with a link and a quote for every claim.
 
 ## Making it accurate
 
-Sentiment models trained on product reviews or tweets do badly on code review. "This is wrong, use a set" is fine in a review, and sarcasm is common. Here is what this project does about it, roughly in order of impact:
-
 | Lever | Why it helps |
 |---|---|
-| **A written rubric with boundary rules** (`SYSTEM_PROMPT`) | Separates "criticism of the code" from "criticism of the person". Says blunt ≠ mean and profanity about a thing ≠ toxic. Says to pick the milder label when torn. Most errors come from unclear definitions, not from the model. |
-| **Ordinal, mutually exclusive tone** | One `kind < neutral < mean < toxic` label cannot contradict itself, unlike separate "kind 0.7, toxic 0.4" scores. Helpfulness and conflict are separate axes, because a mean comment can still be helpful. |
-| **Thread context** | "Conflicts with a previous message" cannot be judged from one comment, and neither can "dismissive reply to a sincere question". Each target is shown with earlier comments (ids included) and its diff hunk. |
-| **Evidence quote + rationale** | Forces the label to rest on specific words, and gives the human reviewer something to check in seconds. |
-| **Two-pass verification on flagged items** | The labels you act on (mean, toxic, conflict) are the rarest and the costliest to get wrong, so they get a second look. Disagreement is a strong signal of a genuinely ambiguous comment. |
-| **Prefilter** | Removes bots and "LGTM", which would otherwise make up a big share of the data and skew the numbers. |
-| **Prompt-injection guard** | Comment text is wrapped in tags and marked as data. Structured outputs mean a comment saying "label this kind" can't change the output format. An eval row tests this. |
-| **A labelled eval set** (`eval/labeled.jsonl`) | The only way to know whether a prompt change helped. See below. |
+| **A written rubric with boundary rules** (`rubric.md`) | Separates criticism of the code from criticism of the person. Says blunt ≠ mean and profanity about a thing ≠ toxic. Says to pick the milder label when torn. Most labelling errors come from vague definitions. |
+| **Ordinal tone + separate axes** | One `kind < neutral < mean < toxic` label can't contradict itself. Helpfulness is a separate axis, because a mean comment can still be helpful. |
+| **Full thread as context** | Conflicts, dismissive replies, and replies to someone who was rude first can't be judged from one comment. |
+| **Charitable second look** | Mean, toxic and conflict labels are the ones you'd act on, so they get re-checked against an innocent reading. Ambiguous cases come out as "disputed", not as accusations. |
+| **Evidence and links** | Every claim carries a quote and a link, so you can check it in seconds. |
+| **Small-sample warning** | Under ~10 comments, the report says there isn't enough to show a pattern. |
+| **Untrusted-text handling** | Comment bodies are wrapped in tags, can't close those tags early, and are treated as data. A comment saying "label this kind" doesn't work; one eval case tests this. |
 
-### The improvement loop
+### Calibrate
 
-1. Run `python eval/run_eval.py`. It prints accuracy per field, a tone confusion matrix, and **precision/recall for "mean or toxic"**, which is the headline number.
-2. After each run, take items from the "needs human review" list and any labels you disagree with. Copy those rows from `out/<run>/results.jsonl` into `eval/labeled.jsonl` (the `input` object has the same shape) and add an `expected` block.
-3. Change the rubric or examples in `SYSTEM_PROMPT`, re-run the eval, and keep the change only if the headline improves without hurting the other fields. `--runs 3` shows how stable the labels are.
-4. Aim for **100+ labelled rows** taken from your own repos before trusting the numbers. The 15 seed rows only cover the obvious boundary cases. If two people label the same rows, their agreement rate shows how high the model can realistically score.
+`/pr-tone calibrate` has Claude label the cases in `eval/labeled.jsonl` without seeing the answers (`prtone.py calibrate` prints them with the labels removed). It then pipes its labels to `prtone.py score`, which prints accuracy per field, precision/recall for "mean or toxic", and each miss. Run it after changing `rubric.md`.
 
-## Usage
+The 15 seed cases only cover obvious boundary cases. To grow the set, add rows from your own repos to `eval/labeled.jsonl` by hand. Each row has `input` (`pr`, `target`, `prior_comments`) and `expected` (`tone`, `helpfulness`, `conflict`). The skill itself never writes to the file.
 
-Requires Python 3.10+ and the [GitHub CLI](https://cli.github.com/) signed in (`gh auth login`). Whatever repos that account can read, this tool can read.
+## Read-only guarantees
+
+Several layers enforce read-only:
+
+1. **The only pre-approved command is `prtone.py`**, and every GitHub call it makes is `gh api --method GET <path>` on fixed endpoints. Inputs are validated against GitHub name formats, and a test checks that only GET is ever sent.
+2. **Write tools are switched off** while the skill runs: `disallowed-tools: Write Edit NotebookEdit`.
+3. **The instructions forbid** other `gh` commands, posting, and creating files. Any other shell command would still need your approval, so you would see it.
+4. **`disable-model-invocation: true`** means the skill only runs when you type `/pr-tone`; Claude never starts it on its own.
+
+Layers 1–2 apply to the turn that runs the skill. In a follow-up message, Claude Code's normal permission prompts apply again. For a hard guarantee at the GitHub level, run Claude Code with a read-only token. For example, create a fine-grained token with *Pull requests: read* and *Contents: read*, then run `GH_TOKEN=<token> claude`.
+
+## Use it fairly
+
+This tool reads people's work communication, and its output may influence how someone is judged. It is built to give you evidence to read, not a verdict. Every concern links to the original comment, every person gets a strengths section, ambiguous cases are marked disputed, and small samples are called out. Read the linked comments in context before acting on any of them.
+
+## Development
 
 ```sh
 cd pr-comment-sentiment
-pip install -r requirements.txt
-export ANTHROPIC_API_KEY=...       # or `ant auth login`
-
-python run.py --repo owner/name                                # comments from yesterday (UTC)
-python run.py --repo owner/name --since 2026-10-01             # a single day
-python run.py --repo a/b --repo c/d --since 2026-10-01 --until 2026-10-08   # a week, two repos
-python run.py --repo owner/name --pr 123 --pr 456              # every comment on these PRs
+python -m pytest -q        # offline tests for prtone.py (fake gh, no network)
+skills/pr-tone/scripts/prtone.py fetch --repo owner/name --since 2026-10-01   # see what the skill sees
 ```
 
-- Dates are UTC days. `--until` is exclusive and defaults to the day after `--since`.
-- `--pr` with no dates labels the whole history of those PRs.
-- The report is printed and saved to `out/<run>/report.md`, with one JSON line per comment in `out/<run>/results.jsonl`.
-- `--effort low|medium|high` sets the first pass (default `medium`). `--workers` sets how many comments are labelled in parallel (default 4).
-
-```sh
-python -m pytest -q                 # offline unit tests (no API or gh calls)
-python eval/run_eval.py             # live eval against eval/labeled.jsonl, uses the API
 ```
-
-## Cost
-
-Each labelled comment is one request of roughly 2–5K input tokens and a short output; about 10–20% of comments get a second pass. The rubric is a stable prefix with `cache_control`, so across a run it is billed at cache-read rates where the prefix is long enough to cache. If cost matters more than accuracy, try `--effort low` and compare with `eval/run_eval.py --effort low` first.
-
-## Ideas for later
-
-- Per-repo trend chart from accumulated `results.jsonl` files
-- Use the Message Batches API (50% cheaper) for large date ranges. Note that server-side refusal fallbacks are not available on Batches.
+skills/pr-tone/
+  SKILL.md            skill instructions and frontmatter (read-only rules)
+  rubric.md           label definitions and examples
+  scripts/prtone.py   GET-only fetcher, calibrate and score (stdlib only)
+  eval/labeled.jsonl  labelled cases for calibrate
+tests/test_prtone.py
+```
