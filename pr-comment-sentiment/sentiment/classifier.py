@@ -189,7 +189,7 @@ class Classifier:
     def _safe_classify(self, item: ClassificationInput) -> Result:
         try:
             return self.classify(item)
-        except anthropic.APIError as e:  # one bad call should not sink the daily run
+        except anthropic.APIError as e:  # one bad call should not sink the whole run
             return Result(
                 input=item,
                 skipped_reason=f"api_error: {type(e).__name__}",

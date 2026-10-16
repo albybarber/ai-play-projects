@@ -1,7 +1,7 @@
 """Cheap, deterministic checks that decide whether a comment is worth a model call.
 
 Skipping bots and one-word approvals saves money and removes the most common
-source of noise in the daily report (CI bots are never "kind" or "toxic").
+source of noise in the report (CI bots are never "kind" or "toxic").
 """
 
 from __future__ import annotations

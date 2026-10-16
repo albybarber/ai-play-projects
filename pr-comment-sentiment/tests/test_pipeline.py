@@ -134,3 +134,48 @@ def test_labeled_set_is_valid():
     for row in rows:
         ClassificationInput.model_validate(row["input"])
         assert {"tone", "helpfulness", "conflict"} <= row["expected"].keys()
+
+
+class FakeGh:
+    """Stands in for the gh CLI: maps an `gh api` path (without query) to pages of items."""
+
+    def __init__(self, routes):
+        self.routes = routes
+        self.calls = []
+
+    def __call__(self, args):
+        self.calls.append(args)
+        path, _, query = args[1].partition("?")
+        page = int(dict(q.split("=") for q in query.split("&")).get("page", 1)) if query else 1
+        data = self.routes[path]
+        return json.dumps(data[page - 1] if isinstance(data, list) else data)
+
+
+def _gh_comment(i, ts, **kw):
+    return {"id": i, "user": {"login": "lee", "type": "User"}, "body": f"c{i}", "created_at": ts,
+            "updated_at": ts, "html_url": f"https://x/{i}", **kw}
+
+
+def test_gh_pagination_stops_at_short_page_and_old_prs():
+    from sentiment.github_client import PER_PAGE, GitHubClient
+    full = [{"number": n, "updated_at": "2026-10-15T12:00:00Z"} for n in range(PER_PAGE)]
+    old = [{"number": 999, "updated_at": "2026-10-01T00:00:00Z"}]
+    gh = FakeGh({"repos/o/r/pulls": [full, old, ["never fetched"]]})
+    prs = list(GitHubClient(gh).pulls_updated_since("o/r", DAY))
+    assert len(prs) == PER_PAGE and len(gh.calls) == 2
+
+
+def test_collect_inputs_for_specific_pr():
+    from sentiment.github_client import GitHubClient, collect_inputs
+    gh = FakeGh({
+        "repos/o/r/pulls/7": {"number": 7, "title": "T", "user": {"login": "sam"}, "html_url": "https://x/7"},
+        "repos/o/r/issues/7/comments": [[_gh_comment(1, "2026-10-14T09:00:00Z")]],
+        "repos/o/r/pulls/7/comments": [[_gh_comment(2, "2026-10-15T09:00:00Z", path="a.py", diff_hunk="@@"),
+                                         _gh_comment(3, "2026-10-15T10:00:00Z", in_reply_to_id=2)]],
+        "repos/o/r/pulls/7/reviews": [[{"id": 4, "user": {"login": "bot", "type": "Bot"}, "body": "",
+                                        "submitted_at": "2026-10-15T11:00:00Z", "html_url": "https://x/4"}]],
+    })
+    inputs = collect_inputs(GitHubClient(gh), ["o/r"], DAY, NEXT, pr_numbers=[7])
+    assert [i.target.id for i in inputs] == ["review_comment:2", "review_comment:3"]
+    assert inputs[1].target.thread_id == "review_thread:2"
+    assert [p.id for p in inputs[1].prior_comments] == ["issue_comment:1", "review_comment:2"]

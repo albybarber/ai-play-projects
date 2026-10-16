@@ -1,48 +1,57 @@
-"""Fetch PR comments from the GitHub REST API and build per-comment context."""
+"""Fetch PR comments with the GitHub CLI (`gh api`) and build per-comment context.
+
+Uses whatever account `gh auth login` is signed in as, so any repo you can
+read with gh works here.
+"""
 
 from __future__ import annotations
 
-import os
+import json
+import subprocess
 from datetime import datetime
-from typing import Iterator
-
-import requests
+from typing import Callable, Iterator
 
 from .models import ClassificationInput, Comment, PullRequestContext
 
-API = "https://api.github.com"
+PER_PAGE = 100
 MAX_PRIOR_COMMENTS = 30  # older context rarely changes a label and costs tokens
 MAX_DIFF_HUNK_LINES = 40
+
+Runner = Callable[[list[str]], str]
 
 
 def _parse_ts(ts: str) -> datetime:
     return datetime.fromisoformat(ts.replace("Z", "+00:00"))
 
 
-class GitHubClient:
-    def __init__(self, token: str | None = None, session: requests.Session | None = None):
-        self.session = session or requests.Session()
-        token = token or os.environ.get("GITHUB_TOKEN")
-        self.session.headers.update(
-            {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
-        )
-        if token:
-            self.session.headers["Authorization"] = f"Bearer {token}"
+def run_gh(args: list[str]) -> str:
+    proc = subprocess.run(["gh", *args], capture_output=True, text=True)
+    if proc.returncode != 0:
+        raise RuntimeError(f"gh {' '.join(args)} failed: {proc.stderr.strip()}")
+    return proc.stdout
 
-    def _paginate(self, url: str, params: dict | None = None) -> Iterator[dict]:
-        params = {"per_page": 100, **(params or {})}
-        while url:
-            resp = self.session.get(url, params=params, timeout=30)
-            resp.raise_for_status()
-            yield from resp.json()
-            url = resp.links.get("next", {}).get("url")
-            params = None  # the "next" link already carries the query string
+
+class GitHubClient:
+    def __init__(self, runner: Runner = run_gh):
+        self.run = runner
+
+    def _pages(self, path: str, params: str = "") -> Iterator[dict]:
+        """Yield items from a REST list endpoint one page at a time, so callers can stop early."""
+        page = 1
+        while True:
+            sep = "&" if params else ""
+            items = json.loads(self.run(["api", f"{path}?{params}{sep}per_page={PER_PAGE}&page={page}"]))
+            yield from items
+            if len(items) < PER_PAGE:
+                return
+            page += 1
+
+    def pull(self, repo: str, number: int) -> dict:
+        return json.loads(self.run(["api", f"repos/{repo}/pulls/{number}"]))
 
     def pulls_updated_since(self, repo: str, since: datetime) -> Iterator[dict]:
         """PRs (open or closed) whose updated_at is at or after `since`, newest first."""
-        for pr in self._paginate(
-            f"{API}/repos/{repo}/pulls", {"state": "all", "sort": "updated", "direction": "desc"}
-        ):
+        for pr in self._pages(f"repos/{repo}/pulls", "state=all&sort=updated&direction=desc"):
             if _parse_ts(pr["updated_at"]) < since:
                 return
             yield pr
@@ -51,15 +60,15 @@ class GitHubClient:
         """All human-readable text on a PR, oldest first."""
         comments: list[Comment] = []
 
-        for c in self._paginate(f"{API}/repos/{repo}/issues/{number}/comments"):
+        for c in self._pages(f"repos/{repo}/issues/{number}/comments"):
             comments.append(_from_issue_comment(c))
 
-        review_comments = list(self._paginate(f"{API}/repos/{repo}/pulls/{number}/comments"))
+        review_comments = list(self._pages(f"repos/{repo}/pulls/{number}/comments"))
         by_id = {c["id"]: c for c in review_comments}
         for c in review_comments:
             comments.append(_from_review_comment(c, _thread_root(c, by_id)))
 
-        for r in self._paginate(f"{API}/repos/{repo}/pulls/{number}/reviews"):
+        for r in self._pages(f"repos/{repo}/pulls/{number}/reviews"):
             if (r.get("body") or "").strip() and r.get("submitted_at"):
                 comments.append(_from_review(r))
 
@@ -150,18 +159,24 @@ def build_inputs(
     return inputs
 
 
+def _pr_context(repo: str, pr: dict) -> PullRequestContext:
+    return PullRequestContext(
+        repo=repo, number=pr["number"], title=pr["title"], author=_login(pr.get("user")), url=pr["html_url"]
+    )
+
+
 def collect_inputs(
-    gh: GitHubClient, repos: list[str], start: datetime, end: datetime
+    gh: GitHubClient,
+    repos: list[str],
+    start: datetime,
+    end: datetime,
+    pr_numbers: list[int] | None = None,
 ) -> list[ClassificationInput]:
+    """Comments created or edited in [start, end) across `repos`, or only on `pr_numbers` if given."""
     inputs: list[ClassificationInput] = []
     for repo in repos:
-        for pr in gh.pulls_updated_since(repo, start):
-            ctx = PullRequestContext(
-                repo=repo,
-                number=pr["number"],
-                title=pr["title"],
-                author=_login(pr.get("user")),
-                url=pr["html_url"],
-            )
+        prs = [gh.pull(repo, n) for n in pr_numbers] if pr_numbers else gh.pulls_updated_since(repo, start)
+        for pr in prs:
+            ctx = _pr_context(repo, pr)
             inputs.extend(build_inputs(ctx, gh.pr_comments(repo, pr["number"]), start, end))
     return inputs

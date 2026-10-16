@@ -10,4 +10,4 @@ A collection of small utility scripts and experiments.
 - [make-a-thing](https://albybarber.github.io/ai-play-projects/make-a-thing/) — LEGO building & guessing companion app: category dice, word selection, scoring & turn management for 2-8 players
 - [Woodshed](https://albybarber.github.io/ai-play-projects/Woodshed/utv-storage-planner.html) — Interactive browser tool for designing a 3-bay outdoor storage shelter (UTV, log splitter, firewood)
 - [IRL-GEO-game](https://albybarber.github.io/ai-play-projects/IRL-GEO-game/leaderboard.html) — Real-life GeoGuessr scoring & reveal app for a Toronto office offsite: score 3 teams across 12 locations and run a live map-backed reveal sequence
-- [pr-comment-sentiment](./pr-comment-sentiment) — Daily GitHub Action that uses Claude to label PR comments as kind/neutral/mean/toxic, helpful or not, and conflicting with earlier comments, with a labelled eval set for measuring accuracy
+- [pr-comment-sentiment](./pr-comment-sentiment) — CLI tool (gh + Claude) that labels PR comments in any repo as kind/neutral/mean/toxic, helpful or not, and conflicting with earlier comments, with a labelled eval set for measuring accuracy

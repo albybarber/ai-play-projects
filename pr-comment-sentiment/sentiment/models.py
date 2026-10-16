@@ -38,7 +38,7 @@ class ClassificationInput(BaseModel):
     """Everything the model sees for one target comment.
 
     Rows in eval/labeled.jsonl use this exact shape under "input", so any row
-    from a daily results.jsonl can be copied into the eval set and labelled.
+    from any results.jsonl can be copied into the eval set and labelled.
     """
 
     pr: PullRequestContext
