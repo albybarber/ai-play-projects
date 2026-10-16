@@ -22,7 +22,7 @@ curl -fsSL https://raw.githubusercontent.com/albybarber/ai-play-projects/main/pr
 Or, from a clone of this repo: `./pr-comment-sentiment/install.sh`
 
 The installer:
-- puts the skill in `~/.claude/skills/pr-tone`. Claude Code **and** Copilot both read that folder, so one install covers both.
+- puts the skill in **`~/.claude/skills/pr-tone`** (Claude Code) and **`~/.copilot/skills/pr-tone`** (GitHub Copilot CLI and VS Code). Both are links to the same files, so they never drift apart. Recent Copilot CLI versions don't read `~/.claude/skills`, which is why it installs into both.
   - Run from a clone, it **links** to your checkout, so `git pull` updates it.
   - Run via `curl`, it downloads just this folder to `~/.local/share/pr-tone`. Run the same command again to update.
 - checks for Python 3.10+, the [GitHub CLI](https://cli.github.com/), and that `gh` is signed in. It tells you what's missing; run `gh auth login` if it says so.
@@ -30,11 +30,18 @@ The installer:
 
 | Option | What it does |
 |---|---|
-| `--target ~/.copilot/skills` | install somewhere else (repeatable), e.g. if your Copilot version only reads `~/.copilot/skills` |
+| `--target DIR` | install only into `DIR` (repeatable), e.g. `--target ~/.copilot/skills` for Copilot only |
 | `--copy` | copy the files instead of linking them |
 | `--uninstall` | remove the skill and the downloaded copy; your reports in `~/pr-tone-reports` are kept |
 
 With `curl`, pass options after `bash -s --`, for example `curl -fsSL … | bash -s -- --uninstall`.
+
+**Check it's loaded.** Start a new session first (or run `/skills reload` in Copilot CLI).
+- **Copilot CLI:** run `/skills info pr-tone`.
+- **VS Code:** type `/skills` in Copilot Chat (agent mode) and look for `pr-tone`.
+- **Claude Code:** type `/pr-tone`.
+
+If VS Code doesn't list it, check that agent skills are turned on in your Copilot settings.
 
 On Windows without WSL, copy the `skills/pr-tone` folder into `%USERPROFILE%\.copilot\skills\` (or `.claude\skills\`), and install Python and `gh`.
 

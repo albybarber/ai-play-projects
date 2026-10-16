@@ -11,15 +11,16 @@ def run(home, *args):
     return subprocess.run(["bash", str(INSTALL), *args], env=env, capture_output=True, text=True)
 
 
-def test_install_links_is_idempotent_and_uninstalls(tmp_path):
-    dest = tmp_path / ".claude" / "skills" / "pr-tone"
-    for _ in range(2):
+def test_install_links_for_claude_and_copilot_and_uninstalls(tmp_path):
+    dests = [tmp_path / ".claude" / "skills" / "pr-tone", tmp_path / ".copilot" / "skills" / "pr-tone"]
+    for _ in range(2):  # re-running is safe
         r = run(tmp_path)
         assert r.returncode == 0, r.stderr
-        assert dest.is_symlink() and dest.resolve() == SKILL.resolve()
+        for d in dests:
+            assert d.is_symlink() and d.resolve() == SKILL.resolve()
     assert "\033[" not in r.stdout  # no colour codes when not a terminal
     r = run(tmp_path, "--uninstall")
-    assert r.returncode == 0 and not dest.exists()
+    assert r.returncode == 0 and not any(d.exists() for d in dests)
 
 
 def test_copy_to_custom_target(tmp_path):

@@ -5,13 +5,13 @@
 #   Without cloning:             curl -fsSL https://raw.githubusercontent.com/albybarber/ai-play-projects/main/pr-comment-sentiment/install.sh | bash
 #
 # Options:
-#   --target DIR   install into DIR instead of ~/.claude/skills (repeatable)
+#   --target DIR   install into DIR instead of the defaults (repeatable)
 #   --copy         copy the skill instead of symlinking it
 #   --uninstall    remove the skill (reports in ~/pr-tone-reports are kept)
 #   -h, --help     show this help
 #
-# Re-run at any time to update. ~/.claude/skills is read by both Claude Code
-# and Copilot, so one install covers both.
+# Installs into ~/.claude/skills (Claude Code) and ~/.copilot/skills (GitHub
+# Copilot CLI and VS Code). Both are links to the same files. Re-run to update.
 
 set -euo pipefail
 
@@ -40,7 +40,7 @@ while [ $# -gt 0 ]; do
     *) die "unknown option: $1 (try --help)" ;;
   esac
 done
-[ ${#targets[@]} -gt 0 ] || targets=("$HOME/.claude/skills")
+[ ${#targets[@]} -gt 0 ] || targets=("$HOME/.claude/skills" "$HOME/.copilot/skills")
 
 # Is this folder one of our installs (a link to a pr-tone skill, or a copy of one)?
 is_ours() {
@@ -128,9 +128,10 @@ fi
 
 cat <<EOF
 
-Done. Try it:
+Done. Start a new session (or run /skills reload in Copilot CLI), then try it:
   Claude Code:  /pr-tone owner/repo some-login last 2 weeks
   Copilot:      "Use the pr-tone skill to check some-login in owner/repo over the last 2 weeks"
+                (check it's listed with /skills in Copilot CLI or VS Code chat)
 Reports are saved to ${PR_TONE_HOME:-$HOME/pr-tone-reports} (never inside a git repo).
 Run this installer again to update, or with --uninstall to remove.
 EOF
